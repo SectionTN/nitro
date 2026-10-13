@@ -10,7 +10,7 @@ trap 'rm -rf "$TEST_DIRECTORY"' EXIT
 for TEST_SOURCE in "$REPOSITORY_ROOT"/tests/cpp/*Test.cpp; do
   "${CXX:-clang++}" -std=c++20 -O1 -g \
     -Wall -Wextra -Wpedantic -Wno-nullability-extension \
-    -fsanitize=address,undefined -fno-omit-frame-pointer -pthread \
+    -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer -pthread \
     -I "$REPOSITORY_ROOT/packages/react-native-nitro-modules/cpp/utils" \
     "$TEST_SOURCE" \
     "$REPOSITORY_ROOT/packages/react-native-nitro-modules/cpp/utils/NitroTypeInfo.cpp" \
