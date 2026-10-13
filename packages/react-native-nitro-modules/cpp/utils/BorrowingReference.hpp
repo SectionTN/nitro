@@ -56,8 +56,8 @@ public:
       bool shouldDestroy = _state->decrementStrongRefCount();
       if (shouldDestroy) {
         forceDestroyValue();
+        releaseImplicitWeakReference();
       }
-      maybeDestroyState();
     }
 
     _value = ref._value;
@@ -71,10 +71,8 @@ public:
   }
 
 private:
-  // WeakReference<T> -> BorrowingReference<T> Lock-constructor
-  explicit BorrowingReference(const WeakReference<T>& ref) : _value(ref._value), _state(ref._state) {
-    _state->strongRefCount++;
-  }
+  // Adopt the strong count already acquired by WeakReference<T>::lock().
+  explicit BorrowingReference(const WeakReference<T>& ref) : _value(ref._value), _state(ref._state) {}
 
 private:
   // BorrowingReference<C> -> BorrowingReference<T> Cast-constructor
@@ -97,8 +95,8 @@ public:
     bool shouldDestroy = _state->decrementStrongRefCount();
     if (shouldDestroy) {
       forceDestroyValue();
+      releaseImplicitWeakReference();
     }
-    maybeDestroyState();
   }
 
 public:
@@ -192,9 +190,9 @@ public:
   }
 
 private:
-  void maybeDestroyState() {
-    if (_state->strongRefCount == 0 && _state->weakRefCount == 0) {
-      // free the full memory if there are no more references at all
+  void releaseImplicitWeakReference() {
+    if (_state->decrementWeakRefCount()) {
+      // The final strong owner also released the last weak reference.
       delete _state;
       _state = nullptr;
     }

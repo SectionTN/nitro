@@ -6,6 +6,7 @@
 //
 
 #include "NitroTypeInfo.hpp"
+#include <unordered_map>
 
 #if __has_include(<cxxabi.h>)
 #include <cxxabi.h>

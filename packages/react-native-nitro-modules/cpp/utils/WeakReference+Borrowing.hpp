@@ -22,7 +22,7 @@ template <typename T>
 BorrowingReference<T> WeakReference<T>::lock() const {
   std::unique_lock lock(_state->mutex);
 
-  if (_state->isDeleted) {
+  if (_state->isDeleted || !_state->tryIncrementStrongRefCount()) {
     // return nullptr
     return BorrowingReference<T>();
   }

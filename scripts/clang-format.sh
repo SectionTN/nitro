@@ -3,6 +3,8 @@
 set -e
 
 CPP_DIRS=(
+  # Standalone native regression tests
+  "tests/cpp"
   # react-native-nitro-modules
   "packages/react-native-nitro-modules/android/src/main/cpp"
   "packages/react-native-nitro-modules/cpp"

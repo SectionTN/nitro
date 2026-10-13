@@ -49,8 +49,7 @@ public:
       return *this;
 
     if (_state != nullptr) {
-      _state->weakRefCount--;
-      maybeDestroy();
+      release();
     }
 
     _value = ref._value;
@@ -67,8 +66,7 @@ public:
 
     if (_state != nullptr) {
       // destroy previous pointer
-      _state->weakRefCount--;
-      maybeDestroy();
+      release();
     }
 
     _value = ref._value;
@@ -83,8 +81,7 @@ public:
 
   ~WeakReference() {
     if (_state != nullptr) {
-      _state->weakRefCount--;
-      maybeDestroy();
+      release();
     }
   }
 
@@ -98,8 +95,8 @@ public:
   friend class BorrowingReference<T>;
 
 private:
-  void maybeDestroy() {
-    if (_state->strongRefCount == 0 && _state->weakRefCount == 0) {
+  void release() {
+    if (_state->decrementWeakRefCount()) {
       // free the full memory if there are no more references at all
       if (!_state->isDeleted) [[unlikely]] {
         std::string typeName = TypeInfo::getFriendlyTypename<T>(true);

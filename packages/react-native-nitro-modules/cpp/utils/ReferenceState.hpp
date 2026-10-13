@@ -31,10 +31,30 @@ struct ReferenceState {
    */
   inline bool decrementStrongRefCount() {
     size_t oldRefCount = strongRefCount.fetch_sub(1);
-    return oldRefCount <= 1;
+    return oldRefCount == 1;
   }
 
-  explicit ReferenceState() : strongRefCount(1), weakRefCount(0), isDeleted(false) {}
+  /**
+   * Locks a weak reference without resurrecting a value whose final owner is
+   * already deleting it.
+   */
+  inline bool tryIncrementStrongRefCount() {
+    size_t count = strongRefCount.load();
+    while (count != 0) {
+      if (strongRefCount.compare_exchange_weak(count, count + 1)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  inline bool decrementWeakRefCount() {
+    return weakRefCount.fetch_sub(1) == 1;
+  }
+
+  // One implicit weak reference keeps the state alive until the final strong
+  // owner has finished destroying the value and no longer accesses the state.
+  explicit ReferenceState() : strongRefCount(1), weakRefCount(1), isDeleted(false) {}
 };
 
 } // namespace margelo::nitro
