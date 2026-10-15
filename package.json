@@ -27,7 +27,7 @@
     "nitrogen": "bun --cwd packages/nitrogen",
     "version:set": "node scripts/set-version.mjs",
     "check-versions": "node scripts/set-version.mjs --check",
-    "test": "bun --cwd packages/nitro-core run test"
+    "test": "bun run --cwd packages/nitro-core test"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
