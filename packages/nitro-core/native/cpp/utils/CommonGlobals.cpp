@@ -101,19 +101,22 @@ jsi::Value CommonGlobals::Promise::resolved(jsi::Runtime& runtime) {
   const jsi::Function& resolvedFunc = getGlobalFunction(runtime, "Promise.resolve", [](jsi::Runtime& runtime) {
     return runtime.global().getPropertyAsObject(runtime, "Promise").getPropertyAsFunction(runtime, "resolve");
   });
-  return resolvedFunc.call(runtime);
+  auto promiseCtor = runtime.global().getPropertyAsObject(runtime, "Promise");
+  return resolvedFunc.callWithThis(runtime, promiseCtor);
 }
 jsi::Value CommonGlobals::Promise::resolved(jsi::Runtime& runtime, jsi::Value&& value) {
   const jsi::Function& resolvedFunc = getGlobalFunction(runtime, "Promise.resolve", [](jsi::Runtime& runtime) {
     return runtime.global().getPropertyAsObject(runtime, "Promise").getPropertyAsFunction(runtime, "resolve");
   });
-  return resolvedFunc.call(runtime, {std::move(value)});
+  auto promiseCtor = runtime.global().getPropertyAsObject(runtime, "Promise");
+  return resolvedFunc.callWithThis(runtime, promiseCtor, {std::move(value)});
 }
 jsi::Value CommonGlobals::Promise::rejected(jsi::Runtime& runtime, jsi::Value&& error) {
   const jsi::Function& rejectedFunc = getGlobalFunction(runtime, "Promise.reject", [](jsi::Runtime& runtime) {
     return runtime.global().getPropertyAsObject(runtime, "Promise").getPropertyAsFunction(runtime, "reject");
   });
-  return rejectedFunc.call(runtime, {std::move(error)});
+  auto promiseCtor = runtime.global().getPropertyAsObject(runtime, "Promise");
+  return rejectedFunc.callWithThis(runtime, promiseCtor, {std::move(error)});
 }
 
 jsi::Value CommonGlobals::Promise::callConstructor(jsi::Runtime& runtime, jsi::HostFunctionType&& executor) {
