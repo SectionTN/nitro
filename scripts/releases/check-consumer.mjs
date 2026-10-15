@@ -76,6 +76,10 @@ export function checkConsumer(tarballs) {
     path.join(consumer, 'Math.nitro.ts'),
     "import type { HybridObject } from 'nitro-core'\nexport interface Math extends HybridObject<{ ios: 'swift'; android: 'kotlin' }> { add(a: number, b: number): number }\n"
   )
+  writeFileSync(
+    path.join(consumer, 'esm.mts'),
+    "export type { HybridObject, NitroModulesProxy } from 'nitro-core'\n"
+  )
   writeJSON(path.join(consumer, 'tsconfig.json'), {
     compilerOptions: {
       strict: true,
@@ -85,7 +89,7 @@ export function checkConsumer(tarballs) {
       module: 'NodeNext',
       moduleResolution: 'NodeNext',
     },
-    include: ['*.ts'],
+    include: ['*.ts', '*.mts'],
   })
   writeJSON(path.join(consumer, 'nitro.json'), {
     cxxNamespace: ['releasecheck'],
