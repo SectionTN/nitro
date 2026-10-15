@@ -54,6 +54,8 @@ remain alongside these suites.
   cross-module HybridObjects and optional primitives.
 - Harness assertions become Chai assertions. Callback recording and native
   waits replace Harness spies/polling and JavaScript timer dependencies.
+  Identity checks preserve `Object.is` behavior, and the two variant assertions
+  with omitted optional fields preserve `toEqual`'s undefined-key semantics.
 - The host supplies platform metadata and `gc()` directly through JSI.
 
 The two package `src/__tests__/index.test.tsx` files contain only

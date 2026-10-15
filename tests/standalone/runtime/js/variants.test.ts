@@ -38,6 +38,14 @@ const MINIMAL_CAR: Car = {
   performanceScores: [],
 };
 
+// The original toEqual ignores undefined-valued keys. Preserve that behavior
+// when comparing structs whose optional properties were omitted from the input.
+function definedProperties(value: object): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, property]) => property !== undefined),
+  );
+}
+
 export const cases = {
   ...casesForTestObjects("Variants", {
     "someVariant roundtrips a number": (testObject) => {
@@ -99,9 +107,11 @@ export const cases = {
       testObject,
     ) => {
       expect(
-        testObject.passAllEmptyObjectVariant({
-          optionalString: "optional string!",
-        }),
+        definedProperties(
+          testObject.passAllEmptyObjectVariant({
+            optionalString: "optional string!",
+          }),
+        ),
       ).to.deep.equal({ optionalString: "optional string!" });
     },
 
@@ -574,9 +584,9 @@ export const cases = {
     "getVariantObjects(...) bounces a Car without optional keys": (
       testObject,
     ) => {
-      expect(testObject.getVariantObjects(MINIMAL_CAR)).to.deep.equal(
-        MINIMAL_CAR,
-      );
+      expect(
+        definedProperties(testObject.getVariantObjects(MINIMAL_CAR)),
+      ).to.deep.equal(MINIMAL_CAR);
     },
 
     "getVariantObjects(...) throws for a Person without age": (testObject) => {
