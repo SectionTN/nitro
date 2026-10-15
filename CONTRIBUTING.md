@@ -19,7 +19,7 @@ bun typecheck
 bun lint-all
 ```
 
-`packages/nitro-core` contains the shared JS/TS package. The native runtime remains at `packages/react-native-nitro-modules`; its manifest is private and its native names stay unchanged. RN JS integration lives in the React Native repository. `packages/nitrogen` is the published generator, including React Native view generation and autolinking.
+`nitro-core/` contains the shared runtime: `cpp/`, `apple/`, `android/`, and `js/`. Its npm package publishes only JS/TS; the React Native repository stages native sources into its runtime package and owns RN JS integration and build configuration. The native sources still contain React Native-specific code. `nitrogen/` is the published generator, including React Native view generation and autolinking.
 
 For native or generator changes, use a `react-native-nitro-modules` checkout on `main` with your core commit in its `packages/react-native-nitro-modules/nitro` submodule. Run `bun sync-core`, build the workspace, run `bun specs`, and build the example app on the affected platforms. Run the existing harness tests for behavioral changes. Commit generated fixture changes in the wrapper repository. The [wrapper contribution guide](https://github.com/margelo/react-native-nitro-modules/blob/main/CONTRIBUTING.md) and [docs](https://nitro.margelo.com/docs/resources/contributing) describe the existing test harness and toolchains.
 

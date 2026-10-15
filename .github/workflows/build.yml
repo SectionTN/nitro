@@ -5,7 +5,8 @@ on:
     branches: [main, core-split]
     paths:
       - '.github/workflows/build.yml'
-      - 'packages/**'
+      - 'nitro-core/**'
+      - 'nitrogen/**'
       - 'config/**'
       - 'scripts/set-version.mjs'
       - 'package.json'
@@ -13,7 +14,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/build.yml'
-      - 'packages/**'
+      - 'nitro-core/**'
+      - 'nitrogen/**'
       - 'config/**'
       - 'scripts/set-version.mjs'
       - 'package.json'
@@ -30,12 +32,11 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun typecheck
-      - run: bun run test
       - name: Pack Nitro core
-        working-directory: packages/nitro-core
+        working-directory: nitro-core
         run: npm pack --pack-destination "$RUNNER_TEMP"
       - name: Pack Nitrogen
-        working-directory: packages/nitrogen
+        working-directory: nitrogen
         run: npm pack --pack-destination "$RUNNER_TEMP"
       - name: Install packed packages outside the workspace
         run: |

@@ -9,13 +9,12 @@
 <br />
 
 **Nitro Modules** are fast, type-safe native modules for React Native with statically compiled bindings to JSI.
-They consist of two parts:
+This repository contains:
 
-- [**nitro-core**](packages/nitro-core): Shared JavaScript API and TypeScript definitions
-- [**Native runtime**](packages/react-native-nitro-modules): C++, Swift, and Kotlin/JNI sources
-- [**nitrogen**](packages/nitrogen): An optional code-generator for nitro module library authors
+- [**nitro-core**](nitro-core): Shared native runtime, JavaScript API, and TypeScript definitions
+- [**nitrogen**](nitrogen): An optional code generator for Nitro module library authors
 
-This repository owns the shared runtime and Nitrogen. The native source manifest here is private; the published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
+This repository owns the shared runtime and Nitrogen. The `nitro-core` npm package contains only JS/TS. The published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
 
 Shared development targets this repository's `core-split` branch. The React Native repository uses `main` and pins Nitro in its `packages/react-native-nitro-modules/nitro` submodule.
 
@@ -63,8 +62,8 @@ cd ios && pod install
 - [**Community Discord** 💬](https://margelo.com/discord)
 - [**Nitro Module Builder** AI GPT 🤖](https://chatgpt.com/g/g-6870125d0fcc8191925bd20a02c78bcf-nitro-module-builder)
 - [**How to build a Nitro Module** YouTube Tutorial ▶️](https://youtu.be/528SxTGnIlc?si=IxH7n09ZVe4iwRPv)
-- [**nitrogen**/README.md](./packages/nitrogen/README.md)
-- [**react-native-nitro-modules**/README.md](./packages/react-native-nitro-modules/README.md)
+- [**nitrogen**/README.md](./nitrogen/README.md)
+- [**react-native-nitro-modules**/README.md](https://github.com/margelo/react-native-nitro-modules/blob/main/packages/react-native-nitro-modules/README.md)
 - [**react-native-nitro-test** example module](https://github.com/margelo/react-native-nitro-modules/blob/main/packages/react-native-nitro-test/README.md)
 - [`TestObject.nitro.ts` example playground](https://github.com/margelo/react-native-nitro-modules/blob/main/packages/react-native-nitro-test/src/specs/TestObject.nitro.ts)
 

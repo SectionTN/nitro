@@ -3,9 +3,9 @@
 set -e
 
 CPP_DIRS=(
-  "packages/react-native-nitro-modules/android/src/main/cpp"
-  "packages/react-native-nitro-modules/cpp"
-  "packages/react-native-nitro-modules/ios"
+  "nitro-core/android/src/main/cpp"
+  "nitro-core/cpp"
+  "nitro-core/apple"
 )
 
 if which clang-format >/dev/null; then

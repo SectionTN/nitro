@@ -8,8 +8,8 @@
   "repository": "https://github.com/margelo/nitro.git",
   "author": "Marc Rousavy <me@mrousavy.com> (https://github.com/mrousavy)",
   "workspaces": [
-    "packages/nitro-core",
-    "packages/nitrogen"
+    "nitro-core",
+    "nitrogen"
   ],
   "scripts": {
     "postinstall": "bun run build && bun install --ignore-scripts --frozen-lockfile",
@@ -23,11 +23,10 @@
     "lint-all": "bun lint-cpp && bun lint-swift && bun lint-kotlin && bun lint",
     "clean": "git clean -dfx",
     "release": "./scripts/release.sh",
-    "nitro": "bun --cwd packages/nitro-core",
-    "nitrogen": "bun --cwd packages/nitrogen",
+    "nitro": "bun --cwd nitro-core",
+    "nitrogen": "bun --cwd nitrogen",
     "version:set": "node scripts/set-version.mjs",
-    "check-versions": "node scripts/set-version.mjs --check",
-    "test": "bun run --cwd packages/nitro-core test"
+    "check-versions": "node scripts/set-version.mjs --check"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
@@ -91,14 +90,9 @@
       },
       "@release-it-plugins/workspaces": {
         "workspaces": [
-          "packages/nitro-core",
-          "packages/nitrogen"
-        ],
-        "additionalManifests": {
-          "versionUpdates": [
-            "packages/react-native-nitro-modules/package.json"
-          ]
-        }
+          "nitro-core",
+          "nitrogen"
+        ]
       }
     }
   }

@@ -9,13 +9,13 @@ on:
       - '.github/workflows/run-nitrogen-init.yml'
       - 'bun.lock'
       - '**/package.json'
-      - 'packages/nitrogen/**'
+      - 'nitrogen/**'
   pull_request:
     paths:
       - '.github/workflows/run-nitrogen-init.yml'
       - 'bun.lock'
       - '**/package.json'
-      - 'packages/nitrogen/**'
+      - 'nitrogen/**'
 
 jobs:
   lint:
@@ -33,4 +33,4 @@ jobs:
 
       - name: Run nitrogen init outside the checkout
         working-directory: ${{ runner.temp }}
-        run: node "$GITHUB_WORKSPACE/packages/nitrogen/lib/index.js" init react-native-math
+        run: node "$GITHUB_WORKSPACE/nitrogen/lib/index.js" init react-native-math

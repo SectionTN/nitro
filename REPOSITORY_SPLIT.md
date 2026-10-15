@@ -4,13 +4,13 @@ The split starts at Nitro commit `d498e237e9b4117c4abe38c023adf486c75f856a`, wit
 
 ## Ownership
 
-This repository owns `packages/nitro-core`, `packages/nitrogen`, and the native sources at `packages/react-native-nitro-modules/{cpp,ios,android/src}`. Native source names, registration, generated APIs, and React Native behavior stay unchanged.
+This repository owns `nitro-core/` and `nitrogen/`. The runtime sources are grouped under `nitro-core/{android,apple,cpp,js}`. Native names, registration, generated APIs, and React Native behavior stay unchanged. The native sources still contain React Native-specific code.
 
-`nitro-core` is the shared JS/TS package. It owns HybridObject types, the NitroModulesProxy contract, runtime access, version checks, and constructor helpers. It has no React Native dependency. Nitrogen depends on `nitro-core`. The native source directory retains its private package manifest for versioning; it is not a JS workspace or a published RN package.
+The `nitro-core` npm package publishes only the shared JS/TS API from `nitro-core/js/`. It owns HybridObject types, the NitroModulesProxy contract, runtime access, version checks, and constructor helpers. It has no React Native dependency. Nitrogen depends on `nitro-core`. Native sources remain in this Git repository and are distributed by the host integration package.
 
 [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules) owns the public `react-native-nitro-modules` package metadata, RN JS bootstrap, views and worklets integration, CocoaPods/Gradle/CMake integration, RN codegen configuration, apps, tests, fixtures, docs, and init template. It depends on the exact matching `nitro-core` version and re-exports its shared API. Its `nitro` submodule at `packages/react-native-nitro-modules/nitro` pins this repository to a specific commit. The submodule's `core-split` branch setting is a development hint; normal bootstrap and builds use the committed SHA.
 
-The wrapper's `sync-core` command stages native sources into `cpp/`, `ios/`, and `android/src/`. Those directories are ignored generated outputs. The wrapper maintains its own `src/` directory. Both `nitro-core` and Nitrogen run directly from the pinned submodule as workspace packages; their sources are not copied into the RN package.
+The wrapper's `sync-core` command stages `nitro-core/cpp/`, `nitro-core/apple/`, and `nitro-core/android/src/` into its existing `cpp/`, `ios/`, and `android/src/` paths. Those directories are ignored generated outputs. The wrapper maintains its own `src/` directory. Both `nitro-core` and Nitrogen run directly from the pinned submodule as workspace packages; their sources are not copied into the RN package.
 
 `packages/template` stays in the React Native repository because it creates an RN library with CocoaPods, Gradle, and React Native package metadata. Nitrogen owns the init command and downloads that template from the wrapper's `main` branch.
 
@@ -28,7 +28,7 @@ The root build compiles `nitro-core` before Nitrogen. Both use the same package 
 
 In `react-native-nitro-modules`, run `bun bootstrap` on a clean checkout. It initializes the pinned submodule, stages sources, installs dependencies, and builds the workspace. Use `bun specs` for the existing generation fixtures and the existing app commands for iOS, Android, and harness tests. See that repository's contribution guide for native toolchain setup.
 
-For a shared change, validate it in the wrapper checkout as well: stage the changed core sources, build Nitrogen, regenerate the existing fixtures, and run the relevant native builds and tests. Commit expected generated bindings in the wrapper. Core CI builds and typechecks the shared JS packages, tests runtime access, and packs both npm packages; RN generation, native builds, runtime tests, and performance workflows live in the wrapper.
+For a shared change, validate it in the wrapper checkout as well: stage the changed core sources, build Nitrogen, regenerate the existing fixtures, and run the relevant native builds and tests. Commit expected generated bindings in the wrapper. Core CI builds and typechecks the shared JS packages and packs both npm packages; RN generation, native builds, runtime tests, and performance workflows live in the wrapper.
 
 ## Updating the pinned core
 
@@ -41,7 +41,7 @@ Local edits in `packages/react-native-nitro-modules/nitro` are allowed during de
 
 ## Versions and releases
 
-The root, native source manifest, `nitro-core`, Nitrogen, and embedded JS/native versions move together. `bun version:set <version>` updates their manifests, Nitrogen's core dependency, `packages/nitro-core/src/version.ts`, and the authoritative `cpp/utils/NitroDefines.hpp`. Then run `bun install` to update the lockfile. `bun check-versions` verifies consistency. Do not edit a staged wrapper header to bump a version.
+The root, `nitro-core`, Nitrogen, and embedded JS/native versions move together. `bun version:set <version>` updates their manifests, Nitrogen's core dependency, `nitro-core/js/version.ts`, and the authoritative `nitro-core/cpp/utils/NitroDefines.hpp`. Then run `bun install` to update the lockfile. `bun check-versions` verifies consistency. Do not edit a staged wrapper header to bump a version.
 
 Release preparation follows the same order as a core update: set and validate the version here, push the core commit, update the wrapper pin and package versions, and validate all three real npm tarballs: `nitro-core`, `nitrogen`, and `react-native-nitro-modules`. Pack with `npm pack` from each package directory. Install the tarballs together in a fresh consumer outside the repositories and run typechecking, generation, and native checks.
 

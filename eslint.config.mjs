@@ -70,6 +70,6 @@ export default [
     ],
   },
   ...baseConfig,
-  packageConfig('packages/nitro-core', ['./tsconfig.json', './tsconfig.test.json'], false),
-  packageConfig('packages/nitrogen', true, false),
+  packageConfig('nitro-core', true, false),
+  packageConfig('nitrogen', true, false),
 ]

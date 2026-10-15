@@ -3,7 +3,7 @@
 set -e
 
 SWIFT_DIRS=(
-  "packages/react-native-nitro-modules/ios"
+  "nitro-core/apple"
 )
 
 if which swift >/dev/null; then

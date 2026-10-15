@@ -1,6 +1,11 @@
 # nitro-core
 
-Shared JavaScript APIs and TypeScript definitions for Nitro's native runtime.
+Nitro's shared runtime sources and JavaScript API.
+
+The Git directory contains `android/`, `apple/`, `cpp/`, and `js/`. The npm package
+publishes only the JavaScript API and TypeScript definitions from `js/`. Native
+sources still include React Native-specific code and are staged into the
+`react-native-nitro-modules` package for CocoaPods and Android builds.
 
 ```ts
 import type { HybridObject } from 'nitro-core'
@@ -35,9 +40,9 @@ import { NitroModules, type HybridObject } from 'react-native-nitro-modules'
 ```
 
 Keep `nitro-core`, Nitrogen, and the host integration on the same release version.
-Native source code and platform build integration are supplied by the host
-integration package; this npm package contains JavaScript and TypeScript only.
+The host integration package distributes native sources and platform build
+integration; this npm package contains JavaScript and TypeScript only.
 
 The React Native entry resolves to compiled JavaScript. After editing this
-package, run `bun run build` before rebuilding an app. Run `bun test` after
-building to check initialization and the CommonJS and ESM outputs.
+package, run `bun run build` before rebuilding an app. Validate native changes
+with the existing tests and fixtures in the React Native repository.

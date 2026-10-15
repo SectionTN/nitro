@@ -3,7 +3,7 @@
 set -e
 
 KOTLIN_DIRS=(
-  "packages/react-native-nitro-modules/android/src/main/java"
+  "nitro-core/android/src/main/java"
 )
 
 if which ktlint >/dev/null; then

@@ -5,9 +5,8 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const manifests = [
   'package.json',
-  'packages/react-native-nitro-modules/package.json',
-  'packages/nitro-core/package.json',
-  'packages/nitrogen/package.json',
+  'nitro-core/package.json',
+  'nitrogen/package.json',
 ].map((relativePath) => {
   const filename = path.join(root, relativePath)
   return { filename, json: JSON.parse(readFileSync(filename, 'utf8')) }
@@ -20,12 +19,12 @@ if (!/^\d+\.\d+\.\d+(?:-[\da-zA-Z.-]+)?(?:\+[\da-zA-Z.-]+)?$/.test(version)) {
 
 const sourceVersions = [
   {
-    path: 'packages/react-native-nitro-modules/cpp/utils/NitroDefines.hpp',
+    path: 'nitro-core/cpp/utils/NitroDefines.hpp',
     pattern: /^#define NITRO_VERSION "([^"]+)"$/m,
     line: `#define NITRO_VERSION "${version}"`,
   },
   {
-    path: 'packages/nitro-core/src/version.ts',
+    path: 'nitro-core/js/version.ts',
     pattern: /^export const version = '([^']+)'$/m,
     line: `export const version = '${version}'`,
   },
