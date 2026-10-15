@@ -21,14 +21,14 @@
         "typescript-eslint": "^8.60.0",
       },
     },
-    "nitro-core": {
+    "packages/nitro-core": {
       "name": "nitro-core",
       "version": "0.37.1",
       "devDependencies": {
         "react-native-builder-bob": "^0.41.0",
       },
     },
-    "nitrogen": {
+    "packages/nitrogen": {
       "name": "nitrogen",
       "version": "0.37.1",
       "bin": "./lib/index.js",
@@ -1002,9 +1002,9 @@
 
     "new-github-release-url": ["new-github-release-url@2.0.0", "", { "dependencies": { "type-fest": "^2.5.1" } }, "sha512-NHDDGYudnvRutt/VhKFlX26IotXe1w0cmkDm6JGquh5bz/bDTw0LufSmH/GxTjEdpHEO+bVKFTwdrcGa/9XlKQ=="],
 
-    "nitro-core": ["nitro-core@workspace:nitro-core"],
+    "nitro-core": ["nitro-core@workspace:packages/nitro-core"],
 
-    "nitrogen": ["nitrogen@workspace:nitrogen"],
+    "nitrogen": ["nitrogen@workspace:packages/nitrogen"],
 
     "node-fetch-native": ["node-fetch-native@1.6.7", "", {}, "sha512-g9yhqoedzIUm0nTnTqAQvueMPVOuIY16bqgAJJC8XOOubYFNwz6IER9qs0Gq2Xd0+CecCKFjtdDTMA4u4xG06Q=="],
 

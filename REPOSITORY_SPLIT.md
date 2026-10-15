@@ -4,13 +4,13 @@ The split starts at Nitro commit `d498e237e9b4117c4abe38c023adf486c75f856a`, wit
 
 ## Ownership
 
-This repository owns `nitro-core/` and `nitrogen/`. The runtime sources are grouped under `nitro-core/{android,apple,cpp,js}`. Native names, registration, generated APIs, and React Native behavior stay unchanged. The native sources still contain React Native-specific code.
+This repository owns `packages/nitro-core/` and `packages/nitrogen/`. The runtime sources are grouped under `packages/nitro-core/{android,apple,cpp,js}`. Native names, registration, generated APIs, and React Native behavior stay unchanged. The native sources still contain React Native-specific code.
 
-The `nitro-core` npm package publishes only the shared JS/TS API from `nitro-core/js/`. It owns HybridObject types, the NitroModulesProxy contract, runtime access, version checks, and constructor helpers. It has no React Native dependency. Nitrogen depends on `nitro-core`. Native sources remain in this Git repository and are distributed by the host integration package.
+The `nitro-core` npm package publishes only the shared JS/TS API from `packages/nitro-core/js/`. It owns HybridObject types, the NitroModulesProxy contract, runtime access, version checks, and constructor helpers. It has no React Native dependency. Nitrogen depends on `nitro-core`. Native sources remain in this Git repository and are distributed by the host integration package.
 
 [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules) owns the public `react-native-nitro-modules` package metadata, RN JS bootstrap, views and worklets integration, CocoaPods/Gradle/CMake integration, RN codegen configuration, apps, tests, fixtures, docs, and init template. It depends on the exact matching `nitro-core` version and re-exports its shared API. Its `nitro` submodule at `packages/react-native-nitro-modules/nitro` pins this repository to a specific commit. The submodule's `core-split` branch setting is a development hint; normal bootstrap and builds use the committed SHA.
 
-The wrapper's `sync-core` command stages `nitro-core/cpp/`, `nitro-core/apple/`, and `nitro-core/android/src/` into its existing `cpp/`, `ios/`, and `android/src/` paths. Those directories are ignored generated outputs. The wrapper maintains its own `src/` directory. Both `nitro-core` and Nitrogen run directly from the pinned submodule as workspace packages; their sources are not copied into the RN package.
+The wrapper's `sync-core` command stages `packages/nitro-core/cpp/`, `packages/nitro-core/apple/`, and `packages/nitro-core/android/src/` into its existing `cpp/`, `ios/`, and `android/src/` paths. Those directories are ignored generated outputs. The wrapper maintains its own `src/` directory. Both `nitro-core` and Nitrogen run directly from the pinned submodule as workspace packages; their sources are not copied into the RN package.
 
 `packages/template` stays in the React Native repository because it creates an RN library with CocoaPods, Gradle, and React Native package metadata. Nitrogen owns the init command and downloads that template from the wrapper's `main` branch.
 
@@ -41,7 +41,7 @@ Local edits in `packages/react-native-nitro-modules/nitro` are allowed during de
 
 ## Versions and releases
 
-The root, `nitro-core`, Nitrogen, and embedded JS/native versions move together. `bun version:set <version>` updates their manifests, Nitrogen's core dependency, `nitro-core/js/version.ts`, and the authoritative `nitro-core/cpp/utils/NitroDefines.hpp`. Then run `bun install` to update the lockfile. `bun check-versions` verifies consistency. Do not edit a staged wrapper header to bump a version.
+The root, `nitro-core`, Nitrogen, and embedded JS/native versions move together. `bun version:set <version>` updates their manifests, Nitrogen's core dependency, `packages/nitro-core/js/version.ts`, and the authoritative `packages/nitro-core/cpp/utils/NitroDefines.hpp`. Then run `bun install` to update the lockfile. `bun check-versions` verifies consistency. Do not edit a staged wrapper header to bump a version.
 
 Release preparation follows the same order as a core update: set and validate the version here, push the core commit, update the wrapper pin and package versions, and validate all three real npm tarballs: `nitro-core`, `nitrogen`, and `react-native-nitro-modules`. Pack with `npm pack` from each package directory. Install the tarballs together in a fresh consumer outside the repositories and run typechecking, generation, and native checks.
 

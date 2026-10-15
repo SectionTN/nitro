@@ -3,9 +3,9 @@
 set -e
 
 CPP_DIRS=(
-  "nitro-core/android/src/main/cpp"
-  "nitro-core/cpp"
-  "nitro-core/apple"
+  "packages/nitro-core/android/src/main/cpp"
+  "packages/nitro-core/cpp"
+  "packages/nitro-core/apple"
 )
 
 if which clang-format >/dev/null; then

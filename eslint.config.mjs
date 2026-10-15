@@ -70,6 +70,6 @@ export default [
     ],
   },
   ...baseConfig,
-  packageConfig('nitro-core', true, false),
-  packageConfig('nitrogen', true, false),
+  packageConfig('packages/nitro-core', true, false),
+  packageConfig('packages/nitrogen', true, false),
 ]

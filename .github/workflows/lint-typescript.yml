@@ -55,17 +55,17 @@ jobs:
         run: bun install
 
       - name: Run ESLint CI in nitrogen
-        working-directory: nitrogen
+        working-directory: packages/nitrogen
         run: bun lint-ci
       - name: Run ESLint CI in nitro-core
-        working-directory: nitro-core
+        working-directory: packages/nitro-core
         run: bun lint-ci
 
       - name: Run ESLint with auto-fix in nitrogen
-        working-directory: nitrogen
+        working-directory: packages/nitrogen
         run: bun lint
       - name: Run ESLint with auto-fix in nitro-core
-        working-directory: nitro-core
+        working-directory: packages/nitro-core
         run: bun lint
 
       - name: Verify no files have changed after auto-fix

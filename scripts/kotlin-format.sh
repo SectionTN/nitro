@@ -3,7 +3,7 @@
 set -e
 
 KOTLIN_DIRS=(
-  "nitro-core/android/src/main/java"
+  "packages/nitro-core/android/src/main/java"
 )
 
 if which ktlint >/dev/null; then
