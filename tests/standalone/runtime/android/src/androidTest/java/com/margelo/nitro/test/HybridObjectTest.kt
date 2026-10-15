@@ -39,25 +39,27 @@ class HybridObjectTest(
       }
 
       val names = mutableSetOf<String>()
-      val cases = (0 until manifest.length()).map { index ->
-        val name = manifest.get(index)
-        require(name is String && name.isNotBlank()) {
-          "runtime-tests.json entry $index must be a nonblank string"
-        }
-        require(names.add(name)) { "runtime-tests.json contains duplicate test: $name" }
-        val rules = if (skips.has(name)) skips.getJSONObject(name) else null
-        rules?.keys()?.forEach { key ->
-          require(key in listOf("ios", "android", "release") && rules.getString(key).isNotEmpty()) {
-            "Invalid exclusion for test $name"
+      val cases =
+        (0 until manifest.length()).map { index ->
+          val name = manifest.get(index)
+          require(name is String && name.isNotBlank()) {
+            "runtime-tests.json entry $index must be a nonblank string"
           }
+          require(names.add(name)) { "runtime-tests.json contains duplicate test: $name" }
+          val rules = if (skips.has(name)) skips.getJSONObject(name) else null
+          rules?.keys()?.forEach { key ->
+            require(key in listOf("ios", "android", "release") && rules.getString(key).isNotEmpty()) {
+              "Invalid exclusion for test $name"
+            }
+          }
+          val reason =
+            when {
+              rules?.has("android") == true -> rules.getString("android")
+              !BuildConfig.DEBUG && rules?.has("release") == true -> rules.getString("release")
+              else -> null
+            }
+          arrayOf<Any?>(name, reason)
         }
-        val reason = when {
-          rules?.has("android") == true -> rules.getString("android")
-          !BuildConfig.DEBUG && rules?.has("release") == true -> rules.getString("release")
-          else -> null
-        }
-        arrayOf<Any?>(name, reason)
-      }
       require(skips.keys().asSequence().all { it in names }) { "Exclusions contain an unknown test name" }
       return cases
     }
