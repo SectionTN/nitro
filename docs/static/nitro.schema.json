@@ -5,8 +5,7 @@
   "required": [
     "cxxNamespace",
     "ios",
-    "android",
-    "autolinking"
+    "android"
   ],
   "properties": {
     "cxxNamespace": {
@@ -53,119 +52,6 @@
         }
       },
       "description": "Required: Android configuration"
-    },
-    "autolinking": {
-      "type": "object",
-      "description": "Configures the code that gets generated for autolinking (registering) Hybrid Object constructors.",
-      "patternProperties": {
-        "^.*$": {
-          "type": "object",
-          "oneOf": [
-            {
-              "required": [
-                "all"
-              ],
-              "properties": {
-                "all": {
-                  "type": "object",
-                  "required": [
-                    "language",
-                    "implementationClassName"
-                  ],
-                  "properties": {
-                    "language": {
-                      "type": "string",
-                      "enum": [
-                        "c++"
-                      ]
-                    },
-                    "implementationClassName": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
-            },
-            {
-              "type": "object",
-              "not": {
-                "required": [
-                  "all"
-                ]
-              },
-              "minProperties": 1,
-              "properties": {
-                "ios": {
-                  "type": "object",
-                  "required": [
-                    "language",
-                    "implementationClassName"
-                  ],
-                  "properties": {
-                    "language": {
-                      "type": "string",
-                      "enum": [
-                        "c++",
-                        "swift"
-                      ]
-                    },
-                    "implementationClassName": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                },
-                "android": {
-                  "type": "object",
-                  "required": [
-                    "language",
-                    "implementationClassName"
-                  ],
-                  "properties": {
-                    "language": {
-                      "type": "string",
-                      "enum": [
-                        "c++",
-                        "kotlin"
-                      ]
-                    },
-                    "implementationClassName": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "patternProperties": {
-                "^(?!all$|ios$|android$).+$": {
-                  "type": "object",
-                  "required": [
-                    "language",
-                    "implementationClassName"
-                  ],
-                  "properties": {
-                    "language": {
-                      "type": "string",
-                      "enum": [
-                        "c++",
-                        "swift",
-                        "kotlin"
-                      ]
-                    },
-                    "implementationClassName": {
-                      "type": "string"
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              },
-              "additionalProperties": false
-            }
-          ]
-        }
-      }
     },
     "ignorePaths": {
       "type": "array",
