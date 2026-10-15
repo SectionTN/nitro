@@ -12,7 +12,6 @@
     ],
     "androidCxxLibName": "$$androidCxxLibName$$"
   },
-  "autolinking": {},
   "ignorePaths": [
     "**/node_modules"
   ]
