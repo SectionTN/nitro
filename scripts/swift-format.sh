@@ -4,6 +4,7 @@ set -e
 
 SWIFT_DIRS=(
   "packages/nitro-core/native/apple"
+  "tests/runtime/ios"
 )
 
 if which swift >/dev/null; then
