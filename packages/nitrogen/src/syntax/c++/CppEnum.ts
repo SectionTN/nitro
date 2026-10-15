@@ -1,9 +1,9 @@
 import { NitroConfig } from '../../config/NitroConfig.js'
 import { indent, toLowerCamelCase } from '../../utils.js'
-import type { SourceFile } from '../SourceFile.js'
+import type { SourceFile, SourceImport } from '../SourceFile.js'
 import { createFileMetadataString } from '../helpers.js'
 import type { EnumMember } from '../types/EnumType.js'
-import { includeNitroHeader } from './includeNitroHeader.js'
+import { getImportCode } from '../getImportCode.js'
 
 function getEnumMinValue(enumMembers: EnumMember[]): number {
   return Math.min(...enumMembers.map((m) => m.value))
@@ -67,14 +67,30 @@ switch (integer) {
     `.trim()
   }
 
+  const imports: SourceImport[] = [
+    {
+      language: 'c++',
+      declaration: {
+        name: 'NitroModulesCxx/JSIConverter.hpp',
+        space: 'system',
+      },
+    },
+    {
+      language: 'c++',
+      declaration: {
+        name: 'NitroModulesCxx/NitroDefines.hpp',
+        space: 'system',
+      },
+    },
+  ]
+
   // Create entire C++ file
   const cppCode = `
 ${createFileMetadataString(`${typename}.hpp`)}
 
 #pragma once
 
-${includeNitroHeader('JSIConverter.hpp')}
-${includeNitroHeader('NitroDefines.hpp')}
+${imports.map((i) => getImportCode(i)).join('\n')}
 
 namespace ${cxxNamespace} {
 

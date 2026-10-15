@@ -1,23 +1,33 @@
+import { wrapSwiftType } from './wrapSwiftType.js'
 import { indent } from '../../utils.js'
-import { createSwiftHybridViewManager } from '../../views/swift/SwiftHybridViewManager.js'
 import { getHybridObjectName } from '../getHybridObjectName.js'
-import { createFileMetadataString, isNotDuplicate } from '../helpers.js'
+import { createFileMetadataString } from '../helpers.js'
 import type { HybridObjectSpec } from '../HybridObjectSpec.js'
 import type { SourceFile } from '../SourceFile.js'
 import { HybridObjectType } from '../types/HybridObjectType.js'
 import { createSwiftHybridObjectCxxBridge } from './SwiftHybridObjectBridge.js'
+import { getImportsCode } from '../getImportCode.js'
+import { getAllTypes } from '../getAllTypes.js'
+import { getProtocolConformanceImport } from './getSwiftImports.js'
 
-export function createSwiftHybridObject(spec: HybridObjectSpec): SourceFile[] {
+export function createSwiftHybridObject(
+  spec: HybridObjectSpec<'swift'>
+): SourceFile[] {
+  const hybridObjectType = new HybridObjectType(spec)
   const name = getHybridObjectName(spec.name)
   const protocolName = name.HybridTSpec
   const properties = spec.properties.map((p) => p.getCode('swift')).join('\n')
-  const methods = spec.methods.map((m) => m.getCode('swift')).join('\n')
+  const methods = spec.methods
+    .map((method) => method.getDeclaration('swift'))
+    .join('\n')
   const extraImports = [
     ...spec.properties.flatMap((p) => p.getRequiredImports('swift')),
     ...spec.methods.flatMap((m) => m.getRequiredImports('swift')),
-    ...spec.baseTypes.flatMap((b) =>
-      new HybridObjectType(b).getRequiredImports('swift')
+    ...spec.staticMethods.flatMap((method) =>
+      method.getRequiredImports('swift')
     ),
+    ...(spec.constructor?.getRequiredImports('swift') ?? []),
+    ...hybridObjectType.baseTypes.flatMap((b) => b.getRequiredImports('swift')),
   ]
 
   const protocolBaseClasses = ['HybridObject']
@@ -28,16 +38,27 @@ export function createSwiftHybridObject(spec: HybridObjectSpec): SourceFile[] {
         `${name.T}: Inheriting from multiple HybridObject bases is not yet supported in Swift!`
       )
     }
-    const base = spec.baseTypes[0]!
+    const base = spec.baseTypes[0]
+    if (base == null) {
+      throw new Error(`${name.T}: Expected a Swift HybridObject base.`)
+    }
     const baseName = getHybridObjectName(base.name)
     protocolBaseClasses.push(`${baseName.HybridTSpec}_protocol`)
     classBaseClasses.push(`${baseName.HybridTSpec}_base`)
   }
-  if (spec.isHybridView) {
-    protocolBaseClasses.push('HybridView')
-  }
-
+  const conformanceProtocols = spec.protocolConformances.map(
+    (conformance) => conformance.protocol
+  )
+  protocolBaseClasses.push(...conformanceProtocols)
+  // The public spec protocol inherits these protocols.
+  const conformanceImports = spec.protocolConformances
+    .map((conformance) => getProtocolConformanceImport(conformance, 'public'))
+    .filter((conformanceImport) => conformanceImport != null)
   const hasBaseClass = classBaseClasses.length > 0
+  let wrapperAccessorModifiers = spec.allowInheritance ? 'open' : 'public final'
+  if (hasBaseClass) {
+    wrapperAccessorModifiers += ' override'
+  }
   const baseMembers: string[] = []
   baseMembers.push(`private weak var cxxWrapper: ${name.HybridTSpecCxx}? = nil`)
   if (hasBaseClass) {
@@ -47,7 +68,7 @@ export function createSwiftHybridObject(spec: HybridObjectSpec): SourceFile[] {
   }
   baseMembers.push(
     `
-public ${hasBaseClass ? 'override func' : 'func'} getCxxWrapper() -> ${name.HybridTSpecCxx} {
+${wrapperAccessorModifiers} func getCxxWrapper() -> ${name.HybridTSpecCxx} {
 #if DEBUG
   guard self is any ${name.HybridTSpec} else {
     fatalError("\`self\` is not a \`${name.HybridTSpec}\`! Did you accidentally inherit from \`${name.HybridTSpec}_base\` instead of \`${name.HybridTSpec}\`?")
@@ -60,17 +81,20 @@ public ${hasBaseClass ? 'override func' : 'func'} getCxxWrapper() -> ${name.Hybr
     self.cxxWrapper = cxxWrapper
     return cxxWrapper
   }
-}`.trim()
+}
+`.trim()
   )
 
-  const requiredImports = extraImports.map((i) => `import ${i.name}`)
-  requiredImports.push('import NitroModules')
-  const imports = requiredImports.filter(isNotDuplicate)
+  const imports = getImportsCode([
+    { language: 'swift', name: 'NitroModules', access: 'public' },
+    ...extraImports,
+    ...conformanceImports,
+  ])
 
   const protocolCode = `
 ${createFileMetadataString(`${protocolName}.swift`)}
 
-${imports.join('\n')}
+${imports}
 
 /// See \`\`${protocolName}\`\`
 public protocol ${protocolName}_protocol: ${protocolBaseClasses.join(', ')} {
@@ -103,7 +127,7 @@ open class ${protocolName}_base${classBaseClasses.length > 0 ? `: ${classBaseCla
  * \`\`\`
  */
 public typealias ${protocolName} = ${protocolName}_protocol & ${protocolName}_base
-  `
+`.trim()
 
   const swiftBridge = createSwiftHybridObjectCxxBridge(spec)
 
@@ -116,11 +140,9 @@ public typealias ${protocolName} = ${protocolName}_protocol & ${protocolName}_ba
     platform: 'ios',
   })
   files.push(...swiftBridge)
-
-  if (spec.isHybridView) {
-    const viewFiles = createSwiftHybridViewManager(spec)
-    files.push(...viewFiles)
-  }
+  const types = [...getAllTypes(spec), hybridObjectType]
+  const swiftTypes = types.map(wrapSwiftType)
+  files.push(...swiftTypes.flatMap((type) => type.getExtraFiles()))
 
   return files
 }

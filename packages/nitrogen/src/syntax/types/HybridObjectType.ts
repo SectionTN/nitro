@@ -61,11 +61,6 @@ export class HybridObjectType implements Type {
     }
   }
 
-  get canBePassedByReference(): boolean {
-    // It's a shared_ptr<..>, no copy.
-    return true
-  }
-
   get kind(): TypeKind {
     return 'hybrid-object'
   }
@@ -73,10 +68,7 @@ export class HybridObjectType implements Type {
     return true
   }
 
-  getCode(
-    language: Language,
-    options: GetHybridObjectCodeOptions = {}
-  ): string {
+  getCode(language: Language, options: GetHybridObjectCodeOptions): string {
     const name = getHybridObjectName(this.hybridObjectName)
     const mode = options.mode ?? 'strong'
     const fullyQualified =
@@ -85,15 +77,12 @@ export class HybridObjectType implements Type {
     switch (language) {
       case 'c++': {
         const ptrType = mode === 'strong' ? 'std::shared_ptr' : 'std::weak_ptr'
+        let typeName = name.HybridTSpec
         if (fullyQualified) {
-          const fullName = this.sourceConfig.getCxxNamespace(
-            'c++',
-            name.HybridTSpec
-          )
-          return `${ptrType}<${fullName}>`
-        } else {
-          return `${ptrType}<${name.HybridTSpec}>`
+          typeName = this.sourceConfig.getCxxNamespace('c++', name.HybridTSpec)
         }
+        const type = `${ptrType}<${typeName}>`
+        return options.context === 'parameter' ? `const ${type}&` : type
       }
       case 'swift': {
         return `(any ${name.HybridTSpec})`
@@ -120,17 +109,9 @@ export class HybridObjectType implements Type {
     return []
   }
 
-  private getExternalCxxImportName(): string {
-    // TODO: We currently don't have a xplat way of handling import paths, therefore iosModuleName and androidCxxLibName need to have the same value.
-    if (
-      this.sourceConfig.getIosModuleName() !==
-      this.sourceConfig.getAndroidCxxLibName()
-    ) {
-      throw new Error(
-        `Cannot import external HybridObject "${this.hybridObjectName}" if it's nitro.json's iosModuleName and androidCxxLibName are not the same value!`
-      )
-    }
-    return this.sourceConfig.getIosModuleName()
+  getCppHeader(): { name: string; space: 'user' | 'system' } {
+    const { HybridTSpec } = getHybridObjectName(this.hybridObjectName)
+    return this.sourceConfig.getCxxHeader(`${HybridTSpec}.hpp`)
   }
 
   getRequiredImports(language: Language): SourceImport[] {
@@ -141,45 +122,30 @@ export class HybridObjectType implements Type {
     switch (language) {
       case 'c++': {
         imports.push({
-          language: 'c++',
-          name: 'memory',
-          space: 'system',
+          language,
+          declaration: { name: 'memory', space: 'system' },
         })
-        if (this.sourceConfig.isExternalConfig) {
-          const cxxImport = this.getExternalCxxImportName()
-          imports.push({
-            name: `${cxxImport}/${name.HybridTSpec}.hpp`,
+        imports.push({
+          language,
+          declaration: {
             forwardDeclaration: getForwardDeclaration(
               'class',
               name.HybridTSpec,
               cxxNamespace
             ),
-            language: 'c++',
-            space: 'system',
-          })
-        } else {
-          imports.push({
-            name: `${name.HybridTSpec}.hpp`,
-            forwardDeclaration: getForwardDeclaration(
-              'class',
-              name.HybridTSpec,
-              cxxNamespace
-            ),
-            language: 'c++',
-            space: 'user',
-          })
-        }
+          },
+          implementation: this.getCppHeader(),
+        })
         break
       }
       case 'kotlin': {
         if (this.sourceConfig.isExternalConfig) {
           imports.push({
-            language: 'kotlin',
+            language,
             name: this.sourceConfig.getAndroidPackage(
               'java/kotlin',
               name.HybridTSpec
             ),
-            space: 'system',
           })
         }
         break
@@ -187,9 +153,9 @@ export class HybridObjectType implements Type {
       case 'swift': {
         if (this.sourceConfig.isExternalConfig) {
           imports.push({
-            language: 'swift',
+            language,
             name: this.sourceConfig.getIosModuleName(),
-            space: 'system',
+            access: 'public',
           })
         }
         break
