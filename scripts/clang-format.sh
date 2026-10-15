@@ -6,8 +6,12 @@ CPP_DIRS=(
   "packages/nitro-core/native/android/src/main/cpp"
   "packages/nitro-core/native/cpp"
   "packages/nitro-core/native/apple"
+  "tests/hermes/Sources"
+  "tests/nitro-core/android/src/main/cpp"
   "tests/runtime/cpp"
+  "tests/runtime/ios/Support"
   "tests/runtime/ios/Tests"
+  "tests/runtime/android/src/main/cpp"
 )
 
 if which clang-format >/dev/null; then

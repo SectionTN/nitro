@@ -26,7 +26,7 @@ This also builds the host compiler, then combines the upstream `hermesvm_a` and 
 
 The `Hermes` Swift package wraps that generated XCFramework and supplies its Foundation and CoreFoundation dependencies. Hermes itself is compiled by upstream CMake, so its source lists stay in the submodule. Build the XCFramework before resolving the package; the native test runner does this automatically. All generated headers, archives and build caches stay under `tests/.build/hermes`.
 
-Android's CMake project includes `Hermes.cmake` and links `NitroTestHermes`. Gradle builds the host compiler first. Hermes uses Android's Java Unicode helpers and the same fbjni dependency as Nitro.
+Android's `:hermes` Gradle library lives in `tests/hermes/android`. It builds upstream's shared `hermesvm` target and exports it as `hermes::hermesvm` through Prefab. Nitro Core and the test library link the same engine and JSI instance. The module also owns the host compiler task, public header staging, Android Java Unicode helpers and fbjni dependency.
 
 `options.cmake` contains the shared engine options. Source evaluation is enabled. Optional engine extensions, Node-API support and Hermes' own tests are disabled. These dependencies are only used by the native tests and are not included in published npm packages.
 

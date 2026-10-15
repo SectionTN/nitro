@@ -1,0 +1,95 @@
+name: Test runtime on Android
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, core-split]
+    paths:
+      - ".github/workflows/test-runtime-android.yml"
+      - ".gitmodules"
+      - "tests/**"
+      - "packages/nitro-core/**"
+      - "packages/nitrogen/**"
+      - "package.json"
+      - "bun.lock"
+  pull_request:
+    paths:
+      - ".github/workflows/test-runtime-android.yml"
+      - ".gitmodules"
+      - "tests/**"
+      - "packages/nitro-core/**"
+      - "packages/nitrogen/**"
+      - "package.json"
+      - "bun.lock"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtime-android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  junit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install native build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libicu-dev
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'ndk;29.0.14206865' 'cmake;3.22.1'
+      - name: Enable emulator acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Read pinned Hermes revision
+        id: hermes
+        run: echo "revision=$(git -C tests/vendor/hermes rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: tests/.build/hermes/host
+          key: hermes-host-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.revision }}-${{ hashFiles('tests/hermes/build.mjs', 'tests/hermes/options.cmake') }}
+      - run: bun install --frozen-lockfile
+      - run: bun test:prepare
+      - name: Build test APK
+        working-directory: tests/runtime/android
+        run: ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 --no-daemon
+      - name: Run JUnit tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: cd tests/runtime/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 --no-daemon
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-android-results
+          path: |
+            tests/runtime/android/build/reports/androidTests
+            tests/runtime/android/build/outputs/androidTest-results
+            tests/runtime/build/runtime-tests.js
+            tests/runtime/build/runtime-tests.js.map
+            tests/runtime/build/runtime-tests.json
+          if-no-files-found: ignore

@@ -16,7 +16,8 @@ tests/
     android/              # Kotlin fixtures and instrumented JUnit tests
     package.json          # Private workspace, never published
     tsconfig.json
-  hermes/                 # Source build helpers for both platforms
+  hermes/                 # Engine build helpers, Swift package and Android library
+  nitro-core/android/     # Local Gradle/Prefab adapter for the core sources
   vendor/hermes/          # Public Hermes static_h submodule, pinned by Git
   .build/                 # Ignored native build products
 ```
@@ -139,3 +140,9 @@ The test targets compile the existing core implementation with the RN bootstrap
 and Fabric/view integration excluded. They do not maintain copies of runtime
 sources or change the published CocoaPods/Gradle integration. RN integration
 coverage continues to run in the React Native repository.
+
+On Android, the runtime project depends on local `hermes` and `nitro-core` Gradle
+libraries. Each owns its native build and exposes headers through Prefab. The
+runtime project compiles only the test host and generated fixtures. The core
+adapter in `nitro-core/android/` demonstrates building the existing sources
+without the React Native bootstrap; it is not a published package.

@@ -4,6 +4,8 @@ set -e
 
 KOTLIN_DIRS=(
   "packages/nitro-core/native/android/src/main/java"
+  "tests/nitro-core/android/src"
+  "tests/runtime/android/src"
 )
 
 if which ktlint >/dev/null; then
