@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
-# Build the pinned Hermes sources with their own target definitions. Both native
-# test projects use the same options and host compiler, without React Native.
+# Build the pinned Hermes sources with their own target definitions and the
+# shared test options, without React Native.
 function(nitro_add_test_hermes)
   get_filename_component(tests_dir "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/.." ABSOLUTE)
   set(hermes_source "${tests_dir}/vendor/hermes")
@@ -18,7 +18,4 @@ function(nitro_add_test_hermes)
   set(HERMES_IS_ANDROID ${ANDROID} CACHE BOOL "" FORCE)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   add_subdirectory("${hermes_source}" "${CMAKE_CURRENT_BINARY_DIR}/hermes" EXCLUDE_FROM_ALL)
-
-  add_library(NitroTestHermes INTERFACE)
-  target_link_libraries(NitroTestHermes INTERFACE hermesvm_a jsi)
 endfunction()

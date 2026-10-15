@@ -32,7 +32,8 @@
     "test:release": "node --test scripts/releases/lib.test.mjs",
     "docs": "bun --cwd docs",
     "test:prepare": "bun run build && bun --cwd tests/runtime prepare-tests",
-    "test:ios": "bun test:prepare && bun --cwd tests/runtime test:ios"
+    "test:ios": "bun test:prepare && bun --cwd tests/runtime test:ios",
+    "test:android": "bun test:prepare && bun --cwd tests/runtime test:android"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",

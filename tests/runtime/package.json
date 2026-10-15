@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "bundle": "bun scripts/bundle.ts",
     "prepare-tests": "bun run typecheck && bun run generate && bun run bundle",
-    "test:ios": "bun ios/run.mjs"
+    "test:ios": "bun ios/run.mjs",
+    "test:android": "cd android && ./gradlew :connectedDebugAndroidTest"
   },
   "devDependencies": {
     "@types/chai": "5.2.3",
