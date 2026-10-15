@@ -1,4 +1,12 @@
-import type { HybridObject, Int64, UInt64 } from 'react-native-nitro-modules'
+import {
+  Android,
+  iOS,
+  type HybridObject,
+  type Int64,
+  type UInt64,
+} from 'react-native-nitro-modules'
+
+export * from '#nitro/SomeExternalObject'
 
 // A Type specifically testing optional primitives
 export interface OptionalPrimitivesHolder {
@@ -11,11 +19,21 @@ export interface OptionalPrimitivesHolder {
 /**
  * This hybrid object is implemented in Swift and Kotlin.
  * It can be called from Swift/Kotlin, as well as C++ directly.
+ * Other modules (like `react-native-nitro-test`) can implement it too.
  */
-export interface SomeExternalObject extends HybridObject<{
-  ios: 'swift'
-  android: 'kotlin'
-}> {
+@iOS({
+  language: 'swift',
+  allowMultipleImplementations: true,
+  implementation: { className: 'HybridSomeExternalObject' },
+})
+@Android({
+  language: 'kotlin',
+  allowMultipleImplementations: true,
+  implementation: { className: 'HybridSomeExternalObject' },
+})
+export declare class SomeExternalObject extends HybridObject {
+  public constructor()
+
   getValue(): string
 
   // This tests a weird Swift bug: when a Hybrid Object imported in another

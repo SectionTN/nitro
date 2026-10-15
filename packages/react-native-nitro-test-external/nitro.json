@@ -8,18 +8,6 @@
     "androidNamespace": ["test", "external"],
     "androidCxxLibName": "NitroTestExternal"
   },
-  "autolinking": {
-    "SomeExternalObject": {
-      "ios": {
-        "language": "swift",
-        "implementationClassName": "HybridSomeExternalObject"
-      },
-      "android": {
-        "language": "kotlin",
-        "implementationClassName": "HybridSomeExternalObject"
-      }
-    }
-  },
   "ignorePaths": [
     "**/node_modules"
   ]

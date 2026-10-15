@@ -1,7 +1,8 @@
-import { NitroModules } from 'react-native-nitro-modules'
-import type { SomeExternalObject } from './specs/SomeExternalObject.nitro'
+import { SomeExternalObject } from './specs/SomeExternalObject.nitro'
 
-export const HybridSomeExternalObject =
-  NitroModules.createHybridObject<SomeExternalObject>('SomeExternalObject')
+export const HybridSomeExternalObject = new SomeExternalObject()
 
-export { type SomeExternalObject } from './specs/SomeExternalObject.nitro'
+export {
+  SomeExternalObject,
+  type OptionalPrimitivesHolder,
+} from './specs/SomeExternalObject.nitro'

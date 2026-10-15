@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "classes": {
+    "SomeExternalObject": {
+      "android": {
+        "allowMultipleImplementations": true,
+        "implementation": {
+          "className": "HybridSomeExternalObject"
+        },
+        "language": "kotlin"
+      },
+      "ios": {
+        "allowMultipleImplementations": true,
+        "implementation": {
+          "className": "HybridSomeExternalObject"
+        },
+        "language": "swift"
+      }
+    }
+  }
+}
