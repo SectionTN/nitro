@@ -5,11 +5,12 @@ import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useColors } from './useColors'
 import { Image } from 'react-native'
-import { ViewScreen } from './screens/ViewScreen'
+// TODO: HybridViews are not supported by this version of Nitrogen yet.
+// import { ViewScreen } from './screens/ViewScreen'
 import { EvalScreen } from './screens/EvalScreen'
 
 const dna = require('./img/dna.png')
-const map = require('./img/map.png')
+// const map = require('./img/map.png')
 const terminal = require('./img/terminal.webp')
 
 const Tabs = createBottomTabNavigator()
@@ -39,7 +40,8 @@ export default function App() {
             ),
           }}
         />
-        <Tabs.Screen
+        {/* TODO: HybridViews are not supported by this version of Nitrogen yet. */}
+        {/* <Tabs.Screen
           name="View"
           component={ViewScreen}
           options={{
@@ -52,7 +54,7 @@ export default function App() {
               />
             ),
           }}
-        />
+        /> */}
         <Tabs.Screen
           name="Eval"
           component={EvalScreen}

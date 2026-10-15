@@ -1,3 +1,8 @@
+// TODO: HybridViews are not supported by this version of Nitrogen yet.
+//       Nitrogen fails with "TestView: HybridView specs are not supported. Use a declared HybridObject class instead."
+export {}
+
+/*
 import * as React from 'react'
 
 import { StyleSheet, View, Text, Button, Platform } from 'react-native'
@@ -235,3 +240,4 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
 })
+*/

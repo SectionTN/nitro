@@ -17,12 +17,19 @@ import {
 } from 'react-native-nitro-test'
 import { getTests, type TestRunner } from '../getTests'
 import { logPrototypeChain } from '../logPrototypeChain'
-import SegmentedControl from '@react-native-segmented-control/segmented-control'
+import SegmentedControlImpl, {
+  type SegmentedControlProps,
+} from '@react-native-segmented-control/segmented-control'
 import { NitroModules } from 'react-native-nitro-modules'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useColors } from '../useColors'
 import { TestCase, TestState } from '../components/TestCase'
 import { KeyboardDismissBackground } from '../components/KeyboardDismissBackground'
+
+// TODO: The segmented-control typings extend `NativeMethods`, which react-native 0.88 no longer exports,
+//       so TypeScript fails with "'SegmentedControl' cannot be used as a JSX component.".
+const SegmentedControl =
+  SegmentedControlImpl as unknown as React.ComponentType<SegmentedControlProps>
 
 logPrototypeChain(HybridChild)
 console.log(HybridBase.baseValue)
@@ -51,7 +58,9 @@ export function HybridObjectTestsScreen() {
   const selectedObject = [HybridTestObjectCpp, HybridTestObjectSwiftKotlin][
     selectedIndex
   ]
-  console.log(`Showing Tests for HybridObject "${selectedObject?.name}"`)
+  console.log(
+    `Showing Tests for HybridObject "${selectedObject?.constructor.name}"`
+  )
   const allTests = React.useMemo(
     () => getTests(selectedObject ?? HybridTestObjectCpp),
     [selectedObject]

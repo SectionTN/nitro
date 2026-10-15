@@ -3,7 +3,8 @@
     "@react-native/typescript-config"
   ],
   "compilerOptions": {
-    "types": ["jest"]
+    "types": ["jest"],
+    "resolvePackageJsonImports": true
   },
   "include": ["src", "index.js", "__tests__"],
   "exclude": ["**/node_modules", "**/Pods"]

@@ -22,7 +22,8 @@ const PRE_CODE = `
 const NitroModules = globalThis.NitroModulesProxy;
 `.trim()
 const DEFAULT_CODE = `
-const testObject = NitroModules.createHybridObject('TestObjectCpp')
+const TestObjectCpp = NitroModules.getHybridClass('TestObjectCpp')
+const testObject = new TestObjectCpp()
 
 JSON.stringify(testObject)
 `.trim()
