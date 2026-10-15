@@ -34,4 +34,4 @@ jobs:
       - uses: docker://rhysd/actionlint:1.7.12
         with:
           # queue:max is supported by GitHub; actionlint 1.7.12 predates it.
-          args: '-color -ignore ''unexpected key "queue" for "concurrency" section'' .github/workflows/release.yml .github/workflows/check-release.yml'
+          args: -color -ignore unexpected.key..queue..for..concurrency..section .github/workflows/release.yml .github/workflows/check-release.yml
