@@ -3,7 +3,7 @@
 set -e
 
 SWIFT_DIRS=(
-  "packages/nitro-core/apple"
+  "packages/nitro-core/native/apple"
 )
 
 if which swift >/dev/null; then

@@ -48,6 +48,11 @@ jobs:
           npm install --no-audit --no-fund "$RUNNER_TEMP"/nitro-core-*.tgz "$RUNNER_TEMP"/nitrogen-*.tgz
           test ! -e node_modules/react-native
           test ! -e node_modules/react-native-nitro-modules
+          test -f node_modules/nitro-core/native/cpp/utils/NitroDefines.hpp
+          test -f node_modules/nitro-core/native/apple/core/HybridObject.swift
+          test -f node_modules/nitro-core/native/android/src/main/java/com/margelo/nitro/core/HybridObject.kt
+          test -f node_modules/nitro-core/js/src/HybridObject.ts
+          test -f node_modules/nitro-core/js/lib/module/index.js
           node --input-type=module -e "import { getInstalledNitro } from 'nitro-core'; if (getInstalledNitro() !== undefined) throw new Error('Unexpected native runtime')"
           node -e "const core = require('nitro-core'); if (core.getInstalledNitro() !== undefined) throw new Error('Unexpected native runtime')"
           node node_modules/nitrogen/lib/index.js --help

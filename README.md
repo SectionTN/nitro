@@ -14,11 +14,11 @@ This repository contains:
 - [**nitro-core**](packages/nitro-core): Shared native runtime, JavaScript API, and TypeScript definitions
 - [**nitrogen**](packages/nitrogen): An optional code generator for Nitro module library authors
 
-This repository owns the shared runtime and Nitrogen. The `nitro-core` npm package contains only JS/TS. The published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
+This repository owns the shared runtime and Nitrogen. The `nitro-core` npm package contains the shared native sources, JavaScript API, and TypeScript definitions. The published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
 
-Shared development targets this repository's `core-split` branch. The React Native repository uses `main` and pins Nitro in its `packages/react-native-nitro-modules/nitro` submodule.
+Shared development targets this repository's `core-split` branch. The React Native repository uses `main` and depends on an exact `nitro-core` npm version.
 
-Run `bun bootstrap` to install dependencies and build the shared API and Nitrogen. See [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for source ownership, pinned core updates, and releases.
+Run `bun bootstrap` to install dependencies and build the shared API and Nitrogen. See [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for source ownership, package updates, and releases.
 
 ## Example
 

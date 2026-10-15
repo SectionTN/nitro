@@ -20,12 +20,12 @@ parseVersion(version)
 
 const sourceVersions = [
   {
-    path: 'packages/nitro-core/cpp/utils/NitroDefines.hpp',
+    path: 'packages/nitro-core/native/cpp/utils/NitroDefines.hpp',
     pattern: /^#define NITRO_VERSION "([^"]+)"$/m,
     line: `#define NITRO_VERSION "${version}"`,
   },
   {
-    path: 'packages/nitro-core/js/version.ts',
+    path: 'packages/nitro-core/js/src/version.ts',
     pattern: /^export const version = '([^']+)'$/m,
     line: `export const version = '${version}'`,
   },

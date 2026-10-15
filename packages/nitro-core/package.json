@@ -1,35 +1,38 @@
 {
   "name": "nitro-core",
   "version": "0.37.1",
-  "description": "Shared JavaScript APIs and TypeScript definitions for Nitro's native runtime.",
-  "main": "./lib/commonjs/index.js",
-  "module": "./lib/module/index.js",
-  "types": "./lib/typescript/commonjs/index.d.ts",
-  "react-native": "./lib/module/index.js",
-  "source": "./js/index.ts",
+  "description": "Nitro's shared native runtime, JavaScript API, and TypeScript definitions.",
+  "main": "./js/lib/commonjs/index.js",
+  "module": "./js/lib/module/index.js",
+  "types": "./js/lib/typescript/commonjs/index.d.ts",
+  "react-native": "./js/lib/module/index.js",
+  "source": "./js/src/index.ts",
   "exports": {
     ".": {
       "react-native": {
-        "types": "./lib/typescript/module/index.d.ts",
-        "default": "./lib/module/index.js"
+        "types": "./js/lib/typescript/module/index.d.ts",
+        "default": "./js/lib/module/index.js"
       },
       "import": {
-        "types": "./lib/typescript/module/index.d.ts",
-        "default": "./lib/module/index.js"
+        "types": "./js/lib/typescript/module/index.d.ts",
+        "default": "./js/lib/module/index.js"
       },
       "require": {
-        "types": "./lib/typescript/commonjs/index.d.ts",
-        "default": "./lib/commonjs/index.js"
+        "types": "./js/lib/typescript/commonjs/index.d.ts",
+        "default": "./js/lib/commonjs/index.js"
       }
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "js",
-    "lib/commonjs",
-    "lib/module",
-    "lib/typescript/commonjs",
-    "lib/typescript/module",
+    "native/cpp",
+    "native/apple",
+    "native/android/src",
+    "js/src",
+    "js/lib/commonjs",
+    "js/lib/module",
+    "js/lib/typescript/commonjs",
+    "js/lib/typescript/module",
     "README.md",
     "LICENSE"
   ],
@@ -48,19 +51,19 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "build": "rm -rf lib && bun run typecheck && bob build",
+    "build": "rm -rf js/lib && bun run typecheck && bob build",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint \"js/**/*.ts\" --fix",
-    "lint-ci": "eslint \"js/**/*.ts\" -f @jamesacarr/github-actions --max-warnings 0",
+    "lint": "eslint \"js/src/**/*.ts\" --fix",
+    "lint-ci": "eslint \"js/src/**/*.ts\" -f @jamesacarr/github-actions --max-warnings 0",
     "prepack": "bun --cwd ../.. check-versions 1>&2 && bun run build 1>&2",
-    "clean": "rm -rf lib"
+    "clean": "rm -rf js/lib"
   },
   "devDependencies": {
     "react-native-builder-bob": "^0.41.0"
   },
   "react-native-builder-bob": {
-    "source": "js",
-    "output": "lib",
+    "source": "js/src",
+    "output": "js/lib",
     "targets": [
       [
         "commonjs",
