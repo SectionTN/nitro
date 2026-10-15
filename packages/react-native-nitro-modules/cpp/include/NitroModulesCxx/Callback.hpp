@@ -1,5 +1,5 @@
 //
-//  JSCallback.hpp
+//  Callback.hpp
 //  Nitro
 //
 //  Created by Marc Rousavy on 23.02.25.
@@ -7,126 +7,241 @@
 
 #pragma once
 
-namespace margelo::nitro {
-template <typename T, typename Enable>
-struct JSIConverter;
-} // namespace margelo::nitro
-
-#include "BorrowingReference.hpp"
-#include "JSIConverter.hpp"
-#include "NitroDefines.hpp"
-#include "NitroTypeInfo.hpp"
-#include "Promise.hpp"
+#include <NitroModulesCxx/BorrowingReference.hpp>
+#include <NitroModulesCxx/Dispatcher.hpp>
+#include <NitroModulesCxx/GlobalErrorHandler.hpp>
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/NitroLogger.hpp>
+#include <NitroModulesCxx/NitroTypeInfo.hpp>
+#include <NitroModulesCxx/Promise.hpp>
+#include <cassert>
+#include <exception>
 #include <functional>
 #include <jsi/jsi.h>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <utility>
+#include <variant>
 
 namespace margelo::nitro {
 
-// -------- SyncJSCallback --------
-
 template <typename Signature>
-class SyncJSCallback;
+class Callback;
 
-template <typename R, typename... Args>
-class SyncJSCallback<R(Args...)> final {
-public:
-  SyncJSCallback(jsi::Runtime& runtime, BorrowingReference<jsi::Function>&& function) : _runtime(runtime), _function(std::move(function)) {}
-
-public:
-  /**
-   * Calls this `SyncJSCallback` synchronously, and
-   * returns its result (`R`).
-   * The callee is responsible for ensuring that the
-   * underlying `jsi::Function` can actually be called from this Thread.
-   * In Debug, sanity checks are made to ensure the `jsi::Function` is still alive.
-   */
-  R call(Args... args) const {
-    if (!_function) [[unlikely]] {
-      std::string typeName = TypeInfo::getFriendlyTypename<SyncJSCallback<R(Args...)>>(true);
-      throw std::runtime_error("Cannot call " + typeName + " - the underlying `jsi::Function` has already been deleted!");
+/**
+ * Drains the Runtime's microtask queue when it goes out of scope.
+ *
+ * This also runs while unwinding from a throwing JS call, so errors thrown by
+ * microtasks are reported to the `GlobalErrorHandler` instead of propagated.
+ */
+struct MicrotaskScope {
+  MicrotaskScope(jsi::Runtime& runtime): _runtime(runtime) { }
+  MicrotaskScope(const MicrotaskScope&) = delete;
+  MicrotaskScope(MicrotaskScope&&) = delete;
+  ~MicrotaskScope() noexcept {
+    // Hermes stops draining at the first throwing microtask, so drain again for the remaining ones.
+    // The bound guards against microtasks that keep enqueueing throwing microtasks, like React Native does.
+    constexpr int maxDrainAttempts = 255;
+    for (int attempt = 0; attempt < maxDrainAttempts; attempt++) {
+      try {
+        if (_runtime.drainMicrotasks()) {
+          return;
+        }
+      } catch (...) {
+        GlobalErrorHandler::reportError(ErrorSource::Microtask, std::current_exception());
+      }
     }
-
-    jsi::Value result = _function->call(_runtime, JSIConverter<std::decay_t<Args>>::toJSI(_runtime, std::forward<Args>(args))...);
-    if constexpr (std::is_void_v<R>) {
-      // It's returning void. No result
-      return;
-    } else {
-      // It's returning a type `R`, convert it
-      return JSIConverter<R>::fromJSI(_runtime, result);
-    }
+    // The remaining microtasks stay queued until the next drain.
+    std::string message = "Stopped draining microtasks after " + std::to_string(maxDrainAttempts) + " attempts!";
+    GlobalErrorHandler::reportError(ErrorSource::Microtask, std::make_exception_ptr(std::runtime_error(message)));
   }
-
-public:
-  inline R operator()(Args... args) const {
-    return call(args...);
-  }
-
 private:
   jsi::Runtime& _runtime;
-  BorrowingReference<jsi::Function> _function;
 };
 
-// -------- AsyncJSCallback --------
-
-template <typename Signature>
-class AsyncJSCallback;
-
+/**
+ * A Callback to either JS (`jsi::Function`) or native (`std::function`).
+ *
+ * Unlike `InlineCallback`, `Callback` is escapable, meaning it can be called
+ * "later", e.g. stored as a class member and invoked at a later point in time.
+ *
+ * `Callback` can be invoked sync (which has to be called on the JS Runtime
+ * context/Thread) or async (which returns a `Promise<T>` and uses the `Dispatcher`)
+ */
 template <typename R, typename... Args>
-class AsyncJSCallback<R(Args...)> final {
+class Callback<R(Args...)> final {
+  friend JSIConverter<Callback>;
+  template <typename, typename>
+  friend struct SwiftCallbackConverter;
+
+  struct JSCallback;
+  using NativeCallback = std::function<R(Args...)>;
 public:
-  AsyncJSCallback(SyncJSCallback<R(Args...)>&& callback, const std::weak_ptr<Dispatcher>& dispatcher)
-      : _callback(std::move(callback)), _dispatcher(dispatcher) {}
+  static Callback make(std::function<R(Args...)> function) {
+    return Callback(std::move(function));
+  }
+  static Callback make(jsi::Runtime& runtime,
+                       BorrowingReference<jsi::Function>&& function,
+                       const std::shared_ptr<Dispatcher>& dispatcher) {
+    return Callback(JSCallback(runtime, std::move(function), dispatcher));
+  }
+public:
+  Callback(const Callback& other) = default;
+  Callback(Callback&& other) = default;
+  Callback& operator=(const Callback& other) = default;
+  Callback& operator=(Callback&& other) = default;
+  ~Callback() = default;
+private:
+  Callback(std::function<R(Args...)>&& function): _impl(std::move(function)) { }
+  Callback(JSCallback&& callback): _impl(std::move(callback)) { }
 
 public:
-  /**
-   * Calls this `AsyncJSCallback` asynchronously, and returns a Promise that
-   * can be awaited to receive the returned result (`R`) from JS.
-   * This can be called from any Thread.
-   * If the Runtime is no longer alive, this method throws.
-   */
-  [[nodiscard]]
-  std::shared_ptr<Promise<R>> call(Args... args) const {
-    std::shared_ptr<Dispatcher> dispatcher = _dispatcher.lock();
-    if (dispatcher == nullptr) [[unlikely]] {
-      std::string typeName = TypeInfo::getFriendlyTypename<AsyncJSCallback<R(Args...)>>(true);
-      throw std::runtime_error("Failed to call " + typeName + " - the Dispatcher has already been destroyed!");
-    }
-    return dispatcher->runAsyncAwaitable<R>([callback = _callback, ... args = std::forward<Args>(args)]() mutable {
-      // Call actual JS callback, synchronously now.
-      return callback.call(std::forward<Args>(args)...);
-    });
-  }
-  /**
-   * Calls this `AsyncJSCallback` asynchronously, and ignore
-   * any results or completions.
-   * This can be called from any Thread.
-   * If the Runtime is no longer alive, this method ignores the function call.
-   */
-  void callAndForget(Args... args) const {
-    std::shared_ptr<Dispatcher> dispatcher = _dispatcher.lock();
-    if (dispatcher == nullptr) [[unlikely]] {
-      std::string typeName = TypeInfo::getFriendlyTypename<AsyncJSCallback<R(Args...)>>(true);
-      Logger::log(LogLevel::Error, "AsyncJSCallback", "Failed to call %s - the Dispatcher has already been destroyed!", typeName.c_str());
-      return;
-    }
-    dispatcher->runAsync([callback = _callback, ... args = std::forward<Args>(args)]() mutable {
-      // Call actual JS callback, synchronously now.
-      return callback.call(std::forward<Args>(args)...);
-    });
-  }
-
-public:
-  inline auto operator()(Args... args) const {
+  using DefaultAsyncCallReturnT = std::conditional_t<std::is_void_v<R>, void, Promise<R>>;
+  DefaultAsyncCallReturnT operator()(Args... args) const SWIFT_PRIVATE {
     if constexpr (std::is_void_v<R>) {
-      return callAndForget(args...);
+      callAndForget(std::forward<Args>(args)...);
     } else {
-      return call(args...);
+      return callAsync(std::forward<Args>(args)...);
+    }
+  }
+
+public:
+  [[nodiscard]] R callSync(Args... args) const SWIFT_PRIVATE {
+    if (auto* nativeCallback = std::get_if<NativeCallback>(&_impl)) {
+      // It holds a native Callback (`std::function`)
+      return (*nativeCallback)(std::forward<Args>(args)...);
+    } else {
+      // It holds a JS Callback (`jsi::Function`)
+      const auto& jsCallback = std::get<JSCallback>(_impl);
+      return jsCallback.callSync(std::forward<Args>(args)...);
+    }
+  }
+
+  [[nodiscard]] Promise<R> callAsync(Args... args) const SWIFT_PRIVATE {
+    if (auto* nativeCallback = std::get_if<NativeCallback>(&_impl)) {
+      // It holds a native Callback (`std::function`)
+      try {
+        if constexpr (std::is_void_v<R>) {
+          (*nativeCallback)(std::forward<Args>(args)...);
+          return Promise<R>::resolved();
+        } else {
+          R result = (*nativeCallback)(std::forward<Args>(args)...);
+          return Promise<R>::resolved(std::move(result));
+        }
+      } catch (...) {
+        return Promise<R>::rejected(std::current_exception());
+      }
+    } else {
+      // It holds a JS Callback (`jsi::Function`)
+      const auto& jsCallback = std::get<JSCallback>(_impl);
+      return jsCallback.callAsync(std::forward<Args>(args)...);
+    }
+  }
+
+  void callAndForget(Args... args) const SWIFT_PRIVATE {
+    if (auto* nativeCallback = std::get_if<NativeCallback>(&_impl)) {
+      // It holds a native Callback (`std::function`)
+      try {
+        (*nativeCallback)(std::forward<Args>(args)...);
+      } catch (...) {
+        GlobalErrorHandler::reportError(ErrorSource::NativeCallback, std::current_exception());
+      }
+    } else {
+      // It holds a JS Callback (`jsi::Function`)
+      const auto& jsCallback = std::get<JSCallback>(_impl);
+      jsCallback.callAsyncAndForget(std::forward<Args>(args)...);
     }
   }
 
 private:
-  SyncJSCallback<R(Args...)> _callback;
-  std::weak_ptr<Dispatcher> _dispatcher;
+  struct JSCallback {
+    friend JSIConverter<Callback>;
+    template <typename, typename>
+    friend struct SwiftCallbackConverter;
+
+  public:
+    JSCallback(jsi::Runtime& runtime, BorrowingReference<jsi::Function>&& function, const std::weak_ptr<Dispatcher>& dispatcher):
+      _runtime(runtime), _function(std::move(function)), _dispatcher(dispatcher) { }
+
+    R callSync(Args&&... args) const {
+      std::shared_ptr<Dispatcher> dispatcher = _dispatcher.lock();
+      if (!dispatcher) [[unlikely]] {
+        // The caller is on the JS Thread and can catch this.
+        throw std::runtime_error(getDispatcherDestroyedMessage());
+      }
+      assert(dispatcher->isOnDispatcher() && "callSync(...) must be called on the JS Runtime's context/Thread!");
+      assertFunctionNotNull(_function);
+
+      MicrotaskScope scope(_runtime);
+      if constexpr (std::is_void_v<R>) {
+        _function->call(_runtime, JSIConverter<std::decay_t<Args>>::toJSI(_runtime, std::forward<Args>(args))...);
+      } else {
+        jsi::Value result = _function->call(_runtime, JSIConverter<std::decay_t<Args>>::toJSI(_runtime, std::forward<Args>(args))...);
+        return JSIConverter<R>::fromJSI(_runtime, result);
+      }
+    }
+    Promise<R> callAsync(Args&&... args) const {
+      std::shared_ptr<Dispatcher> dispatcher = _dispatcher.lock();
+      if (!dispatcher) [[unlikely]] {
+        // Native callers (e.g. Swift) cannot catch a throw here, so reject instead.
+        return Promise<R>::rejected(std::make_exception_ptr(std::runtime_error(getDispatcherDestroyedMessage())));
+      }
+      jsi::Runtime& runtime = _runtime;
+      return dispatcher->runAsyncAwaitable([&runtime, function = _function, ...args = std::move(args)]() mutable -> R {
+        assertFunctionNotNull(function);
+
+        MicrotaskScope scope(runtime);
+        if constexpr (std::is_void_v<R>) {
+          function->call(runtime, JSIConverter<std::decay_t<Args>>::toJSI(runtime, std::forward<Args>(args))...);
+        } else {
+          jsi::Value result = function->call(runtime, JSIConverter<std::decay_t<Args>>::toJSI(runtime, std::forward<Args>(args))...);
+          return JSIConverter<R>::fromJSI(runtime, result);
+        }
+      });
+    }
+    void callAsyncAndForget(Args&&... args) const {
+      // Nobody observes the result, and native callers (e.g. Swift) cannot catch a throw,
+      // so errors are reported to the `GlobalErrorHandler` like errors of native callbacks.
+      // A destroyed Dispatcher means its Runtime is gone too, so there is nothing to report and we only log.
+      std::shared_ptr<Dispatcher> dispatcher = _dispatcher.lock();
+      if (!dispatcher) [[unlikely]] {
+        Logger::log(LogLevel::Error, "Callback", "%s", getDispatcherDestroyedMessage().c_str());
+        return;
+      }
+      jsi::Runtime& runtime = _runtime;
+      dispatcher->runAsync([&runtime, function = _function, ...args = std::move(args)]() mutable -> void {
+        try {
+          assertFunctionNotNull(function);
+
+          MicrotaskScope scope(runtime);
+          function->call(runtime, JSIConverter<std::decay_t<Args>>::toJSI(runtime, std::forward<Args>(args))...);
+        } catch (...) {
+          GlobalErrorHandler::reportError(ErrorSource::JSCallback, std::current_exception());
+        }
+      });
+    }
+
+  private:
+    static std::string getDispatcherDestroyedMessage() {
+      std::string typeName = TypeInfo::getFriendlyTypename<Callback<R(Args...)>>(true);
+      return "Cannot call " + typeName + " - the underlying `Dispatcher` has already been destroyed!";
+    }
+    static void assertFunctionNotNull(const BorrowingReference<jsi::Function>& function) {
+      if (!function) [[unlikely]] {
+        std::string typeName = TypeInfo::getFriendlyTypename<Callback<R(Args...)>>(true);
+        throw std::runtime_error("Cannot call " + typeName + " - the underlying `jsi::Function`/`jsi::Runtime` has already been destroyed!");
+      }
+    }
+  private:
+    // A reference_wrapper keeps the callback assignable, e.g. as the result of a Promise.
+    std::reference_wrapper<jsi::Runtime> _runtime;
+    BorrowingReference<jsi::Function> _function;
+    std::weak_ptr<Dispatcher> _dispatcher;
+  };
+  std::variant<NativeCallback, JSCallback> _impl;
 };
 
 } // namespace margelo::nitro
