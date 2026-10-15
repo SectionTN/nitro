@@ -5,12 +5,12 @@
 //  Created by Marc Rousavy on 22.07.24.
 //
 
-#include "Dispatcher.hpp"
-#include "CommonGlobals.hpp"
-#include "JSIConverter.hpp"
-#include "JSIHelpers.hpp"
-#include "NitroDefines.hpp"
-#include "NitroLogger.hpp"
+#include <NitroModulesCxx/Dispatcher.hpp>
+#include <NitroModulesCxx/CommonGlobals.hpp>
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/JSIHelpers.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/NitroLogger.hpp>
 
 namespace margelo::nitro {
 

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Promise.hpp"
+#include <NitroModulesCxx/Promise.hpp>
 #include <type_traits>
 
 namespace margelo::nitro {
@@ -26,11 +26,6 @@ struct promise_type<void> {
 };
 template <typename T>
 struct promise_type<Promise<T>> {
-  using type = T;
-  using is_promise = std::true_type;
-};
-template <typename T>
-struct promise_type<std::shared_ptr<Promise<T>>> {
   using type = T;
   using is_promise = std::true_type;
 };
