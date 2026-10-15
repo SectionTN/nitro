@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
-#include "NitroLogger.hpp"
-#include "WeakReference.hpp"
+#include <NitroModulesCxx/BorrowingReference.hpp>
+#include <NitroModulesCxx/JSClass.hpp>
+#include <NitroModulesCxx/NitroLogger.hpp>
+#include <NitroModulesCxx/WeakReference.hpp>
 #include <jsi/jsi.h>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 #include <vector>
+#include <typeindex>
 
 namespace margelo::nitro {
 
@@ -65,6 +67,9 @@ private:
   std::vector<WeakReference<jsi::WeakObject>> _weakObjectCache;
   std::vector<WeakReference<jsi::PropNameID>> _propNameIDCache;
   std::vector<WeakReference<jsi::ArrayBuffer>> _arrayBufferCache;
+  // Own the constructor and instance prototype together until Runtime teardown.
+  // Callers borrow an entry on the Runtime's thread and clone the handle they need.
+  std::unordered_map<std::type_index, JSClass> _classesCache;
 
 private:
   static inline std::unordered_map<jsi::Runtime*, std::weak_ptr<JSICache>> _globalCache;
@@ -84,35 +89,59 @@ public:
   }
 
 public:
+  const JSClass* NULLABLE getClass(const std::type_index& type) const {
+    auto entry = _strongCache->_classesCache.find(type);
+    return entry == _strongCache->_classesCache.end() ? nullptr : &entry->second;
+  }
+
+  const JSClass& setClass(const std::type_index& type, JSClass&& jsClass) {
+    auto entry = _strongCache->_classesCache.try_emplace(type, std::move(jsClass));
+    return entry.first->second;
+  }
+
   BorrowingReference<jsi::Value> makeShared(jsi::Value&& value) {
     BorrowingReference<jsi::Value> owning(new jsi::Value(std::move(value)));
-    _strongCache->_valueCache.push_back(owning.weak());
+    addToCache(_strongCache->_valueCache, owning);
     return owning;
   }
   BorrowingReference<jsi::Object> makeShared(jsi::Object&& value) {
     BorrowingReference<jsi::Object> owning(new jsi::Object(std::move(value)));
-    _strongCache->_objectCache.push_back(owning.weak());
+    addToCache(_strongCache->_objectCache, owning);
     return owning;
   }
   BorrowingReference<jsi::Function> makeShared(jsi::Function&& value) {
     BorrowingReference<jsi::Function> owning(new jsi::Function(std::move(value)));
-    _strongCache->_functionCache.push_back(owning.weak());
+    addToCache(_strongCache->_functionCache, owning);
     return owning;
   }
   BorrowingReference<jsi::WeakObject> makeShared(jsi::WeakObject&& value) {
     BorrowingReference<jsi::WeakObject> owning(new jsi::WeakObject(std::move(value)));
-    _strongCache->_weakObjectCache.push_back(owning.weak());
+    addToCache(_strongCache->_weakObjectCache, owning);
     return owning;
   }
   BorrowingReference<jsi::PropNameID> makeShared(jsi::PropNameID&& value) {
     BorrowingReference<jsi::PropNameID> owning(new jsi::PropNameID(std::move(value)));
-    _strongCache->_propNameIDCache.push_back(owning.weak());
+    addToCache(_strongCache->_propNameIDCache, owning);
     return owning;
   }
   BorrowingReference<jsi::ArrayBuffer> makeShared(jsi::ArrayBuffer&& value) {
     BorrowingReference<jsi::ArrayBuffer> owning(new jsi::ArrayBuffer(std::move(value)));
-    _strongCache->_arrayBufferCache.push_back(owning.weak());
+    addToCache(_strongCache->_arrayBufferCache, owning);
     return owning;
+  }
+
+private:
+  template <typename T>
+  static void addToCache(std::vector<WeakReference<T>>& cache, const BorrowingReference<T>& reference) {
+    if (cache.size() == cache.capacity()) [[unlikely]] {
+      // before the cache grows, remove all references whose values have already been deleted
+      std::erase_if(cache, [](const WeakReference<T>& weak) { return weak.isExpired(); });
+      if (cache.size() > cache.capacity() / 2) {
+        // most references are still alive - grow now so we don't scan the whole cache again on the next add
+        cache.reserve(cache.capacity() * 2);
+      }
+    }
+    cache.push_back(reference.weak());
   }
 
 private:

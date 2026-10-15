@@ -1,5 +1,5 @@
 //
-//  PrototypeChain.hpp
+//  HybridClass.hpp
 //  NitroModules
 //
 //  Created by Marc Rousavy on 07.08.24.
@@ -7,85 +7,93 @@
 
 #pragma once
 
-#include "HybridFunction.hpp"
+#include <NitroModulesCxx/HybridFunction.hpp>
+#include <NitroModulesCxx/JSClass.hpp>
 #include <memory>
+#include <optional>
 #include <string>
+#include <type_traits>
 #include <typeindex>
 #include <unordered_map>
 
 namespace margelo::nitro {
 
-/**
- * Represents a Prototype's native C++ type ID.
- * This can be used to identify a prototype against a C++ instance,
- * or used as a cache-key.
- */
-using NativeInstanceId = std::type_index;
+using namespace facebook;
+
+/** The type of a HybridObject's nested `Class`. Identifies its HybridClass and keys the per-Runtime cache. */
+using HybridClassId = std::type_index;
 
 /**
- * Represents a JS `Prototype`'s structure.
- * Every prototype has a related C++ type ID (`instanceTypeId`).
- * Prototypes can be sub-classes, in which case they have a `base` prototype.
- * Each prototype has a list of methods, and properties (getters + setters).
+ * Shared metadata for a HybridObject class: its name, base class,
+ * constructor, static methods, and instance methods and properties.
  *
- * By using this `Prototype` structure, we can create JS objects that act
- * as prototypes for `HybridObject`s.
- *
- * While a `Prototype` actually holds all the methods, a `HybridObject` only
- * contains state and memory.
- * This way the JS VM doesn't need to re-create methods for each `HybridObject`,
- * they are only initialized once on the shared `Prototype`.
+ * Each HybridClass materializes one JavaScript constructor and instance prototype
+ * per Runtime. HybridObject instances keep their own native state and share these
+ * JavaScript methods through that prototype.
  */
-struct Prototype final {
+struct HybridClass final {
 private:
-  NativeInstanceId _instanceTypeId;
-  std::shared_ptr<Prototype> _base = nullptr;
+  std::string _name;
+  HybridClassId _id;
+  // The base class's descriptor, or null for the root.
+  std::shared_ptr<const HybridClass> _base;
   std::unordered_map<std::string, HybridFunction> _methods;
   std::unordered_map<std::string, HybridFunction> _getters;
   std::unordered_map<std::string, HybridFunction> _setters;
+  std::optional<HybridFunction> _constructor;
+  std::unordered_map<std::string, HybridFunction> _staticMethods;
 
 private:
-  Prototype(const NativeInstanceId& typeId, const std::shared_ptr<Prototype>& base) : _instanceTypeId(typeId), _base(base) {}
-
-public:
-  /**
-   * Gets a `Prototype` specification/node for the given native C++ type ID.
-   *
-   * If the given C++ type ID is unknown, a new `Prototype` node is created,
-   * which has to be initialized with methods, getters and setters first.
-   *
-   * If the given C++ type ID is already known in the static `Prototype` tree,
-   * a shared reference to it is returned.
-   */
-  static std::shared_ptr<Prototype> get(const NativeInstanceId& typeId, const std::shared_ptr<Prototype>& base = nullptr) {
-    static std::unordered_map<NativeInstanceId, std::shared_ptr<Prototype>> _prototypesCache;
-
-    auto [it, inserted] = _prototypesCache.try_emplace(typeId);
-    if (inserted) {
-      // This is the first time we see this C++ type ID - create a new base Prototype for this.
-      it->second = std::shared_ptr<Prototype>(new Prototype(typeId, base));
+  HybridClass(std::string name, const HybridClassId& id, std::shared_ptr<const HybridClass> base)
+      : _name(std::move(name)), _id(id), _base(std::move(base)) {
+#ifdef NITRO_DEBUG
+    if (!isAscii(_name)) [[unlikely]] {
+      throw std::runtime_error("HybridClass \"" + _name + "\" has a non-ASCII name. HybridObject class and member names must be ASCII.");
     }
-    return it->second;
+#endif
   }
 
 public:
-  template <typename T>
-  inline bool isNativeInstance() const noexcept {
-    return _instanceTypeId == std::type_index(typeid(T));
+  // Descriptors own potentially large member maps. Share their immutable pointer instead.
+  HybridClass(const HybridClass&) = delete;
+  HybridClass(HybridClass&&) = delete;
+  HybridClass& operator=(const HybridClass&) = delete;
+  HybridClass& operator=(HybridClass&&) = delete;
+
+  /**
+   * Build the descriptor for a HybridObject's nested `Class`, then publish it as immutable metadata shared by all instances.
+   * `Class::name` is the JavaScript class name, and `Class::Base` is the base class's `Class`, or `void` for the root.
+   */
+  template <typename Class, typename Initializer>
+  static std::shared_ptr<const HybridClass> create(Initializer&& initialize) {
+    std::shared_ptr<const HybridClass> base;
+    if constexpr (!std::is_void_v<typename Class::Base>) {
+      base = Class::Base::get();
+    }
+    auto hybridClass = std::shared_ptr<HybridClass>(new HybridClass(Class::name, typeid(Class), std::move(base)));
+    initialize(*hybridClass);
+    return hybridClass;
   }
 
-  inline bool hasHybrids() const {
-    return !_methods.empty() || !_getters.empty() || !_setters.empty();
+  /**
+   * Materialize this type's JavaScript class, cached per Runtime.
+   * The returned reference belongs to the Runtime's cache and stays valid until Runtime teardown.
+   * Use it only on the Runtime's thread within the current call; do not store it.
+   */
+  const JSClass& getOrCreateJSClass(jsi::Runtime& runtime) const;
+
+  inline const std::string& getName() const noexcept {
+    return _name;
   }
 
   inline bool hasBase() const noexcept {
     return _base != nullptr;
   }
-  inline const std::shared_ptr<Prototype>& getBase() const noexcept {
+  inline const std::shared_ptr<const HybridClass>& getBase() const noexcept {
     return _base;
   }
-  inline const NativeInstanceId& getNativeInstanceId() const noexcept {
-    return _instanceTypeId;
+  inline const HybridClassId& getId() const noexcept {
+    return _id;
   }
   inline const std::unordered_map<std::string, HybridFunction>& getMethods() const noexcept {
     return _methods;
@@ -98,14 +106,27 @@ public:
   }
 
 public:
+  /** Register the native factory used by JavaScript's new operator. */
+  template <typename ReturnType, typename... Args>
+  void registerHybridConstructor(ReturnType (*NON_NULL constructor)(Args...)) {
+    _constructor = HybridFunction::createStaticHybridFunction(_name, constructor);
+  }
+
+  /** Register a native function on this type's JavaScript constructor. */
+  template <typename ReturnType, typename... Args>
+  void registerHybridStaticMethod(std::string name, ReturnType (*NON_NULL method)(Args...)) {
+    _staticMethods.emplace(name, HybridFunction::createStaticHybridFunction(name, method));
+  }
+
   /**
-   * Registers the given C++ method as a property getter that can be called from JS, through the object's Prototype.
+   * Registers the given C++ method as a property getter that can be called from JS, through the object's prototype.
    * Example:
    * ```cpp
    * registerHybridGetter("foo", &MyObject::getFoo);
    * ```
    */
   template <typename Derived, typename ReturnType>
+    requires(std::is_void_v<ReturnType> || JSIEncodable<ReturnType>)
   inline void registerHybridGetter(std::string name, InstanceMethod<Derived, ReturnType> method) {
     if (_getters.contains(name)) [[unlikely]] {
       throw std::runtime_error("Cannot add Hybrid Property Getter \"" + name + "\" - a getter with that name already exists!");
@@ -118,13 +139,14 @@ public:
   }
 
   /**
-   * Registers the given C++ method as a property setter that can be called from JS, through the object's Prototype.
+   * Registers the given C++ method as a property setter that can be called from JS, through the object's prototype.
    * Example:
    * ```cpp
    * registerHybridSetter("foo", &MyObject::setFoo);
    * ```
    */
   template <typename Derived, typename ValueType>
+    requires JSIDecodable<std::decay_t<ValueType>>
   inline void registerHybridSetter(std::string name, InstanceMethod<Derived, void, ValueType> method) {
     if (_setters.contains(name)) [[unlikely]] {
       throw std::runtime_error("Cannot add Hybrid Property Setter \"" + name + "\" - a setter with that name already exists!");
@@ -137,13 +159,14 @@ public:
   }
 
   /**
-   * Registers the given C++ method as a Hybrid Method that can be called from JS, through the object's Prototype.
+   * Registers the given C++ method as a Hybrid Method that can be called from JS, through the object's prototype.
    * Example:
    * ```cpp
    * registerHybridMethod("sayHello", &MyObject::sayHello);
    * ```
    */
   template <typename Derived, typename ReturnType, typename... Args>
+    requires((JSIDecodable<std::decay_t<Args>> && ...) && (std::is_void_v<ReturnType> || JSIEncodable<ReturnType>))
   inline void registerHybridMethod(std::string name, InstanceMethod<Derived, ReturnType, Args...> method) {
     if (_getters.contains(name) || _setters.contains(name)) [[unlikely]] {
       throw std::runtime_error("Cannot add Hybrid Method \"" + name + "\" - a property with that name already exists!");
@@ -156,7 +179,7 @@ public:
   }
 
   /**
-   * Registers the given raw JSI C++ method as a Hybrid Method that can be called from JS, through the object's Prototype.
+   * Registers the given raw JSI C++ method as a Hybrid Method that can be called from JS, through the object's prototype.
    * Example:
    * ```cpp
    * registerRawHybridMethod("sayHello", &MyObject::sayHello);

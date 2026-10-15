@@ -5,8 +5,8 @@
 //  Created by Marc Rousavy on 17.09.24.
 //
 
-#include "BoxedHybridObject.hpp"
-#include "PropNameIDCache.hpp"
+#include <NitroModulesCxx/BoxedHybridObject.hpp>
+#include <NitroModulesCxx/PropNameIDCache.hpp>
 
 namespace margelo::nitro {
 

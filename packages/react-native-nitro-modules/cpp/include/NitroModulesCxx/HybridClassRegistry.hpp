@@ -1,5 +1,5 @@
 //
-//  HybridObjectRegistry.hpp
+//  HybridClassRegistry.hpp
 //  react-native-nitro
 //
 //  Created by Marc Rousavy on 22.07.24.
@@ -7,47 +7,29 @@
 
 #pragma once
 
-#include "HybridObject.hpp"
-#include <functional>
+#include <NitroModulesCxx/HybridClass.hpp>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace margelo::nitro {
 
-/**
- * A registry that holds initializers for HybridObjects.
- * This will be used to initialize them from JS using `NitroModules.createHybridObject<T>(name)`.
- */
-class HybridObjectRegistry {
+/** Registers shared type descriptors for lookup through NitroModules.getHybridClass(name). */
+class HybridClassRegistry {
 public:
-  HybridObjectRegistry() = delete;
+  HybridClassRegistry() = delete;
 
-public:
-  using HybridObjectConstructorFn = std::function<std::shared_ptr<HybridObject>()>;
+  /** Register the same descriptor returned by instances of this type. */
+  static void registerHybridClass(const std::shared_ptr<const HybridClass>& hybridClass);
 
-public:
-  /**
-   * Registers the given HybridObject in the `HybridObjectRegistry`.
-   * It will be uniquely identified via its `hybridObjectName`, and can be initialized from
-   * JS using `NitroModules.createHybridObject<T>(name)` - which will call the `constructorFn` here.
-   */
-  static void registerHybridObjectConstructor(const std::string& hybridObjectName, HybridObjectConstructorFn&& constructorFn);
+  /** The built-in HybridObject and NitroModulesProxy types have no public constructors. */
+  static jsi::Function getHybridClass(jsi::Runtime& runtime, const std::string& name);
 
-  /**
-   * Unregisters a Hybrid Object with the given `hybridObjectName`.
-   * It is recommended to not use this method, as this makes HybridObject constructors unpredictable from JS.
-   */
-  static void unregisterHybridObjectConstructor(const std::string& hybridObjectName);
-
-  static std::shared_ptr<HybridObject> createHybridObject(const std::string& hybridObjectName);
-  static bool hasHybridObject(const std::string& hybridObjectName);
-  static std::vector<std::string> getAllHybridObjectNames();
+  static bool hasHybridClass(const std::string& name);
+  static std::vector<std::string> getAllHybridClassNames();
 
 private:
-  static std::unordered_map<std::string, HybridObjectConstructorFn>& getRegistry();
-  static std::string getAllRegisteredHybridObjectNamesToString();
-
-private:
-  static constexpr auto TAG = "HybridObjectRegistry";
+  static std::unordered_map<std::string, std::shared_ptr<const HybridClass>>& getRegistry();
 };
 
 } // namespace margelo::nitro

@@ -5,10 +5,10 @@
 //  Created by Marc Rousavy on 20.06.24.
 //
 
-#include "JSICache.hpp"
-#include "CommonGlobals.hpp"
-#include "JSIHelpers.hpp"
-#include "NitroDefines.hpp"
+#include <NitroModulesCxx/JSICache.hpp>
+#include <NitroModulesCxx/CommonGlobals.hpp>
+#include <NitroModulesCxx/JSIHelpers.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
 
 namespace margelo::nitro {
 

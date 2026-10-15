@@ -1,51 +1,38 @@
 //
-//  HybridObjectPrototype.cpp
+//  HybridClass.cpp
 //  NitroModules
 //
 //  Created by Marc Rousavy on 07.08.24.
 //
 
-#include "HybridObjectPrototype.hpp"
-#include "CommonGlobals.hpp"
-#include "NitroDefines.hpp"
-#include "NitroLogger.hpp"
-#include "NitroTypeInfo.hpp"
+#include <NitroModulesCxx/HybridClass.hpp>
+#include <NitroModulesCxx/CommonGlobals.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/JSICache.hpp>
+#include <NitroModulesCxx/NitroLogger.hpp>
 
 namespace margelo::nitro {
 
-std::unordered_map<jsi::Runtime*, HybridObjectPrototype::PrototypeCache> HybridObjectPrototype::_prototypeCache;
-
-jsi::Value HybridObjectPrototype::createPrototype(jsi::Runtime& runtime, const std::shared_ptr<Prototype>& prototype) {
-  // 0. Check if we're at the highest level of our prototype chain
-  if (prototype == nullptr) {
-    // There is no prototype - we just have an empty Object base - so `Object.create({})`
-    return jsi::Object(runtime);
-  }
-
-  // 1. Try looking for the given prototype in cache.
-  //    If we find it in cache, we can create instances faster and skip creating the prototype from scratch!
-  auto& prototypeCache = _prototypeCache[&runtime];
-  auto cachedPrototype = prototypeCache.find(prototype->getNativeInstanceId());
-  if (cachedPrototype != prototypeCache.end()) {
-    const BorrowingReference<jsi::Object>& cachedObject = cachedPrototype->second;
-    if (cachedObject != nullptr) {
-      // 1.1. Found it in cache! Copy & return it.
-      return jsi::Value(runtime, *cachedObject);
+const JSClass& HybridClass::getOrCreateJSClass(jsi::Runtime& runtime) const {
+  // 1. Reuse both objects from this Runtime's cache.
+  {
+    auto cache = JSICache::getOrCreateCache(runtime);
+    auto cached = cache.getClass(getId());
+    if (cached != nullptr) {
+      return *cached;
     }
   }
 
-  // 2. Get the base prototype of this prototype (recursively), then create the individual prototypes downwards
-  //    until we reach our current prototype.
-  std::string typeName = TypeInfo::getFriendlyTypename(prototype->getNativeInstanceId(), true);
-  Logger::log(LogLevel::Info, TAG, "Creating new JS prototype for C++ instance type \"%s\"...", typeName.c_str());
-  jsi::Value basePrototype = createPrototype(runtime, prototype->getBase());
-  jsi::Object object = CommonGlobals::Object::create(runtime, basePrototype);
+  // 2. Materialize the base first, then create this type's instance prototype.
+  Logger::log(LogLevel::Info, "HybridClass", "Creating new JS prototype for \"%s\"...", _name.c_str());
+  const JSClass* base = _base != nullptr ? &_base->getOrCreateJSClass(runtime) : nullptr;
+  jsi::Object prototypeObject = base != nullptr ? jsi::Object::create(runtime, jsi::Value(runtime, base->prototype)) : jsi::Object(runtime);
 
-  // 4. Add all Hybrid Methods to it
-  for (const auto& method : prototype->getMethods()) {
+  // 3. Add all Hybrid Methods to it
+  for (const auto& method : getMethods()) {
     // method()
     const std::string& name = method.first;
-    CommonGlobals::Object::defineProperty(runtime, object, name.c_str(),
+    CommonGlobals::Object::defineProperty(runtime, prototypeObject, name.c_str(),
                                           PlainPropertyDescriptor{
                                               .configurable = false,
                                               .enumerable = true,
@@ -54,13 +41,13 @@ jsi::Value HybridObjectPrototype::createPrototype(jsi::Runtime& runtime, const s
                                           });
   }
 
-  // 5. Add all properties (getter + setter) to it using defineProperty
-  for (const auto& [name, getter] : prototype->getGetters()) {
-    const auto& setterIterator = prototype->getSetters().find(name);
-    if (setterIterator != prototype->getSetters().end()) {
+  // 4. Add all properties (getter + setter) to it using defineProperty
+  for (const auto& [name, getter] : getGetters()) {
+    const auto& setterIterator = getSetters().find(name);
+    if (setterIterator != getSetters().end()) {
       // get + set
       const HybridFunction& setter = setterIterator->second;
-      CommonGlobals::Object::defineProperty(runtime, object, name.c_str(),
+      CommonGlobals::Object::defineProperty(runtime, prototypeObject, name.c_str(),
                                             ComputedPropertyDescriptor{// getter + setter
                                                                        .configurable = false,
                                                                        .enumerable = true,
@@ -68,7 +55,7 @@ jsi::Value HybridObjectPrototype::createPrototype(jsi::Runtime& runtime, const s
                                                                        .set = setter.toJSFunction(runtime)});
     } else {
       // get
-      CommonGlobals::Object::defineProperty(runtime, object, name.c_str(),
+      CommonGlobals::Object::defineProperty(runtime, prototypeObject, name.c_str(),
                                             ComputedReadonlyPropertyDescriptor{// getter
                                                                                .configurable = false,
                                                                                .enumerable = true,
@@ -76,10 +63,10 @@ jsi::Value HybridObjectPrototype::createPrototype(jsi::Runtime& runtime, const s
     }
   }
 
-  // 6. In DEBUG, add a __type info to the prototype object.
+  // 5. In DEBUG, add a __type info to the prototype object.
 #ifdef NITRO_DEBUG
-  std::string prototypeName = "Prototype<" + typeName + ">";
-  CommonGlobals::Object::defineProperty(runtime, object, "__type",
+  std::string prototypeName = "Prototype<" + _name + ">";
+  CommonGlobals::Object::defineProperty(runtime, prototypeObject, "__type",
                                         PlainPropertyDescriptor{
                                             .configurable = false,
                                             .enumerable = true,
@@ -88,43 +75,48 @@ jsi::Value HybridObjectPrototype::createPrototype(jsi::Runtime& runtime, const s
                                         });
 #endif
 
-  // 7. In DEBUG, freeze the prototype.
+  // 6. Create the constructor function.
+  jsi::HostFunctionType constructor;
+  size_t argumentCount = 0;
+  if (_constructor.has_value()) {
+    constructor = _constructor->getHostFunction();
+    argumentCount = _constructor->getParamCount();
+  } else {
+    constructor = [name = _name](jsi::Runtime& runtime, const jsi::Value&, const jsi::Value*, size_t) -> jsi::Value {
+      throw jsi::JSError(runtime, "HybridClass \"" + name + "\" has no public constructor.");
+    };
+  }
+  auto constructorFunction = jsi::Function::createFromHostFunction(runtime, jsi::PropNameID::forAscii(runtime, _name),
+                                                                 static_cast<unsigned int>(argumentCount), std::move(constructor));
+
+  // 7. Set the constructor's prototype to the base constructor to inherit static methods.
+  if (base != nullptr) {
+    constructorFunction.setPrototype(runtime, jsi::Value(runtime, base->constructor));
+  }
+
+  // 8. Add own static methods.
+  for (const auto& [name, method] : _staticMethods) {
+    CommonGlobals::Object::defineProperty(runtime, constructorFunction, name.c_str(), PlainPropertyDescriptor{
+      .configurable = false, .enumerable = false, .value = method.toJSFunction(runtime), .writable = false,
+    });
+  }
+
+  // 9. Link .prototype and .constructor for JavaScript.
+  CommonGlobals::Object::defineProperty(runtime, constructorFunction, "prototype", PlainPropertyDescriptor{
+    .configurable = false, .enumerable = false, .value = jsi::Value(runtime, prototypeObject), .writable = false,
+  });
+  CommonGlobals::Object::defineProperty(runtime, prototypeObject, "constructor", PlainPropertyDescriptor{
+    .configurable = false, .enumerable = false, .value = jsi::Value(runtime, constructorFunction), .writable = false,
+  });
+
+  // 10. Freeze the completed instance prototype in debug builds.
 #ifdef NITRO_DEBUG
-  CommonGlobals::Object::freeze(runtime, object);
+  CommonGlobals::Object::freeze(runtime, prototypeObject);
 #endif
 
-  // 8. Throw it into our cache so the next lookup can be cached and therefore faster
-  BorrowingReference<jsi::Object> sharedObject;
-  {
-    JSICacheReference jsiCache = JSICache::getOrCreateCache(runtime);
-    sharedObject = jsiCache.makeShared(std::move(object));
-  }
-  const NativeInstanceId& instanceId = prototype->getNativeInstanceId();
-  prototypeCache[instanceId] = sharedObject;
-
-  // 9. Return it!
-  return jsi::Value(runtime, *sharedObject);
-}
-
-void HybridObjectPrototype::ensureInitialized() {
-  if (!_didLoadMethods) {
-    // lock in case we try to create `HybridObject`s in parallel Runtimes
-    static std::mutex mutex;
-    std::unique_lock lock(mutex);
-    if (_didLoadMethods) [[unlikely]] {
-      // another call to `ensureInitialized()` has initialized in the meantime. abort.
-      return;
-    }
-    // lazy-load all exposed methods
-    loadHybridMethods();
-    _didLoadMethods = true;
-  }
-}
-
-jsi::Value HybridObjectPrototype::getPrototype(jsi::Runtime& runtime) {
-  ensureInitialized();
-
-  return createPrototype(runtime, _prototypeChain.getPrototype());
+  // 11. Publish one complete cache entry. Its references stay valid until Runtime teardown.
+  auto cache = JSICache::getOrCreateCache(runtime);
+  return cache.setClass(getId(), JSClass{std::move(prototypeObject), std::move(constructorFunction)});
 }
 
 } // namespace margelo::nitro

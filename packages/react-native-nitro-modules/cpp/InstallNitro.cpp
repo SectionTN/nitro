@@ -5,9 +5,9 @@
 //  Created by Marc Rousavy on 05.10.24
 //
 
-#include "InstallNitro.hpp"
-#include "CommonGlobals.hpp"
-#include "HybridNitroModulesProxy.hpp"
+#include <NitroModulesCxx/InstallNitro.hpp>
+#include <NitroModulesCxx/CommonGlobals.hpp>
+#include <NitroModulesCxx/HybridNitroModulesProxy.hpp>
 
 namespace margelo::nitro {
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "HybridObject.hpp"
+#include <NitroModulesCxx/HybridObject.hpp>
 #include <jsi/jsi.h>
 #include <memory>
 
