@@ -1,8 +1,8 @@
 <a href="https://nitro.margelo.com">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/margelo/react-native-nitro/main/docs/static/img/banner-react-native-nitro-modules-dark.png" />
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/margelo/react-native-nitro/main/docs/static/img/banner-react-native-nitro-modules-light.png" />
-    <img alt="React Native Nitro Modules" src="https://raw.githubusercontent.com/margelo/react-native-nitro/main/docs/static/img/banner-react-native-nitro-modules-light.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/margelo/react-native-nitro-modules/main/docs/static/img/banner-react-native-nitro-modules-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/margelo/react-native-nitro-modules/main/docs/static/img/banner-react-native-nitro-modules-light.png" />
+    <img alt="React Native Nitro Modules" src="https://raw.githubusercontent.com/margelo/react-native-nitro-modules/main/docs/static/img/banner-react-native-nitro-modules-light.png" />
   </picture>
 </a>
 
@@ -12,7 +12,7 @@
 
 It uses JSI to generate C++ templates that can bridge virtually any JS type to a C++ type with minimal overhead.
 
-The files in this directory are the canonical implementation sources. This workspace package is private. [react-native-nitro](https://github.com/margelo/react-native-nitro) stages them into the published package and owns its CocoaPods, Gradle, CMake, and npm configuration.
+The files in this directory are the canonical implementation sources. This workspace package is private. [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules) stages them into the published package and owns its CocoaPods, Gradle, CMake, and npm configuration.
 
 ## Installation
 

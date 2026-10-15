@@ -28,7 +28,7 @@ export async function initNewNitroModule(
 
   const modulePath = await downloadGitHubFolder(
     'margelo',
-    'react-native-nitro',
+    'react-native-nitro-modules',
     ref,
     'packages/template',
     directory

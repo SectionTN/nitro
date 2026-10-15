@@ -1,6 +1,6 @@
 # Contributing to Nitro
 
-Nitro owns the shared native runtime, its JS/TS API, and Nitrogen. React Native packaging, apps, tests, docs, and templates live in [react-native-nitro](https://github.com/margelo/react-native-nitro). Read [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for setup, pinned core updates, and the release sequence.
+Nitro owns the shared native runtime, its JS/TS API, and Nitrogen. React Native packaging, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules). Read [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for setup, pinned core updates, and the release sequence.
 
 ## Scope and code review
 
@@ -21,7 +21,7 @@ bun lint-all
 
 The runtime package at `packages/react-native-nitro-modules` is the canonical source location and is private in this repository. Its name and APIs stay unchanged. `packages/nitrogen` is the published generator, including React Native view generation and autolinking.
 
-For native or generator changes, use a `react-native-nitro` checkout with your core commit in its `core` submodule. Run `bun sync-core`, build the workspace, run `bun specs`, and build the example app on the affected platforms. Run the existing harness tests for behavioral changes. Commit generated fixture changes in the wrapper repository. The [wrapper contribution guide](https://github.com/margelo/react-native-nitro/blob/main/CONTRIBUTING.md) and [docs](https://nitro.margelo.com/docs/resources/contributing) describe the existing test harness and toolchains.
+For native or generator changes, use a `react-native-nitro-modules` checkout with your core commit in its `core` submodule. Run `bun sync-core`, build the workspace, run `bun specs`, and build the example app on the affected platforms. Run the existing harness tests for behavioral changes. Commit generated fixture changes in the wrapper repository. The [wrapper contribution guide](https://github.com/margelo/react-native-nitro-modules/blob/main/CONTRIBUTING.md) and [docs](https://nitro.margelo.com/docs/resources/contributing) describe the existing test harness and toolchains.
 
 ## Before requesting review
 
