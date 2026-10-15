@@ -72,8 +72,4 @@ export default [
   ...baseConfig,
   packageConfig('packages/react-native-nitro-modules', ['./tsconfig.json']),
   packageConfig('packages/nitrogen', true, false),
-  packageConfig('packages/react-native-nitro-test'),
-  packageConfig('packages/react-native-nitro-test-external'),
-  packageConfig('apps/example'),
-  packageConfig('apps/benchmark'),
 ]

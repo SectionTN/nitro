@@ -1,0 +1,35 @@
+name: Build shared sources and Nitrogen
+
+on:
+  push:
+    branches: [main, core-split]
+    paths:
+      - '.github/workflows/build.yml'
+      - 'packages/**'
+      - 'config/**'
+      - 'scripts/set-version.mjs'
+      - 'package.json'
+      - 'bun.lock'
+  pull_request:
+    paths:
+      - '.github/workflows/build.yml'
+      - 'packages/**'
+      - 'config/**'
+      - 'scripts/set-version.mjs'
+      - 'package.json'
+      - 'bun.lock'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun typecheck
+      - name: Pack Nitrogen
+        working-directory: packages/nitrogen
+        run: npm pack --pack-destination "$RUNNER_TEMP"

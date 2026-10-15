@@ -1,8 +1,8 @@
 <a href="https://nitro.margelo.com">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./docs/static/img/banner-nitro-modules-dark.png" />
-    <source media="(prefers-color-scheme: light)" srcset="./docs/static/img/banner-nitro-modules-light.png" />
-    <img alt="Nitro Modules" src="./docs/static/img/banner-nitro-modules-light.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/margelo/react-native-nitro/main/docs/static/img/banner-nitro-modules-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/margelo/react-native-nitro/main/docs/static/img/banner-nitro-modules-light.png" />
+    <img alt="Nitro Modules" src="https://raw.githubusercontent.com/margelo/react-native-nitro/main/docs/static/img/banner-nitro-modules-light.png" />
   </picture>
 </a>
 
@@ -11,8 +11,12 @@
 **Nitro Modules** are fast, type-safe native modules for React Native with statically compiled bindings to JSI.
 They consist of two parts:
 
-- [**react-native-nitro-modules**](packages/react-native-nitro-modules): The core C++ library powering all nitro modules
+- [**react-native-nitro-modules**](packages/react-native-nitro-modules): The shared native runtime and JS/TS API sources
 - [**nitrogen**](packages/nitrogen): An optional code-generator for nitro module library authors
+
+This repository owns the shared runtime and Nitrogen. The runtime package here is private; the published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro](https://github.com/margelo/react-native-nitro).
+
+Run `bun bootstrap` to install dependencies and build the shared API and Nitrogen. See [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for source ownership, pinned core updates, and releases.
 
 ## Example
 
@@ -58,8 +62,8 @@ cd ios && pod install
 - [**How to build a Nitro Module** YouTube Tutorial ▶️](https://youtu.be/528SxTGnIlc?si=IxH7n09ZVe4iwRPv)
 - [**nitrogen**/README.md](./packages/nitrogen/README.md)
 - [**react-native-nitro-modules**/README.md](./packages/react-native-nitro-modules/README.md)
-- [**react-native-nitro-test** example module](./packages/react-native-nitro-test/README.md)
-- [`TestObject.nitro.ts` example playground](./packages/react-native-nitro-test/src/specs/TestObject.nitro.ts)
+- [**react-native-nitro-test** example module](https://github.com/margelo/react-native-nitro/blob/main/packages/react-native-nitro-test/README.md)
+- [`TestObject.nitro.ts` example playground](https://github.com/margelo/react-native-nitro/blob/main/packages/react-native-nitro-test/src/specs/TestObject.nitro.ts)
 
 ## Supported Platforms
 
