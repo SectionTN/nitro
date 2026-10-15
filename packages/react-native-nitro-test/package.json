@@ -60,9 +60,9 @@
     "@types/react": "^19.2.15",
     "jest": "*",
     "nitrogen": "*",
-    "@react-native/jest-preset": "0.85.3",
-    "react": "19.2.3",
-    "react-native": "0.85.3",
+    "@react-native/jest-preset": "0.88.0-rc.6",
+    "react": "19.3.0",
+    "react-native": "0.88.0-rc.6",
     "react-native-nitro-modules": "*",
     "react-native-nitro-test-external": "*"
   },
