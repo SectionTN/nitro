@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs'
+import { appendFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -57,6 +57,10 @@ if (nightly !== (npmTag === 'nightly'))
   throw new Error('Nightly versions must use the nightly npm tag')
 const tag = `v${version}`
 const dryRun = process.env.RELEASE_DRY_RUN === 'true'
+function reportCompletedRelease() {
+  if (!dryRun && process.env.GITHUB_OUTPUT)
+    appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\n`)
+}
 const branch =
   request?.[1] ||
   process.env.RELEASE_BRANCH ||
@@ -119,6 +123,7 @@ if (exists) {
       await assertPublishedPackages(manifest)
       console.log(`${tag} is already complete`)
       if (requestRef && !dryRun) git(['push', 'origin', '--delete', requestRef])
+      reportCompletedRelease()
       process.exit(0)
     }
   }
@@ -194,8 +199,8 @@ if (!manifest) {
       'package.json',
       'packages/nitro-core/package.json',
       'packages/nitrogen/package.json',
-      'packages/nitro-core/js/version.ts',
-      'packages/nitro-core/cpp/utils/NitroDefines.hpp',
+      'packages/nitro-core/js/src/version.ts',
+      'packages/nitro-core/native/cpp/utils/NitroDefines.hpp',
       'bun.lock',
     ])
     git(['diff', '--exit-code'])
@@ -239,6 +244,7 @@ if (dryRun) {
 await publishPackages(manifest, directory)
 finishRelease(manifest)
 if (requestRef) git(['push', 'origin', '--delete', requestRef])
+reportCompletedRelease()
 console.log(
   `Released ${tag}. The RN repository will pick up this completed release.`
 )

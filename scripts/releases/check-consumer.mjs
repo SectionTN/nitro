@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { run, writeJSON } from './lib.mjs'
+import { verifyCorePackage } from './package-layout.mjs'
 
 export function checkConsumer(tarballs) {
   const consumer = mkdtempSync(path.join(tmpdir(), 'nitro-release-consumer-'))
@@ -20,6 +21,20 @@ export function checkConsumer(tarballs) {
   run('npm', ['install', '--no-audit', '--no-fund', ...tarballs], {
     cwd: consumer,
   })
+  const version = verifyCorePackage(
+    path.join(consumer, 'node_modules/nitro-core')
+  )
+  const nitrogen = JSON.parse(
+    readFileSync(
+      path.join(consumer, 'node_modules/nitrogen/package.json'),
+      'utf8'
+    )
+  )
+  if (
+    nitrogen.version !== version ||
+    nitrogen.dependencies?.['nitro-core'] !== `^${version}`
+  )
+    throw new Error('Packed Nitrogen must use the matching nitro-core version')
   for (const name of ['nitro-core', 'nitrogen']) {
     const location = path.join(consumer, 'node_modules', name)
     if (lstatSync(location).isSymbolicLink())

@@ -1,9 +1,17 @@
 import assert from 'node:assert/strict'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
 import { gzipSync } from 'node:zlib'
+import { corePackageFiles, verifyCorePackage } from './package-layout.mjs'
 import {
   assertPublishedPackages,
   compareVersions,
@@ -19,6 +27,60 @@ import {
   saveDraft,
   validateManifest,
 } from './lib.mjs'
+
+function installedCoreFixture(t) {
+  const directory = mkdtempSync(path.join(os.tmpdir(), 'nitro-packed-core-'))
+  t.after(() => rmSync(directory, { recursive: true, force: true }))
+  for (const relative of corePackageFiles) {
+    const file = path.join(directory, relative)
+    mkdirSync(path.dirname(file), { recursive: true })
+    writeFileSync(file, 'fixture\n')
+  }
+  writeFileSync(
+    path.join(directory, 'package.json'),
+    JSON.stringify({ name: 'nitro-core', version: '0.37.2-beta.1' })
+  )
+  writeFileSync(
+    path.join(directory, 'native/cpp/utils/NitroDefines.hpp'),
+    '#define NITRO_VERSION "0.37.2-beta.1"\n'
+  )
+  writeFileSync(
+    path.join(directory, 'js/src/version.ts'),
+    "export const version = '0.37.2-beta.1'\n"
+  )
+  return directory
+}
+
+test('packed core contains native sources and matching JS/native versions', (t) => {
+  assert.equal(verifyCorePackage(installedCoreFixture(t)), '0.37.2-beta.1')
+})
+
+test('packed core rejects missing native sources', (t) => {
+  const directory = installedCoreFixture(t)
+  rmSync(path.join(directory, 'native/apple/core/HybridObject.swift'))
+  assert.throws(() => verifyCorePackage(directory), /ENOENT/)
+})
+
+test('packed core rejects a JS/native version mismatch', (t) => {
+  const directory = installedCoreFixture(t)
+  writeFileSync(
+    path.join(directory, 'native/cpp/utils/NitroDefines.hpp'),
+    '#define NITRO_VERSION "0.37.1"\n'
+  )
+  assert.throws(() => verifyCorePackage(directory), /Native version/)
+})
+
+test('packed core rejects linked implementation sources and build caches', (t) => {
+  const directory = installedCoreFixture(t)
+  symlinkSync(
+    path.join(directory, 'js/src/index.ts'),
+    path.join(directory, 'js/src/linked.ts')
+  )
+  assert.throws(() => verifyCorePackage(directory), /symlink/)
+  rmSync(path.join(directory, 'js/src/linked.ts'))
+  mkdirSync(path.join(directory, 'native/android/.gradle'))
+  assert.throws(() => verifyCorePackage(directory), /Development files/)
+})
 
 function releaseFixture(t, { version = '0.37.2', npmTag = 'latest' } = {}) {
   const directory = mkdtempSync(path.join(os.tmpdir(), 'nitro-release-test-'))
