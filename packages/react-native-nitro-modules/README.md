@@ -19,8 +19,10 @@ It uses JSI to generate C++ templates that can bridge virtually any JS type to a
 Install [react-native-nitro-modules](https://npmjs.org/react-native-nitro-modules) as a `dependency` in your react-native app:
 ```sh
 npm i react-native-nitro-modules
-cd ios && pod install
+npx react-native spm
 ```
+
+Nitro Modules require React Native 0.88 or newer, iOS 16 or newer, and are built with Swift Package Manager on iOS (`npx react-native spm`). CocoaPods is not supported.
 
 ### Inside a nitro module library
 

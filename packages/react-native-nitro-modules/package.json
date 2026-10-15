@@ -21,8 +21,8 @@
     "cpp/",
     "app.plugin.js",
     "*.podspec",
-    "nitro_pod_utils.rb",
-    "README.md"
+    "README.md",
+    "Package.swift"
   ],
   "keywords": [
     "react-native",
@@ -59,7 +59,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "write-native-version": "version=$(node -p \"require('./package.json').version\") && sed -i '' \"s/#define NITRO_VERSION \\\".*\\\"/#define NITRO_VERSION \\\"$version\\\"/\" ./cpp/utils/NitroDefines.hpp",
+    "write-native-version": "version=$(node -p \"require('./package.json').version\") && sed -i '' \"s/#define NITRO_VERSION \\\".*\\\"/#define NITRO_VERSION \\\"$version\\\"/\" ./cpp/include/NitroModulesCxx/NitroDefines.hpp",
     "postversion": "bun run write-native-version",
     "build": "rm -rf lib && bun typecheck && bob build",
     "typecheck": "tsc --noEmit",
@@ -89,6 +89,11 @@
     "jsSrcsDir": "./src",
     "android": {
       "javaPackageName": "com.margelo.nitro"
+    },
+    "ios": {
+      "modulesProvider": {
+        "NitroModules": "NativeNitroModules"
+      }
     }
   },
   "jest": {
@@ -125,5 +130,8 @@
         }
       ]
     ]
+  },
+  "swiftpmConfig": {
+    "name": "NitroModules"
   }
 }

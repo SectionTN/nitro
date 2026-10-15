@@ -1,17 +1,15 @@
 //
-//  NativeNitroModules+NewArch.mm
+//  NativeNitroModules.mm
 //  react-native-nitro
 //
 //  Created by Marc Rousavy on 21.06.24.
 //
 
-#import "NativeNitroModules.h"
+#import <NitroModulesReactNative/NativeNitroModules.h>
 
-#ifdef RCT_NEW_ARCH_ENABLED
-
-#import "CallInvokerDispatcher.hpp"
-#import "InstallNitro.hpp"
-#import "NitroLogger.hpp"
+#import <NitroModulesCxx/CallInvokerDispatcher.hpp>
+#import <NitroModulesCxx/InstallNitro.hpp>
+#import <NitroModulesCxx/NitroLogger.hpp>
 
 #import <ReactCommon/CallInvoker.h>
 #import <ReactCommon/RCTTurboModuleWithJSIBindings.h>
@@ -24,7 +22,6 @@ using namespace margelo;
 @end
 
 /**
- * NativeNitroModules implementation for the new architecture.
  * This uses `installJSIBindingsWithRuntime:` to install the `global.NitroModulesProxy` into the JS Runtime.
  */
 @implementation NativeNitroModules {
@@ -34,15 +31,8 @@ using namespace margelo;
 }
 RCT_EXPORT_MODULE(NitroModules)
 
-// React Native >= 0.87+
 - (void)installJSIBindingsWithRuntime:(jsi::Runtime&)runtime callInvoker:(const std::shared_ptr<react::CallInvoker>&)callInvoker {
   _callInvoker = callInvoker;
-  [self installNitroInRuntime:runtime];
-}
-
-// TODO: Delete this old overload when we drop support for RN 0.86
-// React Native < 0.87
-- (void)installJSIBindingsWithRuntime:(jsi::Runtime&)runtime {
   [self installNitroInRuntime:runtime];
 }
 
@@ -86,5 +76,3 @@ RCT_EXPORT_MODULE(NitroModules)
 }
 
 @end
-
-#endif
