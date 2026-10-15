@@ -18,7 +18,7 @@
   "scripts": {
     "postinstall": "bun run build",
     "build": "bun nitro build && bun nitrogen build && bun nitro-test-external build && bun nitro-test build",
-    "bootstrap": "bun i && bun run build && cd apps/example && bundle install && bun pods",
+    "bootstrap": "bun i && bun run build && cd apps/example && bun spm",
     "typecheck": "bun --filter=\"**\" typecheck",
     "lint": "bun nitro lint && bun nitrogen lint && bun nitro-test lint && bun example lint",
     "lint-cpp": "./scripts/clang-format.sh",
@@ -123,5 +123,9 @@
         }
       }
     }
+  },
+  "patchedDependencies": {
+    "@react-native-harness/ui@1.4.1": "patches/@react-native-harness%2Fui@1.4.1.patch",
+    "@react-native-segmented-control/segmented-control@2.5.7": "patches/@react-native-segmented-control%2Fsegmented-control@2.5.7.patch"
   }
 }
