@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
+#include <NitroModulesCxx/NitroDefines.hpp>
 #include <cstdarg>
 #include <cstdio>
 #include <iostream>

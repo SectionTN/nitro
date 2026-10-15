@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "IsSharedPtrTo.hpp"
-#include "NitroDefines.hpp"
-#include "NitroTypeInfo.hpp"
+#include <NitroModulesCxx/IsSharedPtrTo.hpp>
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/NitroTypeInfo.hpp>
 #include <jsi/jsi.h>
-#include <type_traits>
 
 namespace margelo::nitro {
 
@@ -16,7 +16,8 @@ using namespace facebook;
 
 // jsi::HostObject <> {}
 template <typename T>
-struct JSIConverter<T, std::enable_if_t<is_shared_ptr_to_v<T, jsi::HostObject>>> final {
+  requires is_shared_ptr_to_v<T, jsi::HostObject>
+struct JSIConverter<T> final {
   using TPointee = typename T::element_type;
 
   static inline T fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {

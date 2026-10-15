@@ -5,18 +5,11 @@
 //  Created by Marc Rousavy on 17.10.25.
 //
 
-#include "CommonGlobals.hpp"
-#include "JSICache.hpp"
-#include "JSIHelpers.hpp"
-#include "NitroDefines.hpp"
-#include "PropNameIDCache.hpp"
-
-#if __has_include(<cxxreact/ReactNativeVersion.h>)
-#include <cxxreact/ReactNativeVersion.h>
-#if REACT_NATIVE_VERSION_MINOR >= 78
-#define ENABLE_NATIVE_OBJECT_CREATE
-#endif
-#endif
+#include <NitroModulesCxx/CommonGlobals.hpp>
+#include <NitroModulesCxx/JSICache.hpp>
+#include <NitroModulesCxx/JSIHelpers.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/PropNameIDCache.hpp>
 
 namespace margelo::nitro {
 
@@ -25,17 +18,6 @@ using namespace facebook;
 std::unordered_map<jsi::Runtime*, CommonGlobals::FunctionCache> CommonGlobals::_cache;
 
 // pragma MARK: Object
-
-jsi::Object CommonGlobals::Object::create(jsi::Runtime& runtime, const jsi::Value& prototype) {
-#ifdef ENABLE_NATIVE_OBJECT_CREATE
-  return jsi::Object::create(runtime, prototype);
-#else
-  const jsi::Function& createFn = getGlobalFunction(runtime, "Object.create", [](jsi::Runtime& runtime) {
-    return runtime.global().getPropertyAsObject(runtime, "Object").getPropertyAsFunction(runtime, "create");
-  });
-  return createFn.call(runtime, prototype).getObject(runtime);
-#endif
-}
 
 void CommonGlobals::Object::defineProperty(jsi::Runtime& runtime, const jsi::Object& object, const char* propertyName,
                                            PlainPropertyDescriptor&& descriptor) {
@@ -101,19 +83,25 @@ jsi::Value CommonGlobals::Promise::resolved(jsi::Runtime& runtime) {
   const jsi::Function& resolvedFunc = getGlobalFunction(runtime, "Promise.resolve", [](jsi::Runtime& runtime) {
     return runtime.global().getPropertyAsObject(runtime, "Promise").getPropertyAsFunction(runtime, "resolve");
   });
-  return resolvedFunc.call(runtime);
+  const jsi::Function& promiseCtor = getGlobalFunction(
+      runtime, "Promise", [](jsi::Runtime& runtime) { return runtime.global().getPropertyAsFunction(runtime, "Promise"); });
+  return resolvedFunc.callWithThis(runtime, promiseCtor);
 }
 jsi::Value CommonGlobals::Promise::resolved(jsi::Runtime& runtime, jsi::Value&& value) {
   const jsi::Function& resolvedFunc = getGlobalFunction(runtime, "Promise.resolve", [](jsi::Runtime& runtime) {
     return runtime.global().getPropertyAsObject(runtime, "Promise").getPropertyAsFunction(runtime, "resolve");
   });
-  return resolvedFunc.call(runtime, {std::move(value)});
+  const jsi::Function& promiseCtor = getGlobalFunction(
+      runtime, "Promise", [](jsi::Runtime& runtime) { return runtime.global().getPropertyAsFunction(runtime, "Promise"); });
+  return resolvedFunc.callWithThis(runtime, promiseCtor, {std::move(value)});
 }
 jsi::Value CommonGlobals::Promise::rejected(jsi::Runtime& runtime, jsi::Value&& error) {
   const jsi::Function& rejectedFunc = getGlobalFunction(runtime, "Promise.reject", [](jsi::Runtime& runtime) {
     return runtime.global().getPropertyAsObject(runtime, "Promise").getPropertyAsFunction(runtime, "reject");
   });
-  return rejectedFunc.call(runtime, {std::move(error)});
+  const jsi::Function& promiseCtor = getGlobalFunction(
+      runtime, "Promise", [](jsi::Runtime& runtime) { return runtime.global().getPropertyAsFunction(runtime, "Promise"); });
+  return rejectedFunc.callWithThis(runtime, promiseCtor, {std::move(error)});
 }
 
 jsi::Value CommonGlobals::Promise::callConstructor(jsi::Runtime& runtime, jsi::HostFunctionType&& executor) {
@@ -148,6 +136,15 @@ bool CommonGlobals::Error::isInstanceOf(jsi::Runtime& runtime, const jsi::Object
   const jsi::Function& errorCtor =
       getGlobalFunction(runtime, "Error", [](jsi::Runtime& runtime) { return runtime.global().getPropertyAsFunction(runtime, "Error"); });
   return object.instanceOf(runtime, errorCtor);
+}
+
+// pragma MARK: JSON
+
+jsi::String CommonGlobals::JSON::stringify(jsi::Runtime& runtime, const jsi::Value& value) {
+  const jsi::Function& stringifyFunc = getGlobalFunction(runtime, "JSON.stringify", [](jsi::Runtime& runtime) {
+    return runtime.global().getPropertyAsObject(runtime, "JSON").getPropertyAsFunction(runtime, "stringify");
+  });
+  return stringifyFunc.call(runtime, value).getString(runtime);
 }
 
 // pragma MARK: CommonGlobals

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
+#include <NitroModulesCxx/BorrowingReference.hpp>
 #include <jsi/jsi.h>
 #include <unordered_map>
 
@@ -31,7 +31,7 @@ public:
 
   /**
    * Get a `jsi::PropNameID` for the given `std::string` value.
-   * - The `std::string` must be an ASCII string.
+   * - The `std::string` must be a UTF-8 string.
    * - The `jsi::PropNameID` is only valid within the callee's current
    *   synchronous scope, and must be non-escaping.
    */

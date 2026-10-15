@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <cstdint>
 #include <functional>
 #include <type_traits>
 
@@ -13,7 +14,7 @@ namespace margelo::nitro {
 /**
  * Represents the type of `null` - which should always be a singleton.
  */
-enum class NullType { null };
+enum class NullType : std::uint8_t { null };
 
 /**
  * Represents an explicit `null` from JS.

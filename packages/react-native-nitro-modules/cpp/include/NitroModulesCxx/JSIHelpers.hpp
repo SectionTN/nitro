@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "ThreadUtils.hpp"
+#include <NitroModulesCxx/ThreadUtils.hpp>
 #include <jsi/jsi.h>
 
 namespace margelo::nitro {

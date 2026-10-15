@@ -62,12 +62,21 @@
 // Swift's bridging header defines those things
 #include <swift/bridging>
 #define SWIFT_PRIVATE __attribute__((swift_private))
+// Older Swift toolchains don't define these yet
+#ifndef SWIFT_NONESCAPABLE
+#define SWIFT_NONESCAPABLE
+#endif
+#ifndef SWIFT_RETURNS_INDEPENDENT_VALUE
+#define SWIFT_RETURNS_INDEPENDENT_VALUE
+#endif
 #else
 // If we don't have Swift bridging header, those macros do nothing
 #define SWIFT_NAME(_name)
 #define SWIFT_PRIVATE
 #define SWIFT_COMPUTED_PROPERTY
 #define SWIFT_NONCOPYABLE
+#define SWIFT_NONESCAPABLE
+#define SWIFT_RETURNS_INDEPENDENT_VALUE
 #endif
 
 #endif /* NitroDefines_h */

@@ -4,13 +4,15 @@
 
 #pragma once
 
+#include <NitroModulesCxx/JSIConverter.hpp>
+
 namespace margelo::nitro {
 class HybridObject;
 } // namespace margelo::nitro
 
-#include "IsSharedPtrTo.hpp"
-#include "NitroDefines.hpp"
-#include "NitroTypeInfo.hpp"
+#include <NitroModulesCxx/IsSharedPtrTo.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/NitroTypeInfo.hpp>
 #include <jsi/jsi.h>
 #include <type_traits>
 
@@ -20,7 +22,8 @@ using namespace facebook;
 
 // NativeState <> {}
 template <typename T>
-struct JSIConverter<T, std::enable_if_t<is_shared_ptr_to_v<T, jsi::NativeState>>> final {
+  requires is_shared_ptr_to_v<T, jsi::NativeState>
+struct JSIConverter<T> final {
   using TPointee = typename T::element_type;
 
   static inline T fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {

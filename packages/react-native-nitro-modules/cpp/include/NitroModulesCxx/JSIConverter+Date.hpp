@@ -4,18 +4,9 @@
 
 #pragma once
 
-// Forward declare a few of the common types that might have cyclic includes.
-namespace margelo::nitro {
-class JSICache;
-
-template <typename T, typename Enable>
-struct JSIConverter;
-} // namespace margelo::nitro
-
-#include "JSIConverter.hpp"
-
-#include "CommonGlobals.hpp"
-#include "PropNameIDCache.hpp"
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/CommonGlobals.hpp>
+#include <NitroModulesCxx/PropNameIDCache.hpp>
 #include <chrono>
 #include <jsi/jsi.h>
 #include <memory>

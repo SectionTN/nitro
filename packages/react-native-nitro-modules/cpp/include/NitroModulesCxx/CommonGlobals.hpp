@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
+#include <NitroModulesCxx/BorrowingReference.hpp>
 #include <jsi/jsi.h>
 #include <unordered_map>
 
@@ -64,12 +64,6 @@ public:
     ~Object() = delete;
 
     /**
-     * Create a new `jsi::Object` with the given `prototype`.
-     * Uses a native implementation if possible.
-     */
-    static jsi::Object create(jsi::Runtime& runtime, const jsi::Value& prototype);
-
-    /**
      * Define a plain property on the given `object` with the given `propertyName`.
      * The `descriptor` defines the attributes of this property.
      */
@@ -121,7 +115,7 @@ public:
     static jsi::Value callConstructor(jsi::Runtime& runtime, double msSinceEpoch);
     static bool isInstanceOf(jsi::Runtime& runtime, const jsi::Object& object);
   };
-
+  
   /**
    * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
    */
@@ -132,12 +126,24 @@ public:
 
     static bool isInstanceOf(jsi::Runtime& runtime, const jsi::Object& object);
   };
+  
+  /**
+   * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
+   */
+  class JSON final {
+  public:
+    JSON() = delete;
+    ~JSON() = delete;
+
+    static jsi::String stringify(jsi::Runtime& runtime, const jsi::Value& value);
+  };
 
 private:
   friend Object;
   friend Promise;
   friend Date;
   friend Error;
+  friend JSON;
 
 private:
   /**

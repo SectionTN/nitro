@@ -5,8 +5,8 @@
 //  Created by Marc Rousavy on 17.10.25.
 //
 
-#include "PropNameIDCache.hpp"
-#include "JSICache.hpp"
+#include <NitroModulesCxx/PropNameIDCache.hpp>
+#include <NitroModulesCxx/JSICache.hpp>
 
 namespace margelo::nitro {
 
@@ -28,7 +28,7 @@ const jsi::PropNameID& PropNameIDCache::get(jsi::Runtime& runtime, const std::st
   }
 
   // not cached - create the jsi::PropNameID...
-  auto propName = jsi::PropNameID::forAscii(runtime, value);
+  auto propName = jsi::PropNameID::forUtf8(runtime, value);
   auto jsiCache = JSICache::getOrCreateCache(runtime);
   auto sharedPropName = jsiCache.makeShared(std::move(propName));
 
