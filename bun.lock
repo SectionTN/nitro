@@ -81,7 +81,6 @@
         "@react-native/eslint-config": "0.85.3",
         "@react-native/metro-config": "0.85.3",
         "@react-native/typescript-config": "0.85.3",
-        "@types/chai": "^5.2.2",
         "@types/upng-js": "2.1.5",
         "babel-plugin-module-resolver": "^5.0.3",
         "nitrogen": "*",
