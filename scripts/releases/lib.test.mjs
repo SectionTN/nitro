@@ -9,10 +9,13 @@ import {
   compareVersions,
   fileIntegrity,
   finishRelease,
+  isNightly,
+  nightlyVersion,
   npmTagFor,
   parseVersion,
   publishPackages,
   registryPackage,
+  run,
   saveDraft,
   validateManifest,
 } from './lib.mjs'
@@ -27,6 +30,7 @@ function releaseFixture(t, { version = '0.37.2', npmTag = 'latest' } = {}) {
     version,
     npmTag,
     commit: 'a'.repeat(40),
+    ...(isNightly(version) ? { sourceCommit: 'b'.repeat(40) } : {}),
     packages: ['nitro-core', 'nitrogen'].map((name) => {
       const filename = `${name}-${version}.tgz`
       // The release helpers hash these bytes; package inspection is tested by CI.
@@ -49,6 +53,7 @@ function registryFixture(manifest) {
   const versions = new Map()
   const tags = new Map()
   const publishes = []
+  const publicationTags = []
   const key = (name, version) => `${name}@${version}`
   const record = (pkg) => ({
     version: pkg.version,
@@ -63,20 +68,242 @@ function registryFixture(manifest) {
       (entry) => entry.filename === path.basename(args[1])
     )
     assert.ok(pkg, 'only a recorded tarball may be published')
+    const npmTag = args[3]
+    assert.ok(
+      npmTag === manifest.npmTag ||
+        (isNightly(manifest.version) &&
+          npmTag === `nightly-${manifest.commit.slice(0, 12)}`),
+      'publish must use the selected channel or the older nightly fallback'
+    )
     assert.deepEqual(args.slice(2), [
       '--tag',
-      manifest.npmTag,
+      npmTag,
       '--access',
       'public',
       '--provenance',
       '--ignore-scripts',
     ])
     publishes.push(pkg.name)
+    publicationTags.push({ name: pkg.name, npmTag })
     versions.set(key(pkg.name, pkg.version), record(pkg))
-    tags.set(key(pkg.name, manifest.npmTag), record(pkg))
+    tags.set(key(pkg.name, npmTag), record(pkg))
   }
-  return { versions, tags, publishes, lookup, execute, key, record }
+  return {
+    versions,
+    tags,
+    publishes,
+    publicationTags,
+    lookup,
+    execute,
+    key,
+    record,
+  }
 }
+
+test('nightly versions are deterministic for a source commit and workflow run', () => {
+  const source = 'abcdef012345' + 'a'.repeat(28)
+  const version = nightlyVersion('0.37.1', 42, source)
+  assert.equal(version, '0.37.2-nightly.42.gabcdef012345')
+  assert.equal(nightlyVersion('0.37.1', '42', source), version)
+  assert.equal(
+    nightlyVersion('0.38.0-beta.1', 42, source),
+    '0.38.0-nightly.42.gabcdef012345'
+  )
+  assert.equal(
+    nightlyVersion('1.0.0-rc.2', 42, source),
+    '1.0.0-nightly.42.gabcdef012345'
+  )
+  assert.equal(
+    nightlyVersion('0.37.1', 42, '001234567890' + 'a'.repeat(28)),
+    '0.37.2-nightly.42.g001234567890'
+  )
+  assert.equal(
+    compareVersions(nightlyVersion('0.37.1', 43, source), version),
+    1
+  )
+  assert.equal(compareVersions(version, '0.37.2'), -1)
+  assert.ok(isNightly(version))
+  assert.equal(isNightly('0.37.2'), false)
+  assert.equal(isNightly('0.37.2-beta.nightly'), false)
+  assert.equal(isNightly('0.37.2-nightly-other.42'), false)
+})
+
+test('nightly versions require a positive run number and full source SHA', () => {
+  const source = 'b'.repeat(40)
+  for (const runNumber of [
+    0,
+    -1,
+    1.2,
+    NaN,
+    Infinity,
+    Number.MAX_SAFE_INTEGER + 1,
+    '',
+    '01',
+    '1.2',
+    '1e2',
+    undefined,
+    null,
+    true,
+  ]) {
+    assert.throws(
+      () => nightlyVersion('0.37.1', runNumber, source),
+      /positive integer/
+    )
+  }
+  for (const commit of [
+    '',
+    'main',
+    'b'.repeat(12),
+    'g'.repeat(40),
+    `../${source}`,
+    undefined,
+  ]) {
+    assert.throws(
+      () => nightlyVersion('0.37.1', 1, commit),
+      /source commit SHA/
+    )
+  }
+  assert.throws(
+    () => nightlyVersion('0.37', 1, source),
+    /Invalid release version/
+  )
+  assert.throws(
+    () => nightlyVersion(`0.0.${Number.MAX_SAFE_INTEGER}`, 1, source),
+    /Invalid release version/
+  )
+})
+
+test('nightly manifests bind the nightly channel and full source commit', (t) => {
+  const version = nightlyVersion('0.37.1', 42, 'b'.repeat(40))
+  const { manifest } = releaseFixture(t, { version, npmTag: 'nightly' })
+  const options = {
+    repository: manifest.repository,
+    tag: manifest.tag,
+    packages: ['nitro-core', 'nitrogen'],
+  }
+  assert.equal(validateManifest(manifest, options), manifest)
+  for (const override of [
+    { sourceCommit: undefined },
+    { sourceCommit: 'main' },
+    { npmTag: 'beta' },
+    { npmTag: 'latest' },
+  ]) {
+    assert.throws(() => validateManifest({ ...manifest, ...override }, options))
+  }
+  const stable = releaseFixture(t).manifest
+  assert.throws(
+    () =>
+      validateManifest(
+        { ...stable, npmTag: 'nightly' },
+        { ...options, tag: stable.tag }
+      ),
+    /reserved for nightly versions/
+  )
+})
+
+test('new nightlies update nightly without changing stable latest', async (t) => {
+  const version = nightlyVersion('0.37.1', 42, 'b'.repeat(40))
+  const { manifest, directory } = releaseFixture(t, {
+    version,
+    npmTag: 'nightly',
+  })
+  const registry = registryFixture(manifest)
+  for (const pkg of manifest.packages) {
+    registry.tags.set(registry.key(pkg.name, 'latest'), { version: '0.37.1' })
+    registry.tags.set(registry.key(pkg.name, 'nightly'), {
+      version: nightlyVersion('0.37.1', 41, 'c'.repeat(40)),
+    })
+  }
+  await publishPackages(manifest, directory, registry)
+  for (const pkg of manifest.packages) {
+    assert.equal((await registry.lookup(pkg.name, 'latest')).version, '0.37.1')
+    assert.equal((await registry.lookup(pkg.name, 'nightly')).version, version)
+  }
+  assert.deepEqual(
+    registry.publicationTags,
+    manifest.packages.map(({ name }) => ({ name, npmTag: 'nightly' }))
+  )
+})
+
+test('an older nightly publishes under a commit tag without moving nightly backwards', async (t) => {
+  const version = nightlyVersion('0.37.1', 41, 'b'.repeat(40))
+  const { manifest, directory } = releaseFixture(t, {
+    version,
+    npmTag: 'nightly',
+  })
+  const registry = registryFixture(manifest)
+  const newer = nightlyVersion('0.37.1', 42, 'c'.repeat(40))
+  for (const pkg of manifest.packages) {
+    registry.tags.set(registry.key(pkg.name, 'latest'), { version: '0.37.1' })
+    registry.tags.set(registry.key(pkg.name, 'nightly'), { version: newer })
+  }
+  await publishPackages(manifest, directory, registry)
+  const fallbackTag = `nightly-${manifest.commit.slice(0, 12)}`
+  assert.deepEqual(
+    registry.publicationTags,
+    manifest.packages.map(({ name }) => ({ name, npmTag: fallbackTag }))
+  )
+  for (const pkg of manifest.packages) {
+    assert.equal((await registry.lookup(pkg.name, 'latest')).version, '0.37.1')
+    assert.equal((await registry.lookup(pkg.name, 'nightly')).version, newer)
+    assert.equal(
+      (await registry.lookup(pkg.name, fallbackTag)).version,
+      version
+    )
+  }
+  await publishPackages(manifest, directory, registry)
+  assert.equal(
+    registry.publishes.length,
+    2,
+    'retry must not republish or retag the older nightly'
+  )
+})
+
+test('npm provenance overrides only source commit and ref, preserving workflow identity', async (t) => {
+  const { manifest, directory } = releaseFixture(t)
+  const registry = registryFixture(manifest)
+  const environments = []
+  await publishPackages(manifest, directory, {
+    lookup: registry.lookup,
+    execute: (command, args, options) => {
+      environments.push(options.env)
+      registry.execute(command, args)
+    },
+  })
+  assert.deepEqual(
+    environments,
+    manifest.packages.map(() => ({
+      GITHUB_SHA: manifest.commit,
+      GITHUB_REF: `refs/tags/${manifest.tag}`,
+    }))
+  )
+  const original = process.env.GITHUB_WORKFLOW_REF
+  process.env.GITHUB_WORKFLOW_REF =
+    'margelo/nitro/.github/workflows/release.yml@refs/heads/main'
+  try {
+    const environment = JSON.parse(
+      run(
+        process.execPath,
+        [
+          '-e',
+          'console.log(JSON.stringify({ sha: process.env.GITHUB_SHA, ref: process.env.GITHUB_REF, workflow: process.env.GITHUB_WORKFLOW_REF }))',
+        ],
+        {
+          capture: true,
+          env: environments[0],
+        }
+      )
+    )
+    assert.deepEqual(environment, {
+      sha: manifest.commit,
+      ref: `refs/tags/${manifest.tag}`,
+      workflow: process.env.GITHUB_WORKFLOW_REF,
+    })
+  } finally {
+    if (original === undefined) delete process.env.GITHUB_WORKFLOW_REF
+    else process.env.GITHUB_WORKFLOW_REF = original
+  }
+})
 
 test('versions require exact SemVer without build metadata or unsafe input', () => {
   for (const version of ['0.37.2', '1.0.0-beta.1', '1.0.0-0', '1.0.0-beta-2']) {

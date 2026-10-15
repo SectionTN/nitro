@@ -33,4 +33,5 @@ jobs:
       - run: node --test scripts/releases/lib.test.mjs
       - uses: docker://rhysd/actionlint:1.7.12
         with:
-          args: -color .github/workflows/release.yml .github/workflows/check-release.yml
+          # queue:max is supported by GitHub; actionlint 1.7.12 predates it.
+          args: '-color -ignore ''unexpected key "queue" for "concurrency" section'' .github/workflows/release.yml .github/workflows/check-release.yml'

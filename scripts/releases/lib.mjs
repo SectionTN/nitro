@@ -3,11 +3,12 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
-export function run(command, args, { cwd, capture = false, input } = {}) {
+export function run(command, args, { cwd, capture = false, input, env } = {}) {
   const result = spawnSync(command, args, {
     cwd,
     encoding: 'utf8',
     input,
+    env: env ? { ...process.env, ...env } : process.env,
     stdio:
       capture || input !== undefined ? ['pipe', 'pipe', 'pipe'] : 'inherit',
   })
@@ -44,6 +45,31 @@ export function parseVersion(version) {
     throw new Error(`Invalid release version: ${version}`)
   }
   return { major: numbers[0], minor: numbers[1], patch: numbers[2], prerelease }
+}
+
+export function nightlyVersion(baseVersion, runNumber, sourceCommit) {
+  const base = parseVersion(baseVersion)
+  if (
+    !['string', 'number'].includes(typeof runNumber) ||
+    !/^[1-9]\d*$/.test(String(runNumber)) ||
+    !Number.isSafeInteger(Number(runNumber))
+  ) {
+    throw new Error('A nightly requires a positive integer workflow run number')
+  }
+  if (
+    typeof sourceCommit !== 'string' ||
+    !/^[a-f0-9]{40}$/.test(sourceCommit)
+  ) {
+    throw new Error('A nightly requires the full source commit SHA')
+  }
+  const patch = base.patch + (base.prerelease.length ? 0 : 1)
+  const version = `${base.major}.${base.minor}.${patch}-nightly.${runNumber}.g${sourceCommit.slice(0, 12)}`
+  parseVersion(version)
+  return version
+}
+
+export function isNightly(version) {
+  return parseVersion(version).prerelease[0] === 'nightly'
 }
 
 export function compareVersions(a, b) {
@@ -111,6 +137,18 @@ export function validateManifest(manifest, { repository, tag, packages }) {
   npmTagFor(manifest.version, manifest.npmTag)
   if (typeof manifest.npmTag !== 'string' || !manifest.npmTag)
     throw new Error('Missing npm tag')
+  if (isNightly(manifest.version)) {
+    if (
+      manifest.npmTag !== 'nightly' ||
+      !/^[a-f0-9]{40}$/.test(manifest.sourceCommit)
+    ) {
+      throw new Error(
+        'A nightly manifest requires the nightly npm tag and source commit SHA'
+      )
+    }
+  } else if (manifest.npmTag === 'nightly') {
+    throw new Error('The nightly npm tag is reserved for nightly versions')
+  }
   if (
     !Array.isArray(manifest.packages) ||
     manifest.packages.length !== packages.length
@@ -257,33 +295,49 @@ export async function publishPackages(
         )
       }
       const current = await lookup(pkg.name, manifest.npmTag)
+      let npmTag = manifest.npmTag
       if (
         !published &&
         current &&
         compareVersions(current.version, pkg.version) > 0
       ) {
-        throw new Error(
-          `Refusing to move ${pkg.name}'s ${manifest.npmTag} tag backwards from ${current.version}`
-        )
+        if (manifest.npmTag === 'nightly' && isNightly(manifest.version)) {
+          npmTag = `nightly-${manifest.commit.slice(0, 12)}`
+        } else {
+          throw new Error(
+            `Refusing to move ${pkg.name}'s ${manifest.npmTag} tag backwards from ${current.version}`
+          )
+        }
       }
-      return published
+      return { published, npmTag }
     })
   )
   for (const [index, pkg] of manifest.packages.entries()) {
-    if (existing[index]) {
+    if (existing[index].published) {
       console.log(`Already published and verified: ${pkg.name}@${pkg.version}`)
       continue
     }
-    execute('npm', [
-      'publish',
-      path.join(directory, pkg.filename),
-      '--tag',
-      manifest.npmTag,
-      '--access',
-      'public',
-      '--provenance',
-      '--ignore-scripts',
-    ])
+    execute(
+      'npm',
+      [
+        'publish',
+        path.join(directory, pkg.filename),
+        '--tag',
+        existing[index].npmTag,
+        '--access',
+        'public',
+        '--provenance',
+        '--ignore-scripts',
+      ],
+      {
+        // npm uses these for provenance source material. Keep the workflow identity
+        // variables unchanged: the launcher ran on its original workflow revision.
+        env: {
+          GITHUB_SHA: manifest.commit,
+          GITHUB_REF: `refs/tags/${manifest.tag}`,
+        },
+      }
+    )
     // A registry failure stops the release; a retry uses these same saved tarballs.
     await assertPublishedPackages({ packages: [pkg] }, { lookup })
   }

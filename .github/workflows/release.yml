@@ -1,13 +1,15 @@
 name: Release Nitro
 
 on:
+  push:
+    branches: [main, 'release-request/**']
   workflow_dispatch:
     inputs:
       source-branch:
         description: 'Branch to release (use core-split until the split is merged)'
-        default: core-split
+        default: main
         type: choice
-        options: [core-split, main]
+        options: [main, core-split]
       version:
         description: 'Exact version, for example 0.37.2 or 0.38.0-beta.1'
         required: true
@@ -24,13 +26,14 @@ on:
 concurrency:
   group: nitro-release
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read
 
 jobs:
   release:
-    if: github.repository == 'margelo/nitro' && (github.ref == 'refs/heads/core-split' || github.ref == 'refs/heads/main')
+    if: github.repository == 'margelo/nitro' && !github.event.deleted && (github.ref == 'refs/heads/core-split' || github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release-request/'))
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -39,7 +42,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.source-branch }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source-branch || github.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@v6
         with:
@@ -51,7 +54,9 @@ jobs:
       - name: Build, validate and release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_BRANCH: ${{ inputs.source-branch }}
+          RELEASE_BRANCH: ${{ inputs.source-branch || 'main' }}
+          RELEASE_MODE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && 'nightly' || 'manual' }}
+          RELEASE_REQUEST_REF: ${{ startsWith(github.ref, 'refs/heads/release-request/') && github.ref_name || '' }}
           RELEASE_VERSION: ${{ inputs.version }}
           RELEASE_NPM_TAG: ${{ inputs.npm-tag }}
           RELEASE_DRY_RUN: ${{ inputs.dry-run }}

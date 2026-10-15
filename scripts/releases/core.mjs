@@ -11,6 +11,8 @@ import {
   finishRelease,
   getRelease,
   git,
+  isNightly,
+  nightlyVersion,
   npmTagFor,
   packPackage,
   parseVersion,
@@ -26,14 +28,39 @@ import { checkConsumer } from './check-consumer.mjs'
 const root = fileURLToPath(new URL('../../', import.meta.url))
 process.chdir(root)
 const repository = 'margelo/nitro'
-const version = process.env.RELEASE_VERSION
+const requestRef = process.env.RELEASE_REQUEST_REF
+const request = requestRef ? requestRef.split('/') : undefined
+if (
+  request &&
+  (request.length !== 5 ||
+    request[0] !== 'release-request' ||
+    !/^\d+$/.test(request[4]))
+) {
+  throw new Error('Invalid release request branch')
+}
+const automaticNightly = process.env.RELEASE_MODE === 'nightly'
+let sourceCommit = git(['rev-parse', 'HEAD'])
+const version = automaticNightly
+  ? nightlyVersion(
+      readJSON('package.json').version,
+      process.env.GITHUB_RUN_NUMBER,
+      sourceCommit
+    )
+  : (request?.[2] ?? process.env.RELEASE_VERSION)
 parseVersion(version)
-const npmTag = npmTagFor(version, process.env.RELEASE_NPM_TAG)
+const nightly = isNightly(version)
+const npmTag = npmTagFor(
+  version,
+  automaticNightly ? 'nightly' : (request?.[3] ?? process.env.RELEASE_NPM_TAG)
+)
+if (nightly !== (npmTag === 'nightly'))
+  throw new Error('Nightly versions must use the nightly npm tag')
 const tag = `v${version}`
 const dryRun = process.env.RELEASE_DRY_RUN === 'true'
 const branch =
-  process.env.RELEASE_BRANCH ??
-  process.env.GITHUB_REF_NAME ??
+  request?.[1] ||
+  process.env.RELEASE_BRANCH ||
+  process.env.GITHUB_REF_NAME ||
   git(['branch', '--show-current'])
 if (!['main', 'core-split'].includes(branch))
   throw new Error('Release from main or core-split')
@@ -46,7 +73,6 @@ let manifest
 
 if (exists) {
   const commit = git(['rev-parse', `${tag}^{commit}`])
-  git(['merge-base', '--is-ancestor', commit, `origin/${branch}`])
   const annotation = git([
     'for-each-ref',
     '--format=%(contents)',
@@ -60,6 +86,20 @@ if (exists) {
       `Tag ${tag} was not created by this release workflow with npm tag ${npmTag}`
     )
   }
+  sourceCommit = annotation
+    .split('\n')
+    .find((line) => line.startsWith('Source-Commit: '))
+    ?.slice('Source-Commit: '.length)
+  if (!/^[a-f0-9]{40}$/.test(sourceCommit))
+    throw new Error('Release tag does not record its source commit')
+  if (nightly && git(['rev-parse', `${tag}^`]) !== sourceCommit)
+    throw new Error('Nightly commit must be based on its recorded source')
+  git([
+    'merge-base',
+    '--is-ancestor',
+    nightly ? sourceCommit : commit,
+    `origin/${branch}`,
+  ])
   git(['checkout', '--detach', commit])
   run('node', ['scripts/set-version.mjs', '--check'])
   if (readJSON('package.json').version !== version)
@@ -67,20 +107,40 @@ if (exists) {
   const release = getRelease(repository, tag)
   if (release?.assets.some((asset) => asset.name === 'nitro-release.json')) {
     manifest = downloadRelease(repository, tag, 'nitro-release.json', directory)
-    if (manifest.commit !== commit || manifest.npmTag !== npmTag)
+    if (
+      manifest.commit !== commit ||
+      manifest.npmTag !== npmTag ||
+      manifest.sourceCommit !== sourceCommit
+    )
       throw new Error(
         'Saved release differs from its Git tag or requested npm tag'
       )
     if (!release.draft) {
       await assertPublishedPackages(manifest)
       console.log(`${tag} is already complete`)
+      if (requestRef && !dryRun) git(['push', 'origin', '--delete', requestRef])
       process.exit(0)
     }
   }
 } else {
-  if (git(['rev-parse', 'HEAD']) !== git(['rev-parse', `origin/${branch}`]))
+  if (nightly && !automaticNightly)
+    throw new Error(
+      'New nightlies are created by pushes to main; rerun their original workflow to retry'
+    )
+  if (
+    automaticNightly &&
+    !dryRun &&
+    (branch !== 'main' || sourceCommit !== process.env.GITHUB_SHA)
+  )
+    throw new Error('Nightlies must build the exact main push commit')
+  if (nightly)
+    git(['merge-base', '--is-ancestor', sourceCommit, `origin/${branch}`])
+  if (!nightly && sourceCommit !== git(['rev-parse', `origin/${branch}`]))
     throw new Error('Release checkout must match the remote branch tip')
-  if (compareVersions(version, readJSON('package.json').version) <= 0)
+  if (
+    !nightly &&
+    compareVersions(version, readJSON('package.json').version) <= 0
+  )
     throw new Error(
       'A new release must increase the version. To recover a release, use its existing version.'
     )
@@ -93,7 +153,9 @@ if (exists) {
     .split('\n')
     .filter((line) => /^v\S+ Nitro-Release: v\S+(?: |$)/.test(line))
     .map((line) => line.split(' ')[0])
-  for (const releaseTag of releaseTags) {
+  for (const releaseTag of nightly
+    ? []
+    : releaseTags.filter((name) => !isNightly(name.slice(1)))) {
     const release = getRelease(repository, releaseTag)
     if (!release || release.draft)
       throw new Error(`Resume ${releaseTag} before starting another release`)
@@ -143,13 +205,13 @@ if (!manifest) {
       '--annotate',
       tag,
       '--message',
-      `Nitro-Release: ${tag}\n\nNpm-Tag: ${npmTag}`,
+      `Nitro-Release: ${tag}\n\nNpm-Tag: ${npmTag}\nSource-Commit: ${sourceCommit}`,
     ])
     git([
       'push',
       '--atomic',
       'origin',
-      `HEAD:refs/heads/${branch}`,
+      ...(!nightly ? [`HEAD:refs/heads/${branch}`] : []),
       `refs/tags/${tag}`,
     ])
   } else {
@@ -163,6 +225,7 @@ if (!manifest) {
       tag,
       commit: git(['rev-parse', 'HEAD']),
       npmTag,
+      sourceCommit,
       packages,
     },
     { repository, tag, packages: ['nitro-core', 'nitrogen'] }
@@ -175,6 +238,7 @@ if (dryRun) {
 }
 await publishPackages(manifest, directory)
 finishRelease(manifest)
+if (requestRef) git(['push', 'origin', '--delete', requestRef])
 console.log(
   `Released ${tag}. The RN repository will pick up this completed release.`
 )
