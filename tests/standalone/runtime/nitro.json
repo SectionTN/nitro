@@ -1,9 +1,15 @@
 {
   "$schema": "https://nitro.margelo.com/nitro.schema.json",
-  "cxxNamespace": ["test"],
-  "ios": { "iosModuleName": "NitroTestFixtures" },
+  "cxxNamespace": [
+    "test"
+  ],
+  "ios": {
+    "iosModuleName": "NitroTestFixtures"
+  },
   "android": {
-    "androidNamespace": ["test"],
+    "androidNamespace": [
+      "test"
+    ],
     "androidCxxLibName": "NitroRuntimeTests"
   },
   "autolinking": {
@@ -16,8 +22,57 @@
         "language": "kotlin",
         "implementationClassName": "HybridTestObject"
       }
+    },
+    "TestObjectCpp": {
+      "all": {
+        "language": "c++",
+        "implementationClassName": "HybridTestObjectCpp"
+      }
+    },
+    "TestObjectSwiftKotlin": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridTestObjectSwift"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridTestObjectKotlin"
+      }
+    },
+    "Base": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridBase"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridBase"
+      }
+    },
+    "Child": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridChild"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridChild"
+      }
+    },
+    "PlatformObject": {
+      "ios": {
+        "language": "swift",
+        "implementationClassName": "HybridPlatformObject"
+      },
+      "android": {
+        "language": "kotlin",
+        "implementationClassName": "HybridPlatformObject"
+      }
     }
   },
-  "ignorePaths": ["**/node_modules", "**/build"],
+  "ignorePaths": [
+    "**/node_modules",
+    "**/build"
+  ],
   "gitAttributesGeneratedFlag": false
 }

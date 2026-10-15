@@ -42,5 +42,5 @@ jobs:
       - run: bun test:prepare
       - name: Verify generated bindings are committed
         run: |
-          git diff --exit-code -- tests/standalone/runtime/nitrogen/generated
-          test -z "$(git ls-files --others --exclude-standard tests/standalone/runtime/nitrogen/generated)"
+          git diff --exit-code -- tests/standalone/runtime/nitrogen/generated tests/standalone/external/nitrogen/generated
+          test -z "$(git ls-files --others --exclude-standard tests/standalone/runtime/nitrogen/generated tests/standalone/external/nitrogen/generated)"

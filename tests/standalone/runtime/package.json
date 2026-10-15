@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "generate": "rm -rf nitrogen/generated && bun ../../../packages/nitrogen/lib/index.js",
+    "generate": "bun --cwd ../external generate && rm -rf nitrogen/generated && bun ../../../packages/nitrogen/lib/index.js",
     "typecheck": "tsc --noEmit",
     "bundle": "bun scripts/bundle.ts",
     "prepare-tests": "bun run typecheck && bun run generate && bun run bundle",

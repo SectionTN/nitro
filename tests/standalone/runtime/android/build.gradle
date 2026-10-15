@@ -101,6 +101,7 @@ if (nitroSanitizer == 'address') {
 dependencies {
   implementation project(':hermes')
   implementation project(':nitro-core')
+  implementation project(':nitro-test-external')
 
   androidTestImplementation 'junit:junit:4.13.2'
   androidTestImplementation 'androidx.test:runner:1.7.0'

@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <future>
 #include <hermes/hermes.h>
+#include <jsi/instrumentation.h>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -110,6 +111,20 @@ namespace {
       const auto bundleDeadline = Clock::now() + timeout;
       runtime->watchTimeLimit(timeoutMs);
       install(*runtime, dispatcher);
+      // The migrated tests need platform information and explicit collections,
+      // without React Native's Platform module or development globals.
+#ifdef __ANDROID__
+      runtime->global().setProperty(*runtime, "__nitroTestPlatform", "android");
+#else
+      runtime->global().setProperty(*runtime, "__nitroTestPlatform", "ios");
+#endif
+      runtime->global().setProperty(
+          *runtime, "gc",
+          jsi::Function::createFromHostFunction(*runtime, jsi::PropNameID::forAscii(*runtime, "gc"), 0,
+                                                [](jsi::Runtime& rt, const jsi::Value&, const jsi::Value*, size_t) {
+                                                  rt.instrumentation().collectGarbage("Nitro runtime test");
+                                                  return jsi::Value::undefined();
+                                                }));
       runtime->evaluateJavaScript(std::make_shared<jsi::StringBuffer>(bundle), "runtime-tests.js");
 
       struct Result {
