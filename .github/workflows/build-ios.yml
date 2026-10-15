@@ -15,8 +15,7 @@ on:
       - 'packages/react-native-nitro-test-external/ios/**'
       - 'packages/react-native-nitro-modules/cpp/**'
       - 'packages/react-native-nitro-modules/ios/**'
-      - '**/Podfile.lock'
-      - '**/*.podspec'
+      - '**/Package.swift'
       - '**/react-native.config.js'
       - '**/nitro.json'
   pull_request:
@@ -31,8 +30,7 @@ on:
       - 'packages/react-native-nitro-test-external/ios/**'
       - 'packages/react-native-nitro-modules/cpp/**'
       - 'packages/react-native-nitro-modules/ios/**'
-      - '**/Podfile.lock'
-      - '**/*.podspec'
+      - '**/Package.swift'
       - '**/react-native.config.js'
       - '**/nitro.json'
 
@@ -44,20 +42,9 @@ jobs:
   build:
     name: Build iOS Example App
     runs-on: macOS-26
-    strategy:
-      matrix:
-        include:
-          - name: static_frameworks
-            use_frameworks: static
-          - name: no_frameworks
-            use_frameworks: ""   # intentionally unset
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
-
-      - name: Set USE_FRAMEWORKS
-        if: matrix.use_frameworks != ''
-        run: echo "USE_FRAMEWORKS=${{ matrix.use_frameworks }}" >> "$GITHUB_ENV"
 
       - name: Install npm dependencies (bun)
         run: bun install
@@ -66,7 +53,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           max-size: 1.5G
-          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-${{ matrix.use_frameworks }}-ccache-example-ios
+          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-ccache-example-ios
       - name: Setup ccache behavior
         run: |
           {
@@ -76,34 +63,20 @@ jobs:
             echo "CCACHE_INODECACHE=true"
           } >> "$GITHUB_ENV"
 
-      - name: Setup Ruby (bundle)
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.7.2
-          bundler-cache: true
-          working-directory: apps/example
-
       - name: Select Xcode ${{ env.XCODE_VERSION }}
         run: sudo xcode-select -s "/Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer"
 
-      - name: Restore Pods cache
-        uses: actions/cache@v6
-        with:
-          path: apps/example/ios/Pods
-          key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.use_frameworks }}-pods-${{ hashFiles('bun.lock', 'apps/example/Gemfile.lock', 'apps/example/ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-${{ matrix.use_frameworks }}-pods-
-      - name: Install Pods
+      - name: Set up Swift Package Manager
         working-directory: apps/example
-        run: bun pods
+        run: bunx react-native spm update --yes
 
       - name: Restore DerivedData cache
         uses: actions/cache@v6
         with:
-          path: apps/example/ios/build
-          key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.use_frameworks }}-xcode${{ env.XCODE_VERSION }}-dd-${{ hashFiles('bun.lock', 'apps/example/Gemfile.lock', 'apps/example/ios/Podfile.lock') }}
+          path: apps/example/ios/DerivedData
+          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-dd-${{ hashFiles('bun.lock', 'apps/example/ios/NitroExample.xcodeproj/project.pbxproj', '**/Package.swift') }}
           restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-${{ matrix.use_frameworks }}-xcode${{ env.XCODE_VERSION }}-dd-
+            ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-dd-
 
       - name: Build App
         working-directory: apps/example/ios
@@ -112,8 +85,8 @@ jobs:
           xcodebuild \
             C_COMPILER_LAUNCHER="$(command -v ccache)" \
             CLANG_ENABLE_EXPLICIT_MODULES_WITH_COMPILER_LAUNCHER=YES \
-            -derivedDataPath build -UseModernBuildSystem=YES \
-            -workspace NitroExample.xcworkspace \
+            -derivedDataPath DerivedData -UseModernBuildSystem=YES \
+            -project NitroExample.xcodeproj \
             -scheme NitroExample \
             -sdk iphonesimulator \
             -configuration Debug \

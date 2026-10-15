@@ -38,8 +38,7 @@ on:
       - "packages/react-native-nitro-modules/ios/**"
       - "packages/react-native-nitro-modules/src/**"
       - "**/bun.lock"
-      - "**/Podfile.lock"
-      - "**/*.podspec"
+      - "**/Package.swift"
       - "**/react-native.config.js"
       - "**/nitro.json"
       - "apps/example/__tests__/**"
@@ -62,8 +61,7 @@ on:
       - "packages/react-native-nitro-modules/ios/**"
       - "packages/react-native-nitro-modules/src/**"
       - "**/bun.lock"
-      - "**/Podfile.lock"
-      - "**/*.podspec"
+      - "**/Package.swift"
       - "**/react-native.config.js"
       - "**/nitro.json"
       - "apps/example/__tests__/**"
@@ -119,32 +117,18 @@ jobs:
             echo "CCACHE_INODECACHE=true"
           } >> "$GITHUB_ENV"
 
-      - name: Setup Ruby (bundle)
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 2.7.2
-          bundler-cache: true
-          working-directory: apps/example
-
       - name: Select Xcode ${{ env.XCODE_VERSION }}
         run: sudo xcode-select -s "/Applications/Xcode_${{ env.XCODE_VERSION }}.app/Contents/Developer"
 
-      - name: Restore Pods cache
-        uses: actions/cache@v6
-        with:
-          path: apps/example/ios/Pods
-          key: ${{ runner.os }}-${{ runner.arch }}-pods-${{ hashFiles('bun.lock', 'apps/example/Gemfile.lock', 'apps/example/ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-pods-
-      - name: Install Pods
+      - name: Set up Swift Package Manager
         working-directory: apps/example
-        run: bun pods
+        run: bunx react-native spm update --yes
 
       - name: Restore DerivedData cache
         uses: actions/cache@v6
         with:
-          path: apps/example/ios/build
-          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-${{ matrix.sanitizer.name }}-dd-${{ hashFiles('bun.lock', 'apps/example/Gemfile.lock', 'apps/example/ios/Podfile.lock') }}
+          path: apps/example/ios/DerivedData
+          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-${{ matrix.sanitizer.name }}-dd-${{ hashFiles('bun.lock', 'apps/example/ios/NitroExample.xcodeproj/project.pbxproj', '**/Package.swift') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-${{ matrix.sanitizer.name }}-dd-
 
@@ -156,8 +140,8 @@ jobs:
           xcodebuild \
             C_COMPILER_LAUNCHER="$(command -v ccache)" \
             CLANG_ENABLE_EXPLICIT_MODULES_WITH_COMPILER_LAUNCHER=YES \
-            -derivedDataPath build -UseModernBuildSystem=YES \
-            -workspace NitroExample.xcworkspace \
+            -derivedDataPath DerivedData -UseModernBuildSystem=YES \
+            -project NitroExample.xcodeproj \
             -scheme NitroExample \
             -sdk iphonesimulator \
             -configuration Debug \
@@ -178,7 +162,7 @@ jobs:
         with:
           runner: ios
           projectRoot: apps/example
-          app: ios/build/Build/Products/Debug-iphonesimulator/NitroExample.app
+          app: ios/DerivedData/Build/Products/Debug-iphonesimulator/NitroExample.app
           packageManager: bun
 
       - name: Check TSan reports
