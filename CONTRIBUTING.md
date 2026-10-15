@@ -21,11 +21,11 @@ bun lint-all
 
 The runtime package at `packages/react-native-nitro-modules` is the canonical source location and is private in this repository. Its name and APIs stay unchanged. `packages/nitrogen` is the published generator, including React Native view generation and autolinking.
 
-For native or generator changes, use a `react-native-nitro-modules` checkout with your core commit in its `core` submodule. Run `bun sync-core`, build the workspace, run `bun specs`, and build the example app on the affected platforms. Run the existing harness tests for behavioral changes. Commit generated fixture changes in the wrapper repository. The [wrapper contribution guide](https://github.com/margelo/react-native-nitro-modules/blob/main/CONTRIBUTING.md) and [docs](https://nitro.margelo.com/docs/resources/contributing) describe the existing test harness and toolchains.
+For native or generator changes, use a `react-native-nitro-modules` checkout on `main` with your core commit in its `packages/react-native-nitro-modules/nitro` submodule. Run `bun sync-core`, build the workspace, run `bun specs`, and build the example app on the affected platforms. Run the existing harness tests for behavioral changes. Commit generated fixture changes in the wrapper repository. The [wrapper contribution guide](https://github.com/margelo/react-native-nitro-modules/blob/main/CONTRIBUTING.md) and [docs](https://nitro.margelo.com/docs/resources/contributing) describe the existing test harness and toolchains.
 
 ## Before requesting review
 
-- Target `core-split` while the repository split is being developed.
+- Target `core-split` here and `main` in the React Native repository.
 - Include or link a regression test for each fix. For a reproduction-only PR, describe the expected failure.
 - Run the retained package builds, typechecks, and relevant linters here.
 - Regenerate the wrapper's fixtures and run the relevant native builds and tests.

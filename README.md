@@ -16,6 +16,8 @@ They consist of two parts:
 
 This repository owns the shared runtime and Nitrogen. The runtime package here is private; the published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
 
+Shared development targets this repository's `core-split` branch. The React Native repository uses `main` and pins Nitro in its `packages/react-native-nitro-modules/nitro` submodule.
+
 Run `bun bootstrap` to install dependencies and build the shared API and Nitrogen. See [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for source ownership, pinned core updates, and releases.
 
 ## Example

@@ -1,6 +1,6 @@
 # Repository split
 
-The split starts at Nitro commit `d498e237e9b4117c4abe38c023adf486c75f856a`, with tracked tree `d5e639fb4d492f433ff70b25ec59ccf4a130a3fc`. That complete commit and its history were pushed to `margelo/react-native-nitro-modules/main` before files were removed here. The integration changes live on `core-split` in both repositories, so the wrapper's initial `main` remains available for comparison. No changes were imported from `react-nitro`.
+The split starts at Nitro commit `d498e237e9b4117c4abe38c023adf486c75f856a`, with tracked tree `d5e639fb4d492f433ff70b25ec59ccf4a130a3fc`. That complete commit and its history were pushed to `margelo/react-native-nitro-modules/main` before files were removed here. The shared source changes live on `core-split` in this repository, and the React Native integration lives on `main` in the wrapper. The baseline commit remains in the wrapper's history for comparison. No changes were imported from `react-nitro`.
 
 ## Ownership
 
@@ -8,9 +8,11 @@ This repository owns `packages/react-native-nitro-modules/{cpp,ios,android/src,s
 
 The runtime workspace here is private. It builds the shared JS/TS API for local development and for Nitrogen's existing dependency on `react-native-nitro-modules`. There is no new public core npm package.
 
-[react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules) owns the public `react-native-nitro-modules` package metadata, CocoaPods/Gradle/CMake integration, RN codegen configuration, apps, tests, fixtures, docs, and init template. Its `core` submodule pins this repository to a specific commit. The submodule's `core-split` branch setting is a development hint; normal bootstrap and builds use the committed SHA.
+[react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules) owns the public `react-native-nitro-modules` package metadata, CocoaPods/Gradle/CMake integration, RN codegen configuration, apps, tests, fixtures, docs, and init template. Its `nitro` submodule at `packages/react-native-nitro-modules/nitro` pins this repository to a specific commit. The submodule's `core-split` branch setting is a development hint; normal bootstrap and builds use the committed SHA.
 
-The wrapper's `sync-core` command stages the shared implementation into the original package paths. Those files are ignored generated outputs. Edit the implementation in `core/packages/react-native-nitro-modules`, then stage it again. Nitrogen runs directly from `core/packages/nitrogen` in the wrapper workspace.
+The wrapper's `sync-core` command stages the shared implementation into the original package paths. Those files are ignored generated outputs. Edit the implementation in `packages/react-native-nitro-modules/nitro/packages/react-native-nitro-modules`, then stage it again. Nitrogen runs directly from `packages/react-native-nitro-modules/nitro/packages/nitrogen` in the wrapper workspace.
+
+`packages/template` stays in the React Native repository because it creates an RN library with CocoaPods, Gradle, and React Native package metadata. Nitrogen owns the init command and downloads that template from the wrapper's `main` branch.
 
 ## Development and validation
 
@@ -31,11 +33,11 @@ For a shared change, validate it in the wrapper checkout as well: stage the chan
 ## Updating the pinned core
 
 1. Make the shared change in Nitro's `core-split` branch, build it, and commit and push it.
-2. In `react-native-nitro-modules`, run `git -C core fetch origin`, then `git -C core checkout <pushed-core-sha>`.
-3. Run `git add core` to record the new pin, then `bun update-core-version` if the version changed, `bun install`, `bun run build`, and `bun specs`. Run the affected native tests and inspect generated output.
-4. Commit the wrapper's `core` gitlink and any metadata, lockfile, or fixture changes. Push the wrapper commit after its pinned core commit is available remotely.
+2. In the React Native repository on `main`, run `git -C packages/react-native-nitro-modules/nitro fetch origin`, then `git -C packages/react-native-nitro-modules/nitro checkout <pushed-core-sha>`.
+3. Run `git add packages/react-native-nitro-modules/nitro` to record the new pin, then `bun update-core-version` if the version changed, `bun install`, `bun run build`, and `bun specs`. Run the affected native tests and inspect generated output.
+4. Commit the wrapper's `nitro` gitlink and any metadata, lockfile, or fixture changes. Push the wrapper commit after its pinned core commit is available remotely.
 
-Local edits in `core` are allowed during development. Before publishing, commit and push them and record the resulting SHA in the wrapper. Never use `git submodule update --remote` in normal builds or consumer installation.
+Local edits in `packages/react-native-nitro-modules/nitro` are allowed during development. Before publishing, commit and push them and record the resulting SHA in the wrapper. Never use `git submodule update --remote` in normal builds or consumer installation.
 
 ## Versions and releases
 
