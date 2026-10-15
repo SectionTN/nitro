@@ -33,29 +33,37 @@ function getHermesExternalMemorySize(): number {
 
 const IS_HERMES = getHermesInternal() != null
 
-// Kept alive across tests on purpose - each run drops the previous run's
-// callbacks, so `gc()` has to free callbacks that are bound to native functions.
-let lotsOfCallbacks: ((num: number) => void)[] = []
+// Harness treats the app as unresponsive if its bridge heartbeat (answered on
+// the JS thread) goes unanswered for 20s, which long synchronous loops can
+// cause under sanitizers - so give the event loop a turn between batches.
+function yieldToEventLoop(): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0))
+}
 
 describeEachTestObject('Memory', (testObject) => {
   it('createNativeCallback(...) callbacks still work after gc()', async () => {
-    lotsOfCallbacks = []
     const onCalled = fn<(num: number) => void>()
+    const callbacks: ((num: number) => void)[] = []
     for (let i = 0; i < 10_000; i++) {
       const cb = testObject.createNativeCallback((num) => {
         onCalled(i + num)
       })
-      lotsOfCallbacks.push(cb)
+      callbacks.push(cb)
     }
     gc()
 
-    lotsOfCallbacks[lotsOfCallbacks.length - 1]?.(1)
+    callbacks[callbacks.length - 1]?.(1)
     await waitFor(() => expect(onCalled).toHaveBeenCalledWith(10_000), {
       timeout: 2000,
     })
+
+    // Free the callbacks that are bound to native functions while this JS
+    // runtime is still alive.
+    callbacks.length = 0
+    gc()
   })
 
-  it('newTestObject() objects are reclaimed by JS GC', () => {
+  it('newTestObject() objects are reclaimed by JS GC', async () => {
     const baselineAllocations =
       NitroModules.debug_getTotalAllocatedHybridObjects()
 
@@ -68,6 +76,7 @@ describeEachTestObject('Memory', (testObject) => {
       if (objects.length >= GC_BATCH_SIZE) {
         objects.length = 0
         gc()
+        await yieldToEventLoop()
       }
     }
 
@@ -84,7 +93,7 @@ describeEachTestObject('Memory', (testObject) => {
     ).toBeLessThan(MAX_REMAINING_ALLOCATIONS)
   })
 
-  it('newTestObject() objects are released by manual dispose()', () => {
+  it('newTestObject() objects are released by manual dispose()', async () => {
     const baselineAllocations =
       NitroModules.debug_getTotalAllocatedHybridObjects()
 
@@ -94,6 +103,7 @@ describeEachTestObject('Memory', (testObject) => {
 
       if ((i + 1) % GC_BATCH_SIZE === 0) {
         gc()
+        await yieldToEventLoop()
       }
     }
 
