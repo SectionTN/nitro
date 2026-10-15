@@ -7,6 +7,7 @@ CPP_DIRS=(
   "packages/nitro-core/native/cpp"
   "packages/nitro-core/native/apple"
   "tests/runtime/cpp"
+  "tests/runtime/ios/Tests"
 )
 
 if which clang-format >/dev/null; then

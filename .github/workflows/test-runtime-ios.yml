@@ -1,0 +1,89 @@
+name: Test runtime (iOS)
+
+on:
+  push:
+    branches: [main, core-split]
+    paths:
+      - "packages/nitro-core/**"
+      - "packages/nitrogen/**"
+      - "tests/runtime/**"
+      - "tests/hermes/**"
+      - "tests/vendor/hermes"
+      - ".gitmodules"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/test-runtime-ios.yml"
+  pull_request:
+    paths:
+      - "packages/nitro-core/**"
+      - "packages/nitrogen/**"
+      - "tests/runtime/**"
+      - "tests/hermes/**"
+      - "tests/vendor/hermes"
+      - ".gitmodules"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/test-runtime-ios.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-runtime-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swift-testing:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.5.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - name: Check build tools
+        run: |
+          cmake --version
+          ninja --version
+          xcodebuild -version
+      - name: Read Hermes build cache inputs
+        id: hermes
+        run: |
+          echo "revision=$(git -C tests/vendor/hermes rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          toolchain=$({ xcodebuild -version; xcrun --sdk iphonesimulator --show-sdk-version; cmake --version; ninja --version; echo "$GITHUB_WORKSPACE"; } | shasum -a 256 | cut -d ' ' -f 1)
+          echo "toolchain=$toolchain" >> "$GITHUB_OUTPUT"
+      - name: Cache Hermes simulator XCFramework
+        id: hermes-cache
+        uses: actions/cache@v4
+        with:
+          path: tests/.build/hermes/NitroTestHermes.xcframework
+          key: hermes-ios-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.revision }}-${{ steps.hermes.outputs.toolchain }}-${{ hashFiles('tests/hermes/build.mjs', 'tests/hermes/options.cmake', 'tests/runtime/ios/config.json') }}
+      - name: Install workspace
+        run: bun install --frozen-lockfile
+      - name: Prepare runtime test fixtures
+        run: bun test:prepare
+      - name: Test Swift HybridObjects in Hermes
+        env:
+          HERMES_CACHE_HIT: ${{ steps.hermes-cache.outputs.cache-hit }}
+        run: |
+          if [ "$HERMES_CACHE_HIT" = 'true' ]; then
+            bun tests/runtime/ios/run.mjs --skip-hermes-build
+          else
+            bun tests/runtime/ios/run.mjs
+          fi
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-ios-results
+          path: |
+            tests/.build/ios/results/*.xcresult
+            tests/runtime/build/runtime-tests.js
+            tests/runtime/build/runtime-tests.js.map
+            tests/runtime/build/runtime-tests.json
+          if-no-files-found: ignore

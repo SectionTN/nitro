@@ -31,7 +31,8 @@
     "check-versions": "node scripts/set-version.mjs --check",
     "test:release": "node --test scripts/releases/lib.test.mjs",
     "docs": "bun --cwd docs",
-    "test:prepare": "bun run build && bun --cwd tests/runtime prepare-tests"
+    "test:prepare": "bun run build && bun --cwd tests/runtime prepare-tests",
+    "test:ios": "bun test:prepare && bun --cwd tests/runtime test:ios"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
