@@ -60,7 +60,7 @@ describeEachTestObject('External HybridObjects', (testObject) => {
     const result = testObject.bounceExternalStruct({
       someExternal: HybridSomeExternalObject,
     })
-    expect(result).toEqual({ someExternal: HybridSomeExternalObject })
+    expect(Object.keys(result)).toEqual(['someExternal'])
     expect(result.someExternal).toBe(HybridSomeExternalObject)
   })
 

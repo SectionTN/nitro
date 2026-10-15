@@ -48,9 +48,10 @@ describeEachTestObject('Struct roundtrips', (testObject) => {
   })
 
   it('bounceOptionalWrapper(...) returns the same struct', () => {
-    expect(testObject.bounceOptionalWrapper(TEST_OPTIONAL_WRAPPER)).toEqual(
-      TEST_OPTIONAL_WRAPPER
-    )
+    // toStrictEqual also compares the ArrayBuffer's bytes, toEqual doesn't.
+    expect(
+      testObject.bounceOptionalWrapper(TEST_OPTIONAL_WRAPPER)
+    ).toStrictEqual(TEST_OPTIONAL_WRAPPER)
   })
 
   it('bounceOptionalEnumStruct(...) returns the same struct', () => {

@@ -88,39 +88,31 @@ describeEachTestObject('ArrayBuffers', (testObject) => {
       // JS writes to either buffer must leave the other buffer unchanged.
       originalArray[73] = 11
       originalArray[last] = 12
-      expect
-        .soft(
-          [copyArray[73], testObject.getBufferLastItem(copy)],
-          'copy after writing to the original'
-        )
-        .toEqual([255, 42])
+      expect(
+        [copyArray[73], testObject.getBufferLastItem(copy)],
+        'copy after writing to the original'
+      ).toEqual([255, 42])
       copyArray[73] = 21
       copyArray[last] = 22
-      expect
-        .soft(
-          [originalArray[73], testObject.getBufferLastItem(original)],
-          'original after writing to the copy'
-        )
-        .toEqual([11, 12])
+      expect(
+        [originalArray[73], testObject.getBufferLastItem(original)],
+        'original after writing to the copy'
+      ).toEqual([11, 12])
 
       // Native writes must also stay within the chosen allocation.
       testObject.setAllValuesTo(original, 31)
-      expect
-        .soft(
-          [copyArray[73], testObject.getBufferLastItem(copy)],
-          'copy after a native write to the original'
-        )
-        .toEqual([21, 22])
+      expect(
+        [copyArray[73], testObject.getBufferLastItem(copy)],
+        'copy after a native write to the original'
+      ).toEqual([21, 22])
       testObject.setAllValuesTo(copy, 41)
-      expect
-        .soft(
-          bytesAt(originalArray, indices),
-          'original after a native write to the copy'
-        )
-        .toEqual([31, 31, 31, 31])
-      expect
-        .soft(bytesAt(copyArray, indices), 'copy after a native write')
-        .toEqual([41, 41, 41, 41])
+      expect(
+        bytesAt(originalArray, indices),
+        'original after a native write to the copy'
+      ).toEqual([31, 31, 31, 31])
+      expect(bytesAt(copyArray, indices), 'copy after a native write').toEqual([
+        41, 41, 41, 41,
+      ])
     })
 
     it(`bounceArrayBuffer(${name}) shares memory across roundtrips`, () => {
@@ -141,46 +133,38 @@ describeEachTestObject('ArrayBuffers', (testObject) => {
       // Mutating the original must reach both aliases and native readers.
       originalArray[73] = 11
       originalArray[last] = 12
-      expect
-        .soft(
-          [
-            bouncedArray[73],
-            testObject.getBufferLastItem(bounced),
-            bouncedAgainArray[73],
-            testObject.getBufferLastItem(bouncedAgain),
-          ],
-          'aliases after writing to the original'
-        )
-        .toEqual([11, 12, 11, 12])
+      expect(
+        [
+          bouncedArray[73],
+          testObject.getBufferLastItem(bounced),
+          bouncedAgainArray[73],
+          testObject.getBufferLastItem(bouncedAgain),
+        ],
+        'aliases after writing to the original'
+      ).toEqual([11, 12, 11, 12])
 
       // Mutating the latest alias must reach the original and earlier alias.
       bouncedAgainArray[73] = 21
       bouncedAgainArray[last] = 22
-      expect
-        .soft(
-          [
-            originalArray[73],
-            testObject.getBufferLastItem(original),
-            bouncedArray[73],
-            testObject.getBufferLastItem(bounced),
-          ],
-          'original and first alias after writing to the latest alias'
-        )
-        .toEqual([21, 22, 21, 22])
+      expect(
+        [
+          originalArray[73],
+          testObject.getBufferLastItem(original),
+          bouncedArray[73],
+          testObject.getBufferLastItem(bounced),
+        ],
+        'original and first alias after writing to the latest alias'
+      ).toEqual([21, 22, 21, 22])
 
       testObject.setAllValuesTo(bounced, 31)
-      expect
-        .soft(
-          bytesAt(originalArray, indices),
-          'original after a native write to the first alias'
-        )
-        .toEqual([31, 31, 31, 31])
-      expect
-        .soft(
-          bytesAt(bouncedAgainArray, indices),
-          'latest alias after a native write to the first alias'
-        )
-        .toEqual([31, 31, 31, 31])
+      expect(
+        bytesAt(originalArray, indices),
+        'original after a native write to the first alias'
+      ).toEqual([31, 31, 31, 31])
+      expect(
+        bytesAt(bouncedAgainArray, indices),
+        'latest alias after a native write to the first alias'
+      ).toEqual([31, 31, 31, 31])
     })
   }
 

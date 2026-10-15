@@ -46,8 +46,6 @@
     "@react-native-harness/ui": "1.5.0",
     "@types/chai": "^5.2.2",
     "@types/upng-js": "2.1.5",
-    "@vitest/expect": "4.0.16",
-    "@vitest/utils": "4.0.16",
     "babel-plugin-module-resolver": "^5.0.3",
     "nitrogen": "*",
     "react-native-harness": "1.5.0",

@@ -92,10 +92,10 @@ describeEachTestObject('Arrays of complex types', (testObject) => {
   })
 
   it('bounceHybridObjects(...) returns the same HybridObjects', () => {
-    expect(testObject.bounceHybridObjects([HybridChild, HybridChild])).toEqual([
-      HybridChild,
-      HybridChild,
-    ])
+    const bounced = testObject.bounceHybridObjects([HybridChild, HybridChild])
+    expect(bounced).toHaveLength(2)
+    expect(bounced[0]).toBe(HybridChild)
+    expect(bounced[1]).toBe(HybridChild)
   })
 
   it('bounceFunctions(...) returns callable functions', async () => {
