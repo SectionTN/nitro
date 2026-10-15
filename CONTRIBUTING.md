@@ -1,6 +1,6 @@
 # Contributing to Nitro
 
-Nitro owns the shared native runtime, its JS/TS API, and Nitrogen. React Native packaging, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules). Read [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for setup and core package updates, and [RELEASING.md](RELEASING.md) for CI releases.
+Nitro owns the shared native runtime, its JS/TS API, Nitrogen, and the docs. React Native packaging, apps, tests, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules). Read [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for setup and core package updates, and [RELEASING.md](RELEASING.md) for CI releases.
 
 ## Scope and code review
 
@@ -22,6 +22,10 @@ bun lint-all
 `packages/nitro-core/` contains the shared runtime: `native/{cpp,apple,android}/` and `js/src/`. Its npm package publishes native sources, JavaScript, and TypeScript declarations together. The React Native repository stages native sources from that package and owns RN JS integration and build configuration. The native sources still contain React Native-specific code. `packages/nitrogen/` is the published generator, including React Native view generation and autolinking.
 
 For native or generator changes, pack `nitro-core` and `nitrogen` into a temporary directory and install those tarballs in a temporary `react-native-nitro-modules` checkout. Run `bun sync-core`, build the workspace, run `bun specs`, and build the example app on the affected platforms. Use exact npm versions for committed dependency updates; keep local tarball paths out of manifests and lockfiles committed to the wrapper. Run the existing harness tests for behavioral changes. Commit generated fixture changes in the wrapper repository. The [wrapper contribution guide](https://github.com/margelo/react-native-nitro-modules/blob/main/CONTRIBUTING.md) and [docs](https://nitro.margelo.com/docs/resources/contributing) describe the existing test harness and toolchains.
+
+## Documentation
+
+The Docusaurus site lives in `docs/`. Run `bun docs start` for local development, `bun docs typecheck` to check its TypeScript, and `bun docs build` for a production build. See [docs/README.md](docs/README.md) for setup and deployment configuration.
 
 ## Before requesting review
 

@@ -1,8 +1,8 @@
 <a href="https://nitro.margelo.com">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/margelo/react-native-nitro-modules/main/docs/static/img/banner-nitro-modules-dark.png" />
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/margelo/react-native-nitro-modules/main/docs/static/img/banner-nitro-modules-light.png" />
-    <img alt="Nitro Modules" src="https://raw.githubusercontent.com/margelo/react-native-nitro-modules/main/docs/static/img/banner-nitro-modules-light.png" />
+    <source media="(prefers-color-scheme: dark)" srcset="./docs/static/img/banner-nitro-modules-dark.png" />
+    <source media="(prefers-color-scheme: light)" srcset="./docs/static/img/banner-nitro-modules-light.png" />
+    <img alt="Nitro Modules" src="./docs/static/img/banner-nitro-modules-light.png" />
   </picture>
 </a>
 
@@ -14,7 +14,7 @@ This repository contains:
 - [**nitro-core**](packages/nitro-core): Shared native runtime, JavaScript API, and TypeScript definitions
 - [**nitrogen**](packages/nitrogen): An optional code generator for Nitro module library authors
 
-This repository owns the shared runtime and Nitrogen. The `nitro-core` npm package contains the shared native sources, JavaScript API, and TypeScript definitions. The published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
+This repository owns the shared runtime, Nitrogen, and the documentation site in [docs/](docs). The `nitro-core` npm package contains the shared native sources, JavaScript API, and TypeScript definitions. The published `react-native-nitro-modules` package, React Native build integration, apps, tests, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
 
 Shared development targets this repository's `core-split` branch. The React Native repository uses `main` and depends on an exact `nitro-core` npm version.
 

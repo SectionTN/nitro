@@ -22,3 +22,18 @@ updates:
       react:
         patterns:
           - "react"
+
+  - package-ecosystem: "bun"
+    directories:
+      - "/docs/"
+    schedule:
+      interval: "daily"
+    labels:
+      - "dependencies"
+    groups:
+      docusaurus:
+        patterns:
+          - "@docusaurus/*"
+      react:
+        patterns:
+          - "react*"

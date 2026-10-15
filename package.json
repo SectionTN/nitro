@@ -9,13 +9,14 @@
   "author": "Marc Rousavy <me@mrousavy.com> (https://github.com/mrousavy)",
   "workspaces": [
     "packages/nitro-core",
-    "packages/nitrogen"
+    "packages/nitrogen",
+    "docs"
   ],
   "scripts": {
     "postinstall": "bun run build && bun install --ignore-scripts --frozen-lockfile",
     "build": "bun run check-versions && bun nitro build && bun nitrogen build",
     "bootstrap": "bun install --frozen-lockfile",
-    "typecheck": "bun nitro typecheck && bun nitrogen typecheck",
+    "typecheck": "bun nitro typecheck && bun nitrogen typecheck && bun docs typecheck",
     "lint": "bun nitro lint && bun nitrogen lint",
     "lint-cpp": "./scripts/clang-format.sh",
     "lint-swift": "./scripts/swift-format.sh",
@@ -27,7 +28,8 @@
     "nitrogen": "bun --cwd packages/nitrogen",
     "version:set": "node scripts/set-version.mjs",
     "check-versions": "node scripts/set-version.mjs --check",
-    "test:release": "node --test scripts/releases/lib.test.mjs"
+    "test:release": "node --test scripts/releases/lib.test.mjs",
+    "docs": "bun --cwd docs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
