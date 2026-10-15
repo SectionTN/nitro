@@ -70,6 +70,6 @@ export default [
     ],
   },
   ...baseConfig,
-  packageConfig('packages/react-native-nitro-modules', ['./tsconfig.json']),
+  packageConfig('packages/nitro-core', ['./tsconfig.json', './tsconfig.test.json'], false),
   packageConfig('packages/nitrogen', true, false),
 ]

@@ -30,6 +30,21 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - run: bun typecheck
+      - run: bun run test
+      - name: Pack Nitro core
+        working-directory: packages/nitro-core
+        run: npm pack --pack-destination "$RUNNER_TEMP"
       - name: Pack Nitrogen
         working-directory: packages/nitrogen
         run: npm pack --pack-destination "$RUNNER_TEMP"
+      - name: Install packed packages outside the workspace
+        run: |
+          mkdir "$RUNNER_TEMP/nitro-package-consumer"
+          cd "$RUNNER_TEMP/nitro-package-consumer"
+          npm init --yes > /dev/null
+          npm install --no-audit --no-fund "$RUNNER_TEMP"/nitro-core-*.tgz "$RUNNER_TEMP"/nitrogen-*.tgz
+          test ! -e node_modules/react-native
+          test ! -e node_modules/react-native-nitro-modules
+          node --input-type=module -e "import { getInstalledNitro } from 'nitro-core'; if (getInstalledNitro() !== undefined) throw new Error('Unexpected native runtime')"
+          node -e "const core = require('nitro-core'); if (core.getInstalledNitro() !== undefined) throw new Error('Unexpected native runtime')"
+          node node_modules/nitrogen/lib/index.js --help

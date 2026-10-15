@@ -1,0 +1,86 @@
+{
+  "name": "nitro-core",
+  "version": "0.37.1",
+  "description": "Shared JavaScript APIs and TypeScript definitions for Nitro's native runtime.",
+  "main": "./lib/commonjs/index.js",
+  "module": "./lib/module/index.js",
+  "types": "./lib/typescript/commonjs/index.d.ts",
+  "react-native": "./lib/module/index.js",
+  "source": "./src/index.ts",
+  "exports": {
+    ".": {
+      "react-native": {
+        "types": "./lib/typescript/module/index.d.ts",
+        "default": "./lib/module/index.js"
+      },
+      "import": {
+        "types": "./lib/typescript/module/index.d.ts",
+        "default": "./lib/module/index.js"
+      },
+      "require": {
+        "types": "./lib/typescript/commonjs/index.d.ts",
+        "default": "./lib/commonjs/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "lib/commonjs",
+    "lib/module",
+    "lib/typescript/commonjs",
+    "lib/typescript/module",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/margelo/nitro.git",
+    "directory": "packages/nitro-core"
+  },
+  "author": "Marc Rousavy <me@mrousavy.com> (https://github.com/mrousavy)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/margelo/nitro/issues"
+  },
+  "homepage": "https://nitro.margelo.com",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "rm -rf lib && bun run typecheck && bob build",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test tests",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "lint-ci": "eslint \"src/**/*.ts\" -f @jamesacarr/github-actions --max-warnings 0",
+    "prepack": "bun --cwd ../.. check-versions 1>&2 && bun run build 1>&2",
+    "clean": "rm -rf lib"
+  },
+  "devDependencies": {
+    "react-native-builder-bob": "^0.41.0"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "lib",
+    "targets": [
+      [
+        "commonjs",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  }
+}

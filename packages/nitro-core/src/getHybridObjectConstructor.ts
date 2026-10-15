@@ -1,5 +1,5 @@
-import type { HybridObject } from './HybridObject'
-import { NitroModules } from './NitroModules'
+import type { HybridObject } from './HybridObject.js'
+import { getNitroModules } from './NitroModules.js'
 
 const cache = new Map<string, Function>()
 
@@ -27,7 +27,7 @@ export function getHybridObjectConstructor<T extends HybridObject<{}>>(
   // A function that creates the HybridObject.
   // This can be called with `new`, and internally sets the prototype.
   const constructorFunc = function () {
-    const instance = NitroModules.createHybridObject<T>(name)
+    const instance = getNitroModules().createHybridObject<T>(name)
     const prototype = Object.getPrototypeOf(instance)
     if (constructorFunc.prototype !== prototype) {
       constructorFunc.prototype = prototype
@@ -45,7 +45,7 @@ export function getHybridObjectConstructor<T extends HybridObject<{}>>(
         // User didn't call `new T()` yet, so we don't
         // know the prototype yet. Just create one temp object to find
         // out the prototype.
-        const tempInstance = NitroModules.createHybridObject<T>(name)
+        const tempInstance = getNitroModules().createHybridObject<T>(name)
         constructorFunc.prototype = Object.getPrototypeOf(tempInstance)
         constructorFunc.prototypeInitialized = true
       }

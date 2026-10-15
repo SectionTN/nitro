@@ -11,10 +11,11 @@
 **Nitro Modules** are fast, type-safe native modules for React Native with statically compiled bindings to JSI.
 They consist of two parts:
 
-- [**react-native-nitro-modules**](packages/react-native-nitro-modules): The shared native runtime and JS/TS API sources
+- [**nitro-core**](packages/nitro-core): Shared JavaScript API and TypeScript definitions
+- [**Native runtime**](packages/react-native-nitro-modules): C++, Swift, and Kotlin/JNI sources
 - [**nitrogen**](packages/nitrogen): An optional code-generator for nitro module library authors
 
-This repository owns the shared runtime and Nitrogen. The runtime package here is private; the published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
+This repository owns the shared runtime and Nitrogen. The native source manifest here is private; the published `react-native-nitro-modules` package, React Native build integration, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
 
 Shared development targets this repository's `core-split` branch. The React Native repository uses `main` and pins Nitro in its `packages/react-native-nitro-modules/nitro` submodule.
 

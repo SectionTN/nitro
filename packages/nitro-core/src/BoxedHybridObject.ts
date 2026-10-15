@@ -1,4 +1,4 @@
-import type { HybridObject } from './HybridObject'
+import type { HybridObject } from './HybridObject.js'
 
 /**
  * Represents a boxed {@linkcode HybridObject} that can later be unboxed again.

@@ -4,5 +4,5 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-# The workspaces plugin is restricted to packages/nitrogen in package.json.
+# Publish nitro-core before Nitrogen. React Native packaging is released separately.
 bun run release-it "$@"

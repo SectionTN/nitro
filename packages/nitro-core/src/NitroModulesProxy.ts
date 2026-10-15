@@ -1,11 +1,11 @@
-import type { HybridObject } from './HybridObject'
-import type { BoxedHybridObject } from './BoxedHybridObject'
+import type { HybridObject } from './HybridObject.js'
+import type { BoxedHybridObject } from './BoxedHybridObject.js'
 
 /**
- * The Proxy class that acts as a main entry point for Nitro Modules in React Native.
+ * The native entry point for Nitro Modules in a JavaScript runtime.
  *
  * This is a `HybridObject` on the native side as well, and is expected to be
- * installed into the runtime's `global` via the NativeModule/TurboModule's `install()` function.
+ * installed into the runtime's `global` by the host integration.
  */
 export interface NitroModulesProxy extends HybridObject<{
   ios: 'c++'

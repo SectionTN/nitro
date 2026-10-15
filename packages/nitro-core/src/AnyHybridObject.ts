@@ -1,4 +1,4 @@
-import type { HybridObject } from './HybridObject'
+import type { HybridObject } from './HybridObject.js'
 
 /**
  * Represents a value of the base `HybridObject` type all other

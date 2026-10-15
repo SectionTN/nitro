@@ -1,4 +1,4 @@
-import type { Int64 } from './Int64'
+import type { Int64 } from './Int64.js'
 
 /**
  * Represents a single value inside an untyped map.

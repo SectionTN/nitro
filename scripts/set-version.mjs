@@ -6,6 +6,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const manifests = [
   'package.json',
   'packages/react-native-nitro-modules/package.json',
+  'packages/nitro-core/package.json',
   'packages/nitrogen/package.json',
 ].map((relativePath) => {
   const filename = path.join(root, relativePath)
@@ -17,33 +18,46 @@ if (!/^\d+\.\d+\.\d+(?:-[\da-zA-Z.-]+)?(?:\+[\da-zA-Z.-]+)?$/.test(version)) {
   throw new Error(`Invalid version: ${version}`)
 }
 
-const nativeFilename = path.join(
-  root,
-  'packages/react-native-nitro-modules/cpp/utils/NitroDefines.hpp'
-)
-const nativeSource = readFileSync(nativeFilename, 'utf8')
-const nativeVersion = nativeSource.match(/^#define NITRO_VERSION "([^"]+)"$/m)
-if (nativeVersion === null) throw new Error('Could not find NITRO_VERSION')
+const sourceVersions = [
+  {
+    path: 'packages/react-native-nitro-modules/cpp/utils/NitroDefines.hpp',
+    pattern: /^#define NITRO_VERSION "([^"]+)"$/m,
+    line: `#define NITRO_VERSION "${version}"`,
+  },
+  {
+    path: 'packages/nitro-core/src/version.ts',
+    pattern: /^export const version = '([^']+)'$/m,
+    line: `export const version = '${version}'`,
+  },
+].map((entry) => {
+  const filename = path.join(root, entry.path)
+  const source = readFileSync(filename, 'utf8')
+  const match = source.match(entry.pattern)
+  if (match === null) throw new Error(`Could not find version in ${entry.path}`)
+  return { ...entry, filename, source, match }
+})
 
 if (check) {
   for (const { filename, json } of manifests) {
     if (json.version !== version)
       throw new Error(`${filename}: expected version ${version}, found ${json.version}`)
   }
-  if (manifests[2].json.dependencies['react-native-nitro-modules'] !== `^${version}`) {
-    throw new Error(`Nitrogen must depend on react-native-nitro-modules ^${version}`)
+  const nitrogen = manifests.find(({ json }) => json.name === 'nitrogen').json
+  if (nitrogen.dependencies['nitro-core'] !== `^${version}`) {
+    throw new Error(`Nitrogen must depend on nitro-core ^${version}`)
   }
-  if (nativeVersion[1] !== version) throw new Error(`NITRO_VERSION must be ${version}`)
-  console.log(`Nitro and Nitrogen versions match: ${version}`)
+  for (const entry of sourceVersions) {
+    if (entry.match[1] !== version) throw new Error(`${entry.path} must use ${version}`)
+  }
+  console.log(`Nitro core, Nitrogen and native versions match: ${version}`)
 } else {
   for (const { filename, json } of manifests) {
     json.version = version
-    if (json.name === 'nitrogen') json.dependencies['react-native-nitro-modules'] = `^${version}`
+    if (json.name === 'nitrogen') json.dependencies['nitro-core'] = `^${version}`
     writeFileSync(filename, `${JSON.stringify(json, null, 2)}\n`)
   }
-  writeFileSync(
-    nativeFilename,
-    nativeSource.replace(nativeVersion[0], `#define NITRO_VERSION "${version}"`)
-  )
-  console.log(`Updated Nitro and Nitrogen to ${version}. Run bun install to update bun.lock.`)
+  for (const entry of sourceVersions) {
+    writeFileSync(entry.filename, entry.source.replace(entry.match[0], entry.line))
+  }
+  console.log(`Updated Nitro core and Nitrogen to ${version}. Run bun install to update bun.lock.`)
 }
