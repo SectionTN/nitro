@@ -30,7 +30,6 @@
     "lib/module",
     "lib/typescript/commonjs",
     "lib/typescript/module",
-    "react-native.config.js",
     "README.md",
     "LICENSE"
   ],
