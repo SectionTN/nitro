@@ -8,7 +8,7 @@
 
 <br />
 
-Nitrogen generates C++ and Swift bindings from TypeScript class declarations using the [nitro-modules](../nitro-modules/) APIs.
+Nitrogen generates C++ and Swift bindings from TypeScript class declarations using the [react-native-nitro-modules](../react-native-nitro-modules/) APIs.
 
 ## Installation
 
@@ -66,9 +66,23 @@ Nitrogen warns if the `react-native-builder-bob` field in that `package.json` ha
 
 Run `npx nitrogen` after changing your specs and before building or publishing. Nitrogen writes a runtime module for each class to `nitrogen/generated/shared/javascript/`, and `#nitro/Image` resolves to it. Import from `./Image.nitro` to get both the class and its instance type.
 
-TypeScript (with `moduleResolution` set to `bundler`, `node16` or `nodenext`), Metro 0.81.3 or newer and Rolldown resolve the `imports` entry without aliases or custom resolvers. `@react-native/typescript-config` sets `resolvePackageJsonImports` to `false`. If your tsconfig extends it, set `"resolvePackageJsonImports": true`. Otherwise TypeScript cannot find `#nitro/*` when it type-checks `.nitro.ts` specs, for example in a monorepo or an example app that compiles your sources, or installed Nitro libraries with `skipLibCheck: false`.
+TypeScript (with `moduleResolution` set to `bundler`, `node16` or `nodenext`), Metro 0.81.3 or newer, Jest and Rolldown resolve the `imports` entry without aliases or custom resolvers. `@react-native/typescript-config` sets `resolvePackageJsonImports` to `false`. If your tsconfig extends it, set `"resolvePackageJsonImports": true`. Otherwise TypeScript cannot find `#nitro/*` when it type-checks `.nitro.ts` specs, for example in a monorepo or an example app that compiles your sources, or installed Nitro libraries with `skipLibCheck: false`.
 
-If Babel compiles your specs, for example when Metro bundles your sources, it needs decorator syntax support. Install `@babel/plugin-syntax-decorators@^7`, since version 8 requires `@babel/core` 8, and add `['@babel/plugin-syntax-decorators', { version: '2023-11' }]` (or `version: 'legacy'`) to your plugins. `@babel/plugin-proposal-decorators` works with `version: 'legacy'`, but crashes on decorated declared classes with `version: '2023-11'`. Apps also compile a library's specs when its `react-native` or `source` field points at `src`. Point these fields at the built output to keep the specs out of the app's Babel.
+If Babel compiles your specs, for example when Metro bundles your sources, it needs decorator syntax support. `@react-native/babel-preset` can't parse decorators, so add an override to your `babel.config.js`:
+
+```js
+module.exports = {
+  presets: ['module:@react-native/babel-preset'],
+  overrides: [
+    {
+      test: /\.nitro\.tsx?$/,
+      parserOpts: { plugins: [['decorators', { version: '2023-11' }]] },
+    },
+  ],
+}
+```
+
+Alternatively, install `@babel/plugin-syntax-decorators@^7`, since version 8 requires `@babel/core` 8, and add `['@babel/plugin-syntax-decorators', { version: '2023-11' }]` (or `version: 'legacy'`) to your plugins. `@babel/plugin-proposal-decorators` works with `version: 'legacy'`, but crashes on decorated declared classes with `version: '2023-11'`. Apps also compile a library's specs when its `react-native` or `source` field points at `src`. Point these fields at the built output to keep the specs out of the app's Babel.
 
 Implement `HybridImage` in the same Swift module as the generated spec. C++ calls the generated `_cxx` Swift helper, which invokes `HybridImage(width:height:)` for the constructor and `HybridImage.square(size:)` for the static method. Missing native types or signatures produce compiler errors in the generated bridge.
 
@@ -80,7 +94,7 @@ The `implementation` object identifies the native type and, for C++ or Kotlin, i
 | C++ | `{ include: '<MyImages/HybridImage.hpp>', className: 'HybridImage' }` |
 | Kotlin | `{ className: 'HybridImage' }` |
 
-C++ `namespace` and Kotlin `package` are optional arrays of segments within the declaring spec's own `nitro.json` project. Omit them or use `[]` for that project's `cxxNamespace` or `androidNamespace`. For a project configured with `['image']`, `['internal']` selects `margelo::nitro::image::internal` or `com.margelo.nitro.image.internal`. Imported specs use their owning project's config. These options cannot select a namespace or package outside that project, and `null` is invalid. The C++ `include` must contain angle brackets or double quotes, for example `'<MyImages/HybridImage.hpp>'` or `'"HybridImage.hpp"'`. Nitrogen uses that header and the fully qualified C++ class name; the header filename can differ from the class name. Kotlin metadata is typed and validated, but Android generation is not implemented yet.
+C++ `namespace` and Kotlin `package` are optional arrays of segments within the declaring spec's own `nitro.json` project. Omit them or use `[]` for that project's `cxxNamespace` or `androidNamespace`. For a project configured with `['image']`, `['internal']` selects `margelo::nitro::image::internal` or `com.margelo.nitro.image.internal`. Imported specs use their owning project's config. These options cannot select a namespace or package outside that project, and `null` is invalid. The C++ `include` must contain angle brackets or double quotes, for example `'<MyImages/HybridImage.hpp>'` or `'"HybridImage.hpp"'`. Nitrogen uses that header and the fully qualified C++ class name; the header filename can differ from the class name. Kotlin metadata is typed and validated, but Android generation is not implemented yet in this version.
 
 Use `@iOS({ ... })` and `@Android({ ... })` to declare platform options. Decorators require TypeScript 5 or newer; standard decorators work without `experimentalDecorators`. Nitrogen reads literal objects, arrays, strings, and booleans from the source. Variables, spreads and computed values are unsupported. The imported helpers provide argument checking. The decorators are metadata for Nitrogen. They sit on declared classes, which compile to no JavaScript, so they never run. If one does run, it throws. That happens when the spec uses `class` instead of `declare class`, or when a transpiler emits decorator calls for declared classes, as swc does with decorators enabled. Compile `.nitro.ts` specs with tsc, esbuild, oxc or Babel instead of swc, or use the library's built output. Write a class's JSDoc above its decorators: editors don't show docs placed between a decorator and `export declare class` when hovering the class in the library's own sources.
 
@@ -128,7 +142,7 @@ export { Image } from './Image.nitro'
 
 Use named re-exports like this one. With `export * from './Image.nitro'`, the class export goes missing in Vite dev and in ESM library output from Rolldown or esbuild.
 
-The exported `HybridObject` is the abstract native base class. Its prototype is the root of every generated class's prototype chain, so `instanceof` uses ordinary JavaScript behavior without a custom `Symbol.hasInstance`. TypeScript rejects construction of the abstract base, and its native constructor also throws if called from JavaScript. `nitro-modules` gets the native base class with `NitroModules.getHybridClass('HybridObject')` when it is imported.
+The exported `HybridObject` is the abstract native base class. Its prototype is the root of every generated class's prototype chain, so `instanceof` uses ordinary JavaScript behavior without a custom `Symbol.hasInstance`. TypeScript rejects construction of the abstract base, and its native constructor also throws if called from JavaScript. `react-native-nitro-modules` gets the native base class with `NitroModules.getHybridClass('HybridObject')` when it is imported.
 
 For `Image.nitro.ts`, Nitrogen writes:
 
@@ -275,24 +289,22 @@ The generated spec class redeclares every spec member without `override`. An int
 
 On the JVM, a spec property `width` compiles to a `getWidth()` method and, unless it's `readonly`, a `setWidth(value)` method. An interface function with one of those signatures, such as the Java getter `double getWidth()`, clashes with the property, and the property can't implement it. An interface property `width` clashes with a spec method `getWidth()` the same way.
 
-Android generation is not implemented yet. Nitrogen writes the Kotlin spec class, then stops at Android autolinking.
+Android generation is not implemented yet in this version. Nitrogen skips `@Android(...)` with a warning.
 
 ## Swift packages
 
-`Package.swift` can't import code from other files, so Nitrogen keeps its part of the manifest in a section at the end of the file. Declare the package and its dependencies, then call `addNitrogenTargets(to:)`:
+Nitro Modules are built with Swift Package Manager on iOS (CocoaPods is not supported). React Native 0.88 and newer autolinks libraries that ship their own `Package.swift` when the app uses `npx react-native spm`.
+
+`Package.swift` can't import code from other files, so Nitrogen keeps its part of the manifest in a section at the end of the file. Declare the package, then call `addNitrogenTargets(to:)`:
 
 ```swift
-// swift-tools-version: 6.4
+// swift-tools-version: 6.2
 
 import PackageDescription
 
 let package = Package(
     name: "NitroImage",
-    platforms: [.iOS(.v16)],
-    dependencies: [
-        .package(path: "../nitro-modules"),
-        .package(path: "../nitro-modules-swift-bridge"),
-    ]
+    platforms: [.iOS(.v16)]
 )
 
 addNitrogenTargets(to: package)
@@ -300,38 +312,48 @@ addNitrogenTargets(to: package)
 
 Running Nitrogen appends `addNitrogenTargets` between `// nitrogen:begin` and `// nitrogen:end` and rewrites that section on every run, so don't edit it. The function adds the `NitroImage` library (named after `ios.iosModuleName`) and these targets:
 
-- `NitroImageCxx`: the C++ specs in `nitrogen/generated/shared/c++`.
+- `NitroImageCxx`: the C++ specs in `nitrogen/generated/shared/c++`, and your C++ sources in `cpp/`.
 - `NitroImageAppleCxx`: the C++ bridge declarations that Swift imports, and the `<NitroImageAppleCxx/NitroImageAutolinking.hpp>` header that declares `registerHybridClasses()`.
-- `NitroImage`: your Swift sources in `Sources/NitroImage` and the generated Swift specs.
-- `NitroImageSwiftBridge`: the C++ wrappers that call your Swift implementations.
+- `NitroImage`: your Swift sources in `ios/` and the generated Swift specs.
+- `NitroImageSwiftBridge`: the C++ wrappers that call your Swift implementations, and `NitroImageAutolinking.mm`, which registers all HybridObject classes when the app loads.
 
-Pass extra dependencies and Swift settings for the `NitroImage` target:
+It also adds the package dependencies: React Native's `ReactNative` package, `NitroModules`, and the Nitro modules whose HybridObjects your specs use. React Native's autolinking references every library through `<app>/ios/build/generated/autolinking/libs/<SwiftName>`, and SwiftPM resolves the relative paths against that symlink, so they only resolve inside an app.
+
+Configure React Native's autolinking in your `package.json`. `swiftpmConfig.name` must be the `iosModuleName`, and `swiftpmConfig.dependencies` must list `react-native-nitro-modules` and every other Nitro module your specs use:
+
+```json
+"swiftpmConfig": {
+  "name": "NitroImage",
+  "dependencies": ["react-native-nitro-modules"]
+}
+```
+
+The React Native CLI only autolinks iOS libraries that contain a `*.podspec` file, so keep a placeholder podspec at the package root.
+
+Pass different source paths, extra dependencies or settings:
 
 ```swift
 addNitrogenTargets(
     to: package,
-    dependencies: [.product(name: "Yoga", package: "react-nitro-yoga")],
+    swiftSources: ["ios"],
+    cxxSources: ["cpp"],
     swiftSettings: [.swiftLanguageMode(.v5)]
 )
 ```
 
-If your specs use or extend a HybridObject from another Nitro module, add that module's package and pass its library in `dependencies:`, e.g. `.product(name: "ReactNitroCore", package: "react-nitro-core")`.
-
 Nitrogen leaves manifests that don't call `addNitrogenTargets` alone. `addNitrogenTargets` relies on the following layout and rules:
 
 - Run Nitrogen from the folder that contains `Package.swift` and `nitro.json`, and keep `--out` inside that folder.
-- Put your Swift code in `Sources/<iosModuleName>`. Every iOS module needs this Swift module, even when all of its specs use C++, because the generated bridge includes its Swift header.
-- Add the `nitro-modules` and `nitro-modules-swift-bridge` packages as dependencies. If the path or URL ends in a different name, name the dependency yourself, e.g. `.package(name: "nitro-modules", path: "../NitroModules")`.
-- Don't declare `products` or targets with the generated names, since the function adds them. Leave `cxxLanguageStandard` unset or set it to C++20 or newer.
-- `dependencies:` applies to the `NitroImageCxx`, `NitroImageAppleCxx` and Swift targets, and `swiftSettings:` only to the Swift target. To change a C++ target in other ways, look it up in `package.targets` after the call. To add Swift sources or resources at the package root, also remove their paths from the Swift target's `exclude`, which lists every other top-level entry.
-- The function computes `exclude` when SwiftPM evaluates the manifest, and SwiftPM and Xcode cache the result until `Package.swift` changes. If you add or remove top-level files later, for example by installing `node_modules` after the package was first opened, run `swift package purge-cache` or reset the package caches in Xcode.
-- The generated targets use unsafe flags, so use `swift-tools-version` 6.2 or later if other packages depend on yours through a versioned URL. Build with Swift 6.4's default Swift Build backend or with Xcode, because the Swift bridge needs their `GENERATED_MODULEMAP_DIR`.
+- Every iOS module has a Swift module, even when all of its specs use C++, because the generated bridge includes its Swift header.
+- Don't declare `products`, targets or the generated package dependencies yourself, since the function adds them. Leave `cxxLanguageStandard` unset or set it to C++20 or newer.
+- To change a target in other ways, look it up in `package.targets` after the call. To add Swift sources or resources at the package root, also remove their paths from the Swift target's `exclude`, which lists every other top-level entry.
+- The function computes `exclude` when SwiftPM evaluates the manifest, and SwiftPM and Xcode cache the result until `Package.swift` changes. If you add or remove top-level files later, run `npx react-native spm update` or reset the package caches in Xcode.
 
 ## Migration and current limits
 
 Move constructor registration from `nitro.json.autolinking` into each spec's decorator `implementation` object and public constructor, then remove the `autolinking` field. Keep the namespace and build-module settings in `nitro.json`. Replace interface specs and `HybridObject<{ ... }>` platform arguments with decorated class declarations extending plain `HybridObject`. Use `allowInheritance: true` for inheritable specs, and `allowMultipleImplementations: true` for those bases. Use `export declare class` in `.nitro.ts` specs, add the `imports` entry, and run Nitrogen, which adds `export * from '#nitro/<ClassName>'` for each class. Import or re-export classes from their relative `.nitro` paths. Ordinary `.ts` and `.d.ts` files can still supply referenced types.
 
-Android/Kotlin generation is not implemented. Constructor and method overloads, rest parameters, static properties, generic specs and declaration merging are unsupported.
+Android/Kotlin generation is not implemented yet. Swift doesn't support `Date` (use a number of milliseconds) or tuples (C++ only). HybridViews are not supported yet. Constructor and method overloads, rest parameters, static properties, generic specs and declaration merging are unsupported.
 
 Cross-package Swift class inheritance supports the class bindings described above. Reusing the same callback/promise helper types in multiple Swift modules still hits an existing helper-conformance generation limitation.
 

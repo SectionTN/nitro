@@ -59,13 +59,13 @@ export async function initNewNitroModule(
     `👉 To install dependencies, use your package manager of choice (e.g. ${chalk.bold('npm install')})`
   )
   Logger.info(
-    `👉 To create your first Hybrid Object, add a ${chalk.underline(`*.nitro.ts`)} file with ${chalk.bold('export declare class')} extending ${chalk.bold('HybridObject')} with platform decorators. Map ${chalk.bold('#nitro/*')} to ${chalk.underline('./nitrogen/generated/shared/javascript/*.cjs')} in your package.json ${chalk.bold('imports')} and run ${chalk.bold('npx nitrogen')}, which adds ${chalk.bold(`export * from '#nitro/YourClass'`)} to the spec. Then import from ${chalk.bold('./YourClass.nitro')}. Include ${chalk.underline('nitrogen/generated')} when publishing.`
+    `👉 To create a Hybrid Object, add a ${chalk.underline(`*.nitro.ts`)} file with an ${chalk.bold('export declare class')} extending ${chalk.bold('HybridObject')} with platform decorators (see ${chalk.underline('src/specs/Example.nitro.ts')}), and run ${chalk.bold('npx nitrogen')}.`
   )
   Logger.info(
     `👉 If your ${chalk.underline('tsconfig.json')} extends ${chalk.bold('@react-native/typescript-config')}, set ${chalk.bold('"resolvePackageJsonImports": true')} so TypeScript resolves ${chalk.bold('#nitro/*')} in your specs.`
   )
   Logger.info(
-    `👉 To test your module in an app, create a new React Native app somewhere (e.g. in ${chalk.underline(`./${moduleName}/example`)}) and add ${chalk.bold(moduleName)} as a local dependency.`
+    `👉 To test your module in an app, create a new React Native app somewhere (e.g. in ${chalk.underline(`./${moduleName}/example`)}) and add ${chalk.bold(moduleName)} as a local dependency. Nitro Modules are built with Swift Package Manager on iOS, so run ${chalk.bold('npx react-native spm')} in the app.`
   )
 }
 

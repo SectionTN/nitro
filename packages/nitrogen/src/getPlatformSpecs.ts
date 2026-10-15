@@ -14,8 +14,7 @@ import { NitroConfig } from './config/NitroConfig.js'
 
 const platformSchema = z.enum(['ios', 'android'])
 export type Platform = z.infer<typeof platformSchema>
-const languageSchema = z.enum(['c++', 'swift', 'kotlin'])
-export type Language = z.infer<typeof languageSchema>
+export type Language = 'c++' | 'swift' | 'kotlin'
 
 const nativeNameSchema = z.string().min(1)
 

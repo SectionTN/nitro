@@ -4,7 +4,7 @@ import { z } from 'zod'
 const safeNamePattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/
 
 const isNotReservedKeyword = (val: string) =>
-  !['nitro', 'NitroModules'].includes(val)
+  !['core', 'nitro', 'NitroModules'].includes(val)
 const isReservedKeywordError = {
   message: `This value is reserved and cannot be used!`,
 }

@@ -66,6 +66,14 @@ export function wrapSwiftType(type: Type): SwiftType {
       return new SwiftStructType(getTypeAs(type, StructType))
     case 'variant':
       return new SwiftVariantType(getTypeAs(type, VariantType))
+    case 'date':
+      throw new Error(
+        `Date is not supported in Swift. Use a number (milliseconds since the Unix epoch) instead.`
+      )
+    case 'tuple':
+      throw new Error(
+        `Tuples are only supported in C++. Use a struct (interface) or an array instead.`
+      )
     default:
       throw new Error(`Swift interop for ${type.kind} is not yet implemented`)
   }

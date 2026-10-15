@@ -31,6 +31,7 @@ import { Logger } from './Logger.js'
 import { NitroConfig } from './config/NitroConfig.js'
 import { createIOSAutolinking } from './autolinking/createIOSAutolinking.js'
 import { updateSwiftPackageManifest } from './autolinking/ios/updateSwiftPackageManifest.js'
+import { getModuleDependencies } from './syntax/getModuleDependencies.js'
 import type { Autolinking } from './autolinking/Autolinking.js'
 import { createGitAttributes } from './createGitAttributes.js'
 import { NITROGEN_VERSION } from './config/nitrogenVersion.js'
@@ -220,13 +221,22 @@ export async function runNitrogen({
         hybridClasses.push({ name: typeName, platforms: literalOptions })
 
         const allPlatforms: Platform[] = ['ios', 'android']
-        const platforms = allPlatforms.filter(
+        const declaredPlatforms = allPlatforms.filter(
           (platform) => platformSpec[platform] != null
         )
-        if (platforms.length === 0) {
+        if (declaredPlatforms.length === 0) {
           throw new Error(
             `${typeName} does not declare any platforms - nothing can be generated. ` +
               `Add \`@iOS(...)\` or \`@Android(...)\` to the declared class.`
+          )
+        }
+        // TODO: Generate Android (Kotlin/JNI) bindings and autolinking again.
+        const platforms = declaredPlatforms.filter(
+          (platform) => platform !== 'android'
+        )
+        if (declaredPlatforms.includes('android')) {
+          Logger.warn(
+            `    ⚠️   ${typeName}: Android is not supported by this version of Nitrogen yet, skipping \`@Android(...)\`.`
           )
         }
 
@@ -327,9 +337,6 @@ export async function runNitrogen({
   if (usedPlatforms.includes('ios')) {
     autolinkingFiles.push(createIOSAutolinking(specsByPlatform.ios))
   }
-  if (usedPlatforms.includes('android')) {
-    throw new Error('Android is not implemented yet! Remove it from platforms')
-  }
 
   for (const autolinking of autolinkingFiles) {
     Logger.info(
@@ -348,6 +355,10 @@ export async function runNitrogen({
     await updateSwiftPackageManifest({
       packageDirectory: process.cwd(),
       outputDirectory: outputDirectory,
+      moduleDependencies: getModuleDependencies(
+        specsByPlatform.ios,
+        NitroConfig.current
+      ),
     })
   }
 
