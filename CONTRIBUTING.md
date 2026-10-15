@@ -1,6 +1,6 @@
 # Contributing to Nitro
 
-Nitro owns the shared native runtime, its JS/TS API, and Nitrogen. React Native packaging, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules). Read [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for setup, pinned core updates, and the release sequence.
+Nitro owns the shared native runtime, its JS/TS API, and Nitrogen. React Native packaging, apps, tests, docs, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules). Read [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for setup and pinned core updates, and [RELEASING.md](RELEASING.md) for CI releases.
 
 ## Scope and code review
 

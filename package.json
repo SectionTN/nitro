@@ -26,74 +26,20 @@
     "nitro": "bun --cwd packages/nitro-core",
     "nitrogen": "bun --cwd packages/nitrogen",
     "version:set": "node scripts/set-version.mjs",
-    "check-versions": "node scripts/set-version.mjs --check"
+    "check-versions": "node scripts/set-version.mjs --check",
+    "test:release": "node --test scripts/releases/lib.test.mjs"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.39.4",
     "@jamesacarr/eslint-formatter-github-actions": "^0.2.0",
     "@react-native/eslint-config": "0.85.3",
-    "@release-it-plugins/workspaces": "^5.0.3",
-    "@release-it/conventional-changelog": "^10.0.6",
     "@types/bun": "1.4.0",
     "eslint": "^9.39.4",
     "eslint-plugin-ft-flow": "^3.0.11",
     "eslint-plugin-prettier": "^5.5.5",
     "prettier": "^3.8.3",
-    "release-it": "^19.2.4",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.60.0"
-  },
-  "release-it": {
-    "npm": {
-      "publish": false
-    },
-    "git": {
-      "commitMessage": "chore: release ${version}",
-      "tagName": "v${version}",
-      "requireCleanWorkingDir": true
-    },
-    "github": {
-      "release": true
-    },
-    "hooks": {
-      "before:init": "bun run check-versions && bun run build && bun run typecheck",
-      "after:bump": "node scripts/set-version.mjs && bun install --ignore-scripts && bun run build"
-    },
-    "plugins": {
-      "@release-it/conventional-changelog": {
-        "preset": {
-          "name": "conventionalcommits",
-          "types": [
-            {
-              "type": "feat",
-              "section": "✨ Features"
-            },
-            {
-              "type": "perf",
-              "section": "💨 Performance Improvements"
-            },
-            {
-              "type": "fix",
-              "section": "🐛 Bug Fixes"
-            },
-            {
-              "type": "chore(deps)",
-              "section": "🛠️ Dependency Upgrades"
-            },
-            {
-              "type": "docs",
-              "section": "📚 Documentation"
-            }
-          ]
-        }
-      },
-      "@release-it-plugins/workspaces": {
-        "workspaces": [
-          "packages/nitro-core",
-          "packages/nitrogen"
-        ]
-      }
-    }
   }
 }

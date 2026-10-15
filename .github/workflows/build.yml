@@ -9,6 +9,7 @@ on:
       - 'packages/nitrogen/**'
       - 'config/**'
       - 'scripts/set-version.mjs'
+      - 'scripts/releases/**'
       - 'package.json'
       - 'bun.lock'
   pull_request:
@@ -18,6 +19,7 @@ on:
       - 'packages/nitrogen/**'
       - 'config/**'
       - 'scripts/set-version.mjs'
+      - 'scripts/releases/**'
       - 'package.json'
       - 'bun.lock'
 

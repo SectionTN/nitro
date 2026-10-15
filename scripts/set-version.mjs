@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { parseVersion } from './releases/lib.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const manifests = [
@@ -12,10 +13,10 @@ const manifests = [
   return { filename, json: JSON.parse(readFileSync(filename, 'utf8')) }
 })
 const check = process.argv[2] === '--check'
-const version = check ? manifests[0].json.version : (process.argv[2] ?? manifests[0].json.version)
-if (!/^\d+\.\d+\.\d+(?:-[\da-zA-Z.-]+)?(?:\+[\da-zA-Z.-]+)?$/.test(version)) {
-  throw new Error(`Invalid version: ${version}`)
-}
+const version = check
+  ? manifests[0].json.version
+  : (process.argv[2] ?? manifests[0].json.version)
+parseVersion(version)
 
 const sourceVersions = [
   {
@@ -39,24 +40,33 @@ const sourceVersions = [
 if (check) {
   for (const { filename, json } of manifests) {
     if (json.version !== version)
-      throw new Error(`${filename}: expected version ${version}, found ${json.version}`)
+      throw new Error(
+        `${filename}: expected version ${version}, found ${json.version}`
+      )
   }
   const nitrogen = manifests.find(({ json }) => json.name === 'nitrogen').json
   if (nitrogen.dependencies['nitro-core'] !== `^${version}`) {
     throw new Error(`Nitrogen must depend on nitro-core ^${version}`)
   }
   for (const entry of sourceVersions) {
-    if (entry.match[1] !== version) throw new Error(`${entry.path} must use ${version}`)
+    if (entry.match[1] !== version)
+      throw new Error(`${entry.path} must use ${version}`)
   }
   console.log(`Nitro core, Nitrogen and native versions match: ${version}`)
 } else {
   for (const { filename, json } of manifests) {
     json.version = version
-    if (json.name === 'nitrogen') json.dependencies['nitro-core'] = `^${version}`
+    if (json.name === 'nitrogen')
+      json.dependencies['nitro-core'] = `^${version}`
     writeFileSync(filename, `${JSON.stringify(json, null, 2)}\n`)
   }
   for (const entry of sourceVersions) {
-    writeFileSync(entry.filename, entry.source.replace(entry.match[0], entry.line))
+    writeFileSync(
+      entry.filename,
+      entry.source.replace(entry.match[0], entry.line)
+    )
   }
-  console.log(`Updated Nitro core and Nitrogen to ${version}. Run bun install to update bun.lock.`)
+  console.log(
+    `Updated Nitro core and Nitrogen to ${version}. Run bun install to update bun.lock.`
+  )
 }
