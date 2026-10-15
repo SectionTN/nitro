@@ -5,8 +5,8 @@
 //  Created by Marc Rousavy on 14.07.24.
 //
 
-#include "ThreadUtils.hpp"
-#include "UIThreadDispatcher.hpp"
+#include <NitroModulesCxx/ThreadUtils.hpp>
+#include <NitroModulesAppleCxx/UIThreadDispatcher.hpp>
 #include <dispatch/dispatch.h>
 #include <pthread.h>
 #include <sstream>

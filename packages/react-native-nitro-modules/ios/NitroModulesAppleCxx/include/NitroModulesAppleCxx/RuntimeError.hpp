@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "NitroTypeInfo.hpp"
+#include <NitroModulesCxx/NitroTypeInfo.hpp>
 #include <exception>
 #include <string>
 
