@@ -9,7 +9,7 @@ export function installWorkletsSupport() {
     const boxedNitroProxy = NitroModules.box(NitroModules)
     registerCustomSerializable({
       name: 'nitro.HybridObject',
-      determine(value): value is HybridObject<{}> {
+      determine(value): value is HybridObject {
         'worklet'
         const nitroProxy = boxedNitroProxy.unbox()
         return nitroProxy.isHybridObject(value)

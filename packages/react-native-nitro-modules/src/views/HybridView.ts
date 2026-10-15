@@ -1,14 +1,6 @@
 import type { HybridObject } from '../HybridObject'
 
 /**
- * Describes the languages this view will be implemented in.
- */
-export interface ViewPlatformSpec {
-  ios?: 'swift'
-  android?: 'kotlin'
-}
-
-/**
  * Represents props for a Hybrid View.
  * Such props are implemented on the native side, and can be
  * set from JS using React props.
@@ -19,7 +11,7 @@ export interface ViewPlatformSpec {
  * interface ScrollViewProps extends HybridViewProps {
  *   direction: Direction
  * }
- * export type ScrollView = HybridView<ScrollViewProps>
+ * export declare class ScrollView extends HybridView<ScrollViewProps> {}
  *
  * // in React:
  * function App() {
@@ -42,7 +34,7 @@ export interface HybridViewProps {
  * interface ScrollViewMethods extends HybridViewMethods {
  *   scrollTo(y: number): void
  * }
- * export type ScrollView = HybridView<ScrollViewProps, ScrollViewMethods>
+ * export declare class ScrollView extends HybridView<ScrollViewProps, ScrollViewMethods> {}
  *
  * // in React:
  * function App() {
@@ -65,7 +57,7 @@ export interface HybridViewMethods {}
  * interface ScrollViewMethods extends HybridViewMethods {
  *   scrollTo(y: number): void
  * }
- * export type ScrollView = HybridView<ScrollViewProps, ScrollViewMethods>
+ * export declare class ScrollView extends HybridView<ScrollViewProps, ScrollViewMethods> {}
  * export type ScrollViewRef = HybridRef<ScrollViewProps, ScrollViewMethods>
  *
  * // in react:
@@ -81,15 +73,22 @@ export interface HybridViewMethods {}
 export type HybridRef<
   Props extends HybridViewProps,
   Methods extends HybridViewMethods = {},
-  Platforms extends ViewPlatformSpec = { ios: 'swift'; android: 'kotlin' },
-> = HybridObject<Platforms> & Props & Methods
+> = HybridObject & Props & Methods
 
 /**
  * This interface acts as a tag for Hybrid Views so nitrogen detects them.
  */
-interface HybridViewTag<
-  Platforms extends ViewPlatformSpec,
-> extends HybridObject<Platforms> {}
+export interface HybridViewTag {
+  readonly __hybridViewTag?: never
+}
+
+interface HybridViewConstructor {
+  new <
+    Props extends HybridViewProps,
+    Methods extends HybridViewMethods = {},
+  >(): HybridViewTag & HybridObject & Props & Methods
+  readonly prototype: HybridObject
+}
 
 /**
  * Represents a Nitro Hybrid View.
@@ -103,16 +102,22 @@ interface HybridViewTag<
  * Properties can be set using React props, and methods can be called after obtaining
  * a reference to the {@linkcode HybridObject} via {@linkcode DefaultHybridViewProps.hybridRef hybridRef}.
  *
- * The view can be rendered in React (Native).
+ * Declare a view with `export declare class` in a `.nitro.ts` spec.
+ * `HybridView` has no runtime value, so import it as a type.
  * @example
  * ```ts
+ * import { iOS, Android, type HybridView } from 'react-native-nitro-modules'
+ *
  * interface ScrollViewProps extends HybridViewProps { … }
  * interface ScrollViewMethods extends HybridViewMethods { … }
- * export type ScrollView = HybridView<ScrollViewProps, ScrollViewMethods>
+ *
+ * @iOS({ language: 'swift', implementation: { className: 'HybridScrollView' } })
+ * @Android({ language: 'kotlin', implementation: { className: 'HybridScrollView' } })
+ * export declare class ScrollView extends HybridView<ScrollViewProps, ScrollViewMethods> {}
  * ```
  */
+export declare const HybridView: HybridViewConstructor
 export type HybridView<
   Props extends HybridViewProps,
   Methods extends HybridViewMethods = {},
-  Platforms extends ViewPlatformSpec = { ios: 'swift'; android: 'kotlin' },
-> = HybridViewTag<Platforms> & HybridObject<Platforms> & Props & Methods
+> = HybridViewTag & HybridObject & Props & Methods

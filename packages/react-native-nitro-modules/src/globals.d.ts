@@ -22,7 +22,9 @@ declare global {
   /**
    * The global proxy object that can create other autolinked HybridObjects.
    */
-  var NitroModulesProxy: {} | undefined
+  var NitroModulesProxy:
+    | import('./NitroModulesProxy').NitroModulesProxy
+    | undefined
 }
 
 // ensures this file is treated as a module
