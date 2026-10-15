@@ -7,32 +7,11 @@
 
 #pragma once
 
-#if __has_include(<NitroModules/JSIConverter.hpp>)
-#include <NitroModules/JSIConverter.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/NitroDefines.hpp>)
-#include <NitroModules/NitroDefines.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/JSIHelpers.hpp>)
-#include <NitroModules/JSIHelpers.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/PropNameIDCache.hpp>)
-#include <NitroModules/PropNameIDCache.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <memory>
 // Forward declaration of `HybridSomeExternalObjectSpec` to properly resolve imports.
 namespace margelo::nitro::test::external { class HybridSomeExternalObjectSpec; }
-
-#include <memory>
-#include <NitroTestExternal/HybridSomeExternalObjectSpec.hpp>
 
 namespace margelo::nitro::test {
 
@@ -58,28 +37,9 @@ namespace margelo::nitro {
   // C++ ExternalObjectStruct <> JS ExternalObjectStruct (object)
   template <>
   struct JSIConverter<margelo::nitro::test::ExternalObjectStruct> final {
-    static inline margelo::nitro::test::ExternalObjectStruct fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
-      jsi::Object obj = arg.asObject(runtime);
-      return margelo::nitro::test::ExternalObjectStruct(
-        JSIConverter<std::shared_ptr<margelo::nitro::test::external::HybridSomeExternalObjectSpec>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "someExternal")))
-      );
-    }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::test::ExternalObjectStruct& arg) {
-      jsi::Object obj(runtime);
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "someExternal"), JSIConverter<std::shared_ptr<margelo::nitro::test::external::HybridSomeExternalObjectSpec>>::toJSI(runtime, arg.someExternal));
-      return obj;
-    }
-    static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-      if (!value.isObject()) {
-        return false;
-      }
-      jsi::Object obj = value.getObject(runtime);
-      if (!nitro::isPlainObject(runtime, obj)) {
-        return false;
-      }
-      if (!JSIConverter<std::shared_ptr<margelo::nitro::test::external::HybridSomeExternalObjectSpec>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "someExternal")))) return false;
-      return true;
-    }
+    static margelo::nitro::test::ExternalObjectStruct fromJSI(jsi::Runtime& runtime, const jsi::Value& arg);
+    static jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::test::ExternalObjectStruct& arg);
+    static bool canConvert(jsi::Runtime& runtime, const jsi::Value& value);
   };
 
 } // namespace margelo::nitro

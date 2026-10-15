@@ -7,29 +7,9 @@
 
 #pragma once
 
-#if __has_include(<NitroModules/JSIConverter.hpp>)
-#include <NitroModules/JSIConverter.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/NitroDefines.hpp>)
-#include <NitroModules/NitroDefines.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/JSIHelpers.hpp>)
-#include <NitroModules/JSIHelpers.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/PropNameIDCache.hpp>)
-#include <NitroModules/PropNameIDCache.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-
-
-
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/Callback.hpp>
 #include <functional>
 #include <variant>
 #include <optional>
@@ -41,11 +21,11 @@ namespace margelo::nitro::test {
    */
   struct OptionalCallback final {
   public:
-    std::optional<std::variant<std::function<void()>, double>> callback     SWIFT_PRIVATE;
+    std::optional<std::variant<Callback<void()>, double>> callback     SWIFT_PRIVATE;
 
   public:
     OptionalCallback() = default;
-    explicit OptionalCallback(std::optional<std::variant<std::function<void()>, double>> callback): callback(callback) {}
+    explicit OptionalCallback(std::optional<std::variant<Callback<void()>, double>> callback): callback(callback) {}
 
   public:
     // OptionalCallback is not equatable because these properties are not equatable: callback
@@ -58,28 +38,9 @@ namespace margelo::nitro {
   // C++ OptionalCallback <> JS OptionalCallback (object)
   template <>
   struct JSIConverter<margelo::nitro::test::OptionalCallback> final {
-    static inline margelo::nitro::test::OptionalCallback fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
-      jsi::Object obj = arg.asObject(runtime);
-      return margelo::nitro::test::OptionalCallback(
-        JSIConverter<std::optional<std::variant<std::function<void()>, double>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "callback")))
-      );
-    }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::test::OptionalCallback& arg) {
-      jsi::Object obj(runtime);
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "callback"), JSIConverter<std::optional<std::variant<std::function<void()>, double>>>::toJSI(runtime, arg.callback));
-      return obj;
-    }
-    static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-      if (!value.isObject()) {
-        return false;
-      }
-      jsi::Object obj = value.getObject(runtime);
-      if (!nitro::isPlainObject(runtime, obj)) {
-        return false;
-      }
-      if (!JSIConverter<std::optional<std::variant<std::function<void()>, double>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "callback")))) return false;
-      return true;
-    }
+    static margelo::nitro::test::OptionalCallback fromJSI(jsi::Runtime& runtime, const jsi::Value& arg);
+    static jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::test::OptionalCallback& arg);
+    static bool canConvert(jsi::Runtime& runtime, const jsi::Value& value);
   };
 
 } // namespace margelo::nitro

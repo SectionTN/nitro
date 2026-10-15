@@ -16,7 +16,13 @@ using namespace facebook;
 
 class HybridChild : public virtual HybridChildSpec, public virtual HybridBase {
 public:
-  explicit HybridChild() : HybridObject(HybridChildSpec::TAG) {}
+  HybridChild() = default;
+
+protected:
+  // Both bases describe a HybridClass, the Child's one is the most derived.
+  const std::shared_ptr<const HybridClass>& getHybridClass() override {
+    return HybridChildSpec::Class::get();
+  }
 
 public:
   double getBaseValue() override {

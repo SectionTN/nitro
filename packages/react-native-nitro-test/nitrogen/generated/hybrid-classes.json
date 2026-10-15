@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "classes": {
+    "Base": {
+      "android": {
+        "allowInheritance": true,
+        "allowMultipleImplementations": true,
+        "implementation": {
+          "className": "HybridBase"
+        },
+        "language": "kotlin"
+      },
+      "ios": {
+        "allowInheritance": true,
+        "allowMultipleImplementations": true,
+        "implementation": {
+          "className": "HybridBase"
+        },
+        "language": "swift"
+      }
+    },
+    "Child": {
+      "android": {
+        "allowMultipleImplementations": true,
+        "implementation": {
+          "className": "HybridChild"
+        },
+        "language": "kotlin"
+      },
+      "ios": {
+        "allowMultipleImplementations": true,
+        "implementation": {
+          "className": "HybridChild"
+        },
+        "language": "swift"
+      }
+    },
+    "PlatformObject": {
+      "android": {
+        "implementation": {
+          "className": "HybridPlatformObject"
+        },
+        "language": "kotlin"
+      },
+      "ios": {
+        "implementation": {
+          "className": "HybridPlatformObject"
+        },
+        "language": "swift"
+      }
+    },
+    "TestObjectCpp": {
+      "android": {
+        "implementation": {
+          "className": "HybridTestObjectCpp",
+          "include": "\"HybridTestObjectCpp.hpp\""
+        },
+        "language": "c++"
+      },
+      "ios": {
+        "implementation": {
+          "className": "HybridTestObjectCpp",
+          "include": "\"HybridTestObjectCpp.hpp\""
+        },
+        "language": "c++"
+      }
+    },
+    "TestObjectSwiftKotlin": {
+      "android": {
+        "implementation": {
+          "className": "HybridTestObjectKotlin"
+        },
+        "language": "kotlin"
+      },
+      "ios": {
+        "implementation": {
+          "className": "HybridTestObjectSwift"
+        },
+        "language": "swift"
+      }
+    }
+  }
+}

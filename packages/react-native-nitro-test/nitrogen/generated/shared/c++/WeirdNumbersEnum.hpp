@@ -7,16 +7,8 @@
 
 #pragma once
 
-#if __has_include(<NitroModules/JSIConverter.hpp>)
-#include <NitroModules/JSIConverter.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/NitroDefines.hpp>)
-#include <NitroModules/NitroDefines.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
 
 namespace margelo::nitro::test {
 

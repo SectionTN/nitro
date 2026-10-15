@@ -8,7 +8,7 @@
 
 
 /**
- * An Swift enum with associated values representing a Variant/Union type.
+ * A Swift enum with associated values representing a Variant/Union type.
  * JS type: `boolean | number`
  */
 @frozen
@@ -26,5 +26,44 @@ public extension Variant_Bool_Double {
   }
   func isType<T>(_ type: T.Type = T.self) -> Bool {
     return self.asType(type) != nil
+  }
+}
+
+// Raw Swift storage keeps associated values containing imported C++ types exportable.
+@_expose(Cxx)
+public struct Variant_Bool_Double_cxx {
+  let value: Variant_Bool_Double
+
+  init(_ value: Variant_Bool_Double) {
+    self.value = value
+  }
+
+  public var index: Int {
+    switch value {
+      case .first: return 0
+      case .second: return 1
+    }
+  }
+
+  @_spi(NitroCxx)
+  public static func initializeFirst(_ payload: Bool, result: UnsafeMutableRawPointer) {
+    result.assumingMemoryBound(to: Variant_Bool_Double_cxx.self).initialize(to: Self(.first(payload)))
+  }
+
+  @_spi(NitroCxx)
+  public borrowing func getFirst() -> Bool {
+    guard case .first(let payload) = value else { preconditionFailure("Invalid variant case") }
+    return payload
+  }
+
+  @_spi(NitroCxx)
+  public static func initializeSecond(_ payload: Double, result: UnsafeMutableRawPointer) {
+    result.assumingMemoryBound(to: Variant_Bool_Double_cxx.self).initialize(to: Self(.second(payload)))
+  }
+
+  @_spi(NitroCxx)
+  public borrowing func getSecond() -> Double {
+    guard case .second(let payload) = value else { preconditionFailure("Invalid variant case") }
+    return payload
   }
 }

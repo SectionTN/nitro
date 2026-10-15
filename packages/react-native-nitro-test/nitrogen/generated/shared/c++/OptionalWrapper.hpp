@@ -7,30 +7,9 @@
 
 #pragma once
 
-#if __has_include(<NitroModules/JSIConverter.hpp>)
-#include <NitroModules/JSIConverter.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/NitroDefines.hpp>)
-#include <NitroModules/NitroDefines.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/JSIHelpers.hpp>)
-#include <NitroModules/JSIHelpers.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/PropNameIDCache.hpp>)
-#include <NitroModules/PropNameIDCache.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-
-
-
-#include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/ArrayBuffer.hpp>
 #include <optional>
 #include <string>
 
@@ -41,12 +20,12 @@ namespace margelo::nitro::test {
    */
   struct OptionalWrapper final {
   public:
-    std::optional<std::shared_ptr<ArrayBuffer>> optionalArrayBuffer     SWIFT_PRIVATE;
+    std::optional<ArrayBuffer> optionalArrayBuffer     SWIFT_PRIVATE;
     std::optional<std::string> optionalString     SWIFT_PRIVATE;
 
   public:
     OptionalWrapper() = default;
-    explicit OptionalWrapper(std::optional<std::shared_ptr<ArrayBuffer>> optionalArrayBuffer, std::optional<std::string> optionalString): optionalArrayBuffer(optionalArrayBuffer), optionalString(optionalString) {}
+    explicit OptionalWrapper(std::optional<ArrayBuffer> optionalArrayBuffer, std::optional<std::string> optionalString): optionalArrayBuffer(optionalArrayBuffer), optionalString(optionalString) {}
 
   public:
     friend bool operator==(const OptionalWrapper& lhs, const OptionalWrapper& rhs) = default;
@@ -59,31 +38,9 @@ namespace margelo::nitro {
   // C++ OptionalWrapper <> JS OptionalWrapper (object)
   template <>
   struct JSIConverter<margelo::nitro::test::OptionalWrapper> final {
-    static inline margelo::nitro::test::OptionalWrapper fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
-      jsi::Object obj = arg.asObject(runtime);
-      return margelo::nitro::test::OptionalWrapper(
-        JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer"))),
-        JSIConverter<std::optional<std::string>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalString")))
-      );
-    }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::test::OptionalWrapper& arg) {
-      jsi::Object obj(runtime);
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer"), JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::toJSI(runtime, arg.optionalArrayBuffer));
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "optionalString"), JSIConverter<std::optional<std::string>>::toJSI(runtime, arg.optionalString));
-      return obj;
-    }
-    static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-      if (!value.isObject()) {
-        return false;
-      }
-      jsi::Object obj = value.getObject(runtime);
-      if (!nitro::isPlainObject(runtime, obj)) {
-        return false;
-      }
-      if (!JSIConverter<std::optional<std::shared_ptr<ArrayBuffer>>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer")))) return false;
-      if (!JSIConverter<std::optional<std::string>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalString")))) return false;
-      return true;
-    }
+    static margelo::nitro::test::OptionalWrapper fromJSI(jsi::Runtime& runtime, const jsi::Value& arg);
+    static jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::test::OptionalWrapper& arg);
+    static bool canConvert(jsi::Runtime& runtime, const jsi::Value& value);
   };
 
 } // namespace margelo::nitro

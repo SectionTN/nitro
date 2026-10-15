@@ -1,16 +1,19 @@
 import {
+  Android,
+  iOS,
   type HybridObject,
-  type AnyMap,
-  type Sync,
+  type AnyJSON,
   type CustomType,
   type AnyHybridObject,
   type UInt64,
   type Int64,
 } from 'react-native-nitro-modules'
-import type { TestView } from './TestView.nitro'
 import type { SomeExternalObject } from 'react-native-nitro-test-external'
 import type { Child } from './Child.nitro'
 import type { Base } from './Base.nitro'
+
+export * from '#nitro/TestObjectCpp'
+export * from '#nitro/TestObjectSwiftKotlin'
 
 // Tuples become `std::tuple<...>` in C++.
 // In contrast to arrays, they are length-checked, and can have different types inside them.
@@ -118,13 +121,13 @@ export type CustomString = CustomType<
   { include: 'CustomString.hpp' }
 >
 
+// `AnyJSON` can't be part of a variant, since TypeScript flattens it into the union.
+// `Date` is only supported in C++.
 type CoreTypesVariant =
   | ArrayBuffer
   | Promise<number>
   | ((value: number) => void)
   | WrappedJsStruct
-  | Date
-  | AnyMap
 
 // Prefer `interface` + `extends` over `type` so TS doesn't flatten it
 interface PartialPerson extends Partial<Person> {}
@@ -137,9 +140,9 @@ export type HardwareBufferFormat =
   | 'rgba-fp16'
   | 'blob'
 
-// This is an `interface` we're going to use as a base in both of our `HybridObject`s later.
-// In this case, the `HybridObject`s will just flatten out and copy over all properties here.
-// There is no separate type for `SharedTestObjectProps` on the native side.
+// This is an `interface` we're going to use as the shared API of both of our `HybridObject`s.
+// Declared classes can't inherit members from interfaces, so both classes declare all of them,
+// and `implements` makes TypeScript check that they stay in sync.
 interface SharedTestObjectProps {
   // Test Primitives
   numberValue: number
@@ -182,15 +185,11 @@ interface SharedTestObjectProps {
   bouncePartialStruct(person: PartialPerson): PartialPerson
   sumUpAllPassengers(cars: Car[]): string
   bounceEnums(array: Powertrain[]): Powertrain[]
-  complexEnumCallback(
-    array: Powertrain[],
-    callback: (array: Powertrain[]) => void
-  ): void
 
   // Arrays (complex)
   bounceHybridObjects(array: Child[]): Child[]
   bounceFunctions(functions: (() => void)[]): (() => void)[]
-  bounceMaps(maps: AnyMap[]): AnyMap[]
+  bounceMaps(maps: AnyJSON[]): AnyJSON[]
   bouncePromises(promises: Promise<number>[]): Promise<number>[]
   bounceArrayBuffers(arrayBuffers: ArrayBuffer[]): ArrayBuffer[]
   bounceOptionals(
@@ -202,12 +201,12 @@ interface SharedTestObjectProps {
     strings: (string | null | undefined)[]
   ): (string | null | undefined)[]
 
-  // Maps
-  createMap(): AnyMap
-  mapRoundtrip(map: AnyMap): AnyMap
-  getMapKeys(map: AnyMap): string[]
-  mergeMaps(a: AnyMap, b: AnyMap): AnyMap
-  copyAnyMap(map: AnyMap): AnyMap
+  // Maps (JSON)
+  createMap(): AnyJSON
+  mapRoundtrip(map: AnyJSON): AnyJSON
+  getMapKeys(map: AnyJSON): string[]
+  mergeMaps(a: AnyJSON, b: AnyJSON): AnyJSON
+  copyAnyMap(map: AnyJSON): AnyJSON
 
   // Typed Maps (records)
   bounceMap(
@@ -238,10 +237,6 @@ interface SharedTestObjectProps {
 
   // Variants
   someVariant: number | string
-
-  // Dates
-  add1Hour(date: Date): Date
-  currentDate(): Date
 
   // Promises
   calculateFibonacciSync(value: number): Int64
@@ -274,10 +269,6 @@ interface SharedTestObjectProps {
     callback: (maybe: number | undefined) => void
   ): void
   callSumUpNTimes(callback: () => number, n: number): Promise<number>
-  callbackAsyncPromise(callback: () => Promise<number>): Promise<number>
-  callbackAsyncPromiseBuffer(
-    callback: () => Promise<ArrayBuffer>
-  ): Promise<ArrayBuffer>
   getComplexCallback(): (value: number) => void
   twoOptionalCallbacks(
     value: number,
@@ -353,14 +344,15 @@ interface SharedTestObjectProps {
   castBase(base: Base): Child
 
   // Sync funcs
-  callbackSync(callback: Sync<() => number>): number
-  getSyncNumberCallback(): Sync<() => number>
+  callbackSync(callback: () => number): number
+  getSyncNumberCallback(): () => number
   bounceSyncInt64Callback(
-    callback: Sync<(value: Int64) => Int64>
-  ): Sync<(value: Int64) => Int64>
+    callback: (value: Int64) => Int64
+  ): (value: Int64) => Int64
 
   // Views
-  getIsViewBlue(view: TestView): boolean
+  // TODO: Views are not supported by this version of Nitrogen yet.
+  // getIsViewBlue(view: TestView): boolean
 
   // External HybridObjects
   bounceExternalHybrid(externalObject: SomeExternalObject): SomeExternalObject
@@ -370,15 +362,268 @@ interface SharedTestObjectProps {
   ): ExternalObjectStruct
   bounceExternalVariant(variant: StringOrExternal): StringOrExternal
   createExternalVariantFromFunc(
-    factory: Sync<() => SomeExternalObject>
+    factory: () => SomeExternalObject
   ): SomeExternalObject
 }
 
 // This is a C++-based `HybridObject`.
-// Since it inherited from the `SharedTestObjectProps` interface,
-// it will be flattened out and every property/method will be added here.
-export interface TestObjectCpp
-  extends HybridObject<{ ios: 'c++'; android: 'c++' }>, SharedTestObjectProps {
+@iOS({
+  language: 'c++',
+  implementation: {
+    className: 'HybridTestObjectCpp',
+    include: '"HybridTestObjectCpp.hpp"',
+  },
+})
+@Android({
+  language: 'c++',
+  implementation: {
+    className: 'HybridTestObjectCpp',
+    include: '"HybridTestObjectCpp.hpp"',
+  },
+})
+export declare class TestObjectCpp
+  extends HybridObject
+  implements SharedTestObjectProps
+{
+  public constructor()
+
+  // Test Primitives
+  numberValue: number
+  boolValue: boolean
+  stringValue: string
+  int64Value: Int64
+  uint64Value: UInt64
+  nullValue: null
+  optionalString?: string
+  stringOrUndefined: string | undefined
+  stringOrNull: string | null
+  optionalArray?: string[]
+  optionalEnum?: Powertrain
+  optionalOldEnum?: OldEnum
+  optionalEnumPlusOne?: TruckPowertrain
+  optionalCallback?: (value: number) => void
+
+  // Kotlin/Swift simplify boolean names (has*/is*)
+  readonly hasBoolean: boolean
+  readonly isBoolean: boolean
+  hasBooleanWritable: boolean
+  isBooleanWritable: boolean
+  // Kotlin only simplifies `is*` when it is not followed by a lowercase letter,
+  // and it does so for every type - not just booleans.
+  isolatedBoolean: boolean
+  isTextValue: string
+
+  // Basic function tests
+  simpleFunc(): void
+  addNumbers(a: number, b: number): number
+  addStrings(a: string, b: string): string
+  multipleArguments(num: number, str: string, boo: boolean): void
+  bounceNull(value: null): null
+
+  // Arrays
+  bounceStrings(array: string[]): string[]
+  bounceNumbers(array: number[]): number[]
+  bounceStructs(array: Person[]): Person[]
+  bounceNestedArray(array: Person[][]): Person[][]
+  bouncePartialStruct(person: PartialPerson): PartialPerson
+  sumUpAllPassengers(cars: Car[]): string
+  bounceEnums(array: Powertrain[]): Powertrain[]
+
+  // Arrays (complex)
+  bounceHybridObjects(array: Child[]): Child[]
+  bounceFunctions(functions: (() => void)[]): (() => void)[]
+  bounceMaps(maps: AnyJSON[]): AnyJSON[]
+  bouncePromises(promises: Promise<number>[]): Promise<number>[]
+  bounceArrayBuffers(arrayBuffers: ArrayBuffer[]): ArrayBuffer[]
+  bounceOptionals(
+    strings: (string | undefined)[],
+    arrayBuffers: (ArrayBuffer | undefined)[]
+  ): (string | undefined)[]
+  bounceNulls(strings: (string | null)[]): (string | null)[]
+  bounceOptionalNulls(
+    strings: (string | null | undefined)[]
+  ): (string | null | undefined)[]
+
+  // Maps (JSON)
+  createMap(): AnyJSON
+  mapRoundtrip(map: AnyJSON): AnyJSON
+  getMapKeys(map: AnyJSON): string[]
+  mergeMaps(a: AnyJSON, b: AnyJSON): AnyJSON
+  copyAnyMap(map: AnyJSON): AnyJSON
+
+  // Typed Maps (records)
+  bounceMap(
+    map: Record<string, number | boolean>
+  ): Record<string, number | boolean>
+  bounceSimpleMap(map: Record<string, number>): Record<string, number>
+  bounceOptionalMap(
+    map: Record<string, string | undefined>
+  ): Record<string, string | undefined>
+  bounceNullMap(
+    map: Record<string, string | null>
+  ): Record<string, string | null>
+  bounceOptionalNullMap(
+    map: Record<string, string | null | undefined>
+  ): Record<string, string | null | undefined>
+  extractMap(mapWrapper: MapWrapper): MapWrapper['map']
+
+  // Errors
+  funcThatThrows(): number
+  funcThatThrowsBeforePromise(): Promise<void>
+  throwError(error: Error): void
+
+  // Optional parameters
+  tryOptionalParams(num: number, boo: boolean, str?: string): string
+  tryMiddleParam(num: number, boo: boolean | undefined, str: string): string
+  tryOptionalEnum(value?: Powertrain): Powertrain | undefined
+  tryTrailingOptional(num: number, str: string, boo?: boolean): boolean
+
+  // Variants
+  someVariant: number | string
+
+  // Promises
+  calculateFibonacciSync(value: number): Int64
+  calculateFibonacciAsync(value: number): Promise<Int64>
+  wait(seconds: number): Promise<void>
+  promiseThrows(): Promise<void>
+  promiseReturnsInstantly(): Promise<number>
+  promiseReturnsInstantlyAsync(): Promise<number>
+  // Stays pending until the separate JS call schedules its native completion.
+  // Only one Promise may be waiting for that trigger on each TestObject.
+  createPendingPromise(): Promise<number>
+  resolvePendingPromiseOnWorker(): void
+  promiseThatResolvesVoidInstantly(): Promise<void>
+  promiseThatResolvesToUndefined(): Promise<number | undefined>
+  awaitNullablePromise(): Promise<number | undefined>
+
+  // Complex Promises
+  awaitAndGetPromise(promise: Promise<number>): Promise<number>
+  awaitAndGetComplexPromise(promise: Promise<Car>): Promise<Car>
+  awaitPromise(promise: Promise<void>): Promise<void>
+
+  // Callbacks
+  callCallback(callback: () => void): void
+  callCallbackThatReturnsPromiseVoid(
+    callback: () => Promise<void>
+  ): Promise<void>
+  callAll(first: () => void, second: () => void, third: () => void): void
+  callWithOptional(
+    value: number | undefined,
+    callback: (maybe: number | undefined) => void
+  ): void
+  callSumUpNTimes(callback: () => number, n: number): Promise<number>
+  getComplexCallback(): (value: number) => void
+  twoOptionalCallbacks(
+    value: number,
+    first?: (value: number) => void,
+    second?: (value: string) => void
+  ): void
+  errorCallback(onError: (error: Error) => void): void
+  createNativeCallback(
+    wrappingJsCallback: (num: number) => void
+  ): (num: number) => void
+
+  // Callbacks that return values
+  getValueFromJSCallbackAndWait(getValue: () => number): Promise<number>
+  getValueFromJsCallback(
+    callback: () => string,
+    andThenCall: (valueFromJs: string) => void
+  ): Promise<void>
+
+  // Objects
+  getCar(): Car
+  isCarElectric(car: Car): boolean
+  areCarsEqual(a: Car, b: Car): boolean
+  getDriver(car: Car): Person | undefined
+  bounceCar(car: Car): Car
+  jsStyleObjectAsParameters(params: JsStyleStruct): void
+  bounceWrappedJsStyleStruct(value: WrappedJsStruct): WrappedJsStruct
+  bounceOptionalWrapper(wrapper: OptionalWrapper): OptionalWrapper
+  bounceOptionalCallback(value: OptionalCallback): OptionalCallback
+  bounceOptionalEnumStruct(
+    value?: OptionalEnumWrapper
+  ): OptionalEnumWrapper | undefined
+
+  // ArrayBuffers
+  createArrayBuffer(): ArrayBuffer
+  createArrayBufferFromNativeBuffer(copy: boolean): ArrayBuffer
+  // On Android this creates an actual `HardwareBuffer` and wraps it,
+  // on iOS/C++ it creates a normal `ArrayBuffer` of the same byte size.
+  createHardwareBuffer(
+    width: number,
+    height: number,
+    layers: number,
+    format: HardwareBufferFormat
+  ): ArrayBuffer
+  copyBuffer(buffer: ArrayBuffer): ArrayBuffer
+  getBufferLastItem(buffer: ArrayBuffer): number
+  setAllValuesTo(buffer: ArrayBuffer, value: number): void
+  createArrayBufferAsync(): Promise<ArrayBuffer>
+  bounceArrayBuffer(buffer: ArrayBuffer): ArrayBuffer
+
+  // Complex variants
+  passVariant(
+    either: number | string | number[] | string[] | boolean
+  ): number | string
+  getVariantEnum(variant: OldEnum | boolean): OldEnum | boolean
+  bounceVariantUnionEnum(variant: Powertrain | Car): Powertrain | Car
+  getVariantWeirdNumbersEnum(
+    variant: WeirdNumbersEnum | boolean
+  ): WeirdNumbersEnum | boolean
+  getVariantObjects(variant: Person | Car): Person | Car
+  passNamedVariant(variant: NamedVariant): NamedVariant
+  passAllEmptyObjectVariant(
+    variant: OptionalWrapper | Base
+  ): OptionalWrapper | Base
+  bounceComplexVariant(variant: CoreTypesVariant): CoreTypesVariant
+
+  // Inheritance
+  createChild(): Child
+  createBase(): Base
+  createBaseActualChild(): Base
+  bounceChild(child: Child): Child
+  bounceBase(base: Base): Base
+  bounceChildBase(child: Child): Base
+  castBase(base: Base): Child
+
+  // Sync funcs
+  callbackSync(callback: () => number): number
+  getSyncNumberCallback(): () => number
+  bounceSyncInt64Callback(
+    callback: (value: Int64) => Int64
+  ): (value: Int64) => Int64
+
+  // Views
+  // TODO: Views are not supported by this version of Nitrogen yet.
+  // getIsViewBlue(view: TestView): boolean
+
+  // External HybridObjects
+  bounceExternalHybrid(externalObject: SomeExternalObject): SomeExternalObject
+  createInternalObject(): SomeExternalObject
+  bounceExternalStruct(
+    externalStruct: ExternalObjectStruct
+  ): ExternalObjectStruct
+  bounceExternalVariant(variant: StringOrExternal): StringOrExternal
+  createExternalVariantFromFunc(
+    factory: () => SomeExternalObject
+  ): SomeExternalObject
+
+  // Callbacks with arrays of enums
+  complexEnumCallback(
+    array: Powertrain[],
+    callback: (array: Powertrain[]) => void
+  ): void
+
+  // Callbacks that return a Promise with a value
+  callbackAsyncPromise(callback: () => Promise<number>): Promise<number>
+  callbackAsyncPromiseBuffer(
+    callback: () => Promise<ArrayBuffer>
+  ): Promise<ArrayBuffer>
+
+  // Dates
+  add1Hour(date: Date): Date
+  currentDate(): Date
+
   // Complex Variants + Tuples
   getVariantTuple(variant: Float2 | Float3): Float2 | Float3
 
@@ -407,12 +652,260 @@ export interface TestObjectCpp
 }
 
 // This is a Swift/Kotlin-based `HybridObject`.
-// Since it inherited from the `SharedTestObjectProps` interface,
-// it will be flattened out and every property/method will be added here.
-export interface TestObjectSwiftKotlin
-  extends
-    HybridObject<{ ios: 'swift'; android: 'kotlin' }>,
-    SharedTestObjectProps {
+@iOS({
+  language: 'swift',
+  implementation: { className: 'HybridTestObjectSwift' },
+})
+@Android({
+  language: 'kotlin',
+  implementation: { className: 'HybridTestObjectKotlin' },
+})
+export declare class TestObjectSwiftKotlin
+  extends HybridObject
+  implements SharedTestObjectProps
+{
+  public constructor()
+
+  // Test Primitives
+  numberValue: number
+  boolValue: boolean
+  stringValue: string
+  int64Value: Int64
+  uint64Value: UInt64
+  nullValue: null
+  optionalString?: string
+  stringOrUndefined: string | undefined
+  stringOrNull: string | null
+  optionalArray?: string[]
+  optionalEnum?: Powertrain
+  optionalOldEnum?: OldEnum
+  optionalEnumPlusOne?: TruckPowertrain
+  optionalCallback?: (value: number) => void
+
+  // Kotlin/Swift simplify boolean names (has*/is*)
+  readonly hasBoolean: boolean
+  readonly isBoolean: boolean
+  hasBooleanWritable: boolean
+  isBooleanWritable: boolean
+  // Kotlin only simplifies `is*` when it is not followed by a lowercase letter,
+  // and it does so for every type - not just booleans.
+  isolatedBoolean: boolean
+  isTextValue: string
+
+  // Basic function tests
+  simpleFunc(): void
+  addNumbers(a: number, b: number): number
+  addStrings(a: string, b: string): string
+  multipleArguments(num: number, str: string, boo: boolean): void
+  bounceNull(value: null): null
+
+  // Arrays
+  bounceStrings(array: string[]): string[]
+  bounceNumbers(array: number[]): number[]
+  bounceStructs(array: Person[]): Person[]
+  bounceNestedArray(array: Person[][]): Person[][]
+  bouncePartialStruct(person: PartialPerson): PartialPerson
+  sumUpAllPassengers(cars: Car[]): string
+  bounceEnums(array: Powertrain[]): Powertrain[]
+
+  // Arrays (complex)
+  bounceHybridObjects(array: Child[]): Child[]
+  bounceFunctions(functions: (() => void)[]): (() => void)[]
+  bounceMaps(maps: AnyJSON[]): AnyJSON[]
+  bouncePromises(promises: Promise<number>[]): Promise<number>[]
+  bounceArrayBuffers(arrayBuffers: ArrayBuffer[]): ArrayBuffer[]
+  bounceOptionals(
+    strings: (string | undefined)[],
+    arrayBuffers: (ArrayBuffer | undefined)[]
+  ): (string | undefined)[]
+  bounceNulls(strings: (string | null)[]): (string | null)[]
+  bounceOptionalNulls(
+    strings: (string | null | undefined)[]
+  ): (string | null | undefined)[]
+
+  // Maps (JSON)
+  createMap(): AnyJSON
+  mapRoundtrip(map: AnyJSON): AnyJSON
+  getMapKeys(map: AnyJSON): string[]
+  mergeMaps(a: AnyJSON, b: AnyJSON): AnyJSON
+  copyAnyMap(map: AnyJSON): AnyJSON
+
+  // Typed Maps (records)
+  bounceMap(
+    map: Record<string, number | boolean>
+  ): Record<string, number | boolean>
+  bounceSimpleMap(map: Record<string, number>): Record<string, number>
+  bounceOptionalMap(
+    map: Record<string, string | undefined>
+  ): Record<string, string | undefined>
+  bounceNullMap(
+    map: Record<string, string | null>
+  ): Record<string, string | null>
+  bounceOptionalNullMap(
+    map: Record<string, string | null | undefined>
+  ): Record<string, string | null | undefined>
+  extractMap(mapWrapper: MapWrapper): MapWrapper['map']
+
+  // Errors
+  funcThatThrows(): number
+  funcThatThrowsBeforePromise(): Promise<void>
+  throwError(error: Error): void
+
+  // Optional parameters
+  tryOptionalParams(num: number, boo: boolean, str?: string): string
+  tryMiddleParam(num: number, boo: boolean | undefined, str: string): string
+  tryOptionalEnum(value?: Powertrain): Powertrain | undefined
+  tryTrailingOptional(num: number, str: string, boo?: boolean): boolean
+
+  // Variants
+  someVariant: number | string
+
+  // Promises
+  calculateFibonacciSync(value: number): Int64
+  calculateFibonacciAsync(value: number): Promise<Int64>
+  wait(seconds: number): Promise<void>
+  promiseThrows(): Promise<void>
+  promiseReturnsInstantly(): Promise<number>
+  promiseReturnsInstantlyAsync(): Promise<number>
+  // Stays pending until the separate JS call schedules its native completion.
+  // Only one Promise may be waiting for that trigger on each TestObject.
+  createPendingPromise(): Promise<number>
+  resolvePendingPromiseOnWorker(): void
+  promiseThatResolvesVoidInstantly(): Promise<void>
+  promiseThatResolvesToUndefined(): Promise<number | undefined>
+  awaitNullablePromise(): Promise<number | undefined>
+
+  // Complex Promises
+  awaitAndGetPromise(promise: Promise<number>): Promise<number>
+  awaitAndGetComplexPromise(promise: Promise<Car>): Promise<Car>
+  awaitPromise(promise: Promise<void>): Promise<void>
+
+  // Callbacks
+  callCallback(callback: () => void): void
+  callCallbackThatReturnsPromiseVoid(
+    callback: () => Promise<void>
+  ): Promise<void>
+  callAll(first: () => void, second: () => void, third: () => void): void
+  callWithOptional(
+    value: number | undefined,
+    callback: (maybe: number | undefined) => void
+  ): void
+  callSumUpNTimes(callback: () => number, n: number): Promise<number>
+  getComplexCallback(): (value: number) => void
+  twoOptionalCallbacks(
+    value: number,
+    first?: (value: number) => void,
+    second?: (value: string) => void
+  ): void
+  errorCallback(onError: (error: Error) => void): void
+  createNativeCallback(
+    wrappingJsCallback: (num: number) => void
+  ): (num: number) => void
+
+  // Callbacks that return values
+  getValueFromJSCallbackAndWait(getValue: () => number): Promise<number>
+  getValueFromJsCallback(
+    callback: () => string,
+    andThenCall: (valueFromJs: string) => void
+  ): Promise<void>
+
+  // Objects
+  getCar(): Car
+  isCarElectric(car: Car): boolean
+  areCarsEqual(a: Car, b: Car): boolean
+  getDriver(car: Car): Person | undefined
+  bounceCar(car: Car): Car
+  jsStyleObjectAsParameters(params: JsStyleStruct): void
+  bounceWrappedJsStyleStruct(value: WrappedJsStruct): WrappedJsStruct
+  bounceOptionalWrapper(wrapper: OptionalWrapper): OptionalWrapper
+  bounceOptionalCallback(value: OptionalCallback): OptionalCallback
+  bounceOptionalEnumStruct(
+    value?: OptionalEnumWrapper
+  ): OptionalEnumWrapper | undefined
+
+  // ArrayBuffers
+  createArrayBuffer(): ArrayBuffer
+  createArrayBufferFromNativeBuffer(copy: boolean): ArrayBuffer
+  // On Android this creates an actual `HardwareBuffer` and wraps it,
+  // on iOS/C++ it creates a normal `ArrayBuffer` of the same byte size.
+  createHardwareBuffer(
+    width: number,
+    height: number,
+    layers: number,
+    format: HardwareBufferFormat
+  ): ArrayBuffer
+  copyBuffer(buffer: ArrayBuffer): ArrayBuffer
+  getBufferLastItem(buffer: ArrayBuffer): number
+  setAllValuesTo(buffer: ArrayBuffer, value: number): void
+  createArrayBufferAsync(): Promise<ArrayBuffer>
+  bounceArrayBuffer(buffer: ArrayBuffer): ArrayBuffer
+
+  // Complex variants
+  passVariant(
+    either: number | string | number[] | string[] | boolean
+  ): number | string
+  getVariantEnum(variant: OldEnum | boolean): OldEnum | boolean
+  bounceVariantUnionEnum(variant: Powertrain | Car): Powertrain | Car
+  getVariantWeirdNumbersEnum(
+    variant: WeirdNumbersEnum | boolean
+  ): WeirdNumbersEnum | boolean
+  getVariantObjects(variant: Person | Car): Person | Car
+  passNamedVariant(variant: NamedVariant): NamedVariant
+  passAllEmptyObjectVariant(
+    variant: OptionalWrapper | Base
+  ): OptionalWrapper | Base
+  bounceComplexVariant(variant: CoreTypesVariant): CoreTypesVariant
+
+  // Inheritance
+  createChild(): Child
+  createBase(): Base
+  createBaseActualChild(): Base
+  bounceChild(child: Child): Child
+  bounceBase(base: Base): Base
+  bounceChildBase(child: Child): Base
+  castBase(base: Base): Child
+
+  // Sync funcs
+  callbackSync(callback: () => number): number
+  getSyncNumberCallback(): () => number
+  bounceSyncInt64Callback(
+    callback: (value: Int64) => Int64
+  ): (value: Int64) => Int64
+
+  // Views
+  // TODO: Views are not supported by this version of Nitrogen yet.
+  // getIsViewBlue(view: TestView): boolean
+
+  // External HybridObjects
+  bounceExternalHybrid(externalObject: SomeExternalObject): SomeExternalObject
+  createInternalObject(): SomeExternalObject
+  bounceExternalStruct(
+    externalStruct: ExternalObjectStruct
+  ): ExternalObjectStruct
+  bounceExternalVariant(variant: StringOrExternal): StringOrExternal
+  createExternalVariantFromFunc(
+    factory: () => SomeExternalObject
+  ): SomeExternalObject
+
+  // Callbacks with arrays of enums
+  // TODO: The Swift bridge header names `swift::Array<NitroTest::Powertrain>` before the module's Swift header
+  //       declares that Swift enums are usable in generic contexts, so it fails to compile with
+  //       "constraints not satisfied for class template 'Array' [with T_0_0 = NitroTest::Powertrain]".
+  // complexEnumCallback(
+  //   array: Powertrain[],
+  //   callback: (array: Powertrain[]) => void
+  // ): void
+
+  // Callbacks that return a Promise with a value
+  // TODO: Swift doesn't emit the `std::function` copy constructors that `JSIConverter<Promise<T>>::fromJSI`
+  //       needs when it instantiates `Callback<Promise<T>()>::callAsync()`, so linking fails with
+  //       "Undefined symbols: std::__1::function<void (std::exception_ptr)>::function(std::__1::function<void (std::exception_ptr)> const&)"
+  //       (also for `std::function<void (margelo::nitro::ArrayBuffer)>`).
+  // callbackAsyncPromise(callback: () => Promise<number>): Promise<number>
+  // callbackAsyncPromiseBuffer(
+  //   callback: () => Promise<ArrayBuffer>
+  // ): Promise<ArrayBuffer>
+
   // Type-specifics
   readonly thisObject: TestObjectSwiftKotlin
   newTestObject(): TestObjectSwiftKotlin

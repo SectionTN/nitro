@@ -1,10 +1,25 @@
+import { Android, iOS } from 'react-native-nitro-modules'
 import type { Base } from './Base.nitro'
 import type { NamedVariant } from './TestObject.nitro'
+
+export * from '#nitro/Child'
 
 // This is a `HybridObject` that actually inherits from a different `HybridObject`.
 // This will set up an inheritance chain on the native side.
 // The native `Child` Swift/Kotlin class will inherit from the `Base` Swift/Kotlin class.
-export interface Child extends Base {
+@iOS({
+  language: 'swift',
+  allowMultipleImplementations: true,
+  implementation: { className: 'HybridChild' },
+})
+@Android({
+  language: 'kotlin',
+  allowMultipleImplementations: true,
+  implementation: { className: 'HybridChild' },
+})
+export declare class Child extends Base {
+  public constructor()
+
   readonly childValue: number
   // tests if the same variant can be used in a different HybridObject
   bounceVariant(variant: NamedVariant): NamedVariant

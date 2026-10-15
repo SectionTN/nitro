@@ -7,29 +7,9 @@
 
 #pragma once
 
-#if __has_include(<NitroModules/JSIConverter.hpp>)
-#include <NitroModules/JSIConverter.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/NitroDefines.hpp>)
-#include <NitroModules/NitroDefines.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/JSIHelpers.hpp>)
-#include <NitroModules/JSIHelpers.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-#if __has_include(<NitroModules/PropNameIDCache.hpp>)
-#include <NitroModules/PropNameIDCache.hpp>
-#else
-#error NitroModules cannot be found! Are you sure you installed NitroModules properly?
-#endif
-
-
-
+#include <NitroModulesCxx/JSIConverter.hpp>
+#include <NitroModulesCxx/NitroDefines.hpp>
+#include <NitroModulesCxx/Callback.hpp>
 #include <functional>
 
 namespace margelo::nitro::test {
@@ -40,11 +20,11 @@ namespace margelo::nitro::test {
   struct JsStyleStruct final {
   public:
     double value     SWIFT_PRIVATE;
-    std::function<void(double /* num */)> onChanged     SWIFT_PRIVATE;
+    Callback<void(double /* num */)> onChanged     SWIFT_PRIVATE;
 
   public:
     JsStyleStruct() = default;
-    explicit JsStyleStruct(double value, std::function<void(double /* num */)> onChanged): value(value), onChanged(onChanged) {}
+    explicit JsStyleStruct(double value, Callback<void(double /* num */)> onChanged): value(value), onChanged(onChanged) {}
 
   public:
     // JsStyleStruct is not equatable because these properties are not equatable: onChanged
@@ -57,31 +37,9 @@ namespace margelo::nitro {
   // C++ JsStyleStruct <> JS JsStyleStruct (object)
   template <>
   struct JSIConverter<margelo::nitro::test::JsStyleStruct> final {
-    static inline margelo::nitro::test::JsStyleStruct fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
-      jsi::Object obj = arg.asObject(runtime);
-      return margelo::nitro::test::JsStyleStruct(
-        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "value"))),
-        JSIConverter<std::function<void(double)>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "onChanged")))
-      );
-    }
-    static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::test::JsStyleStruct& arg) {
-      jsi::Object obj(runtime);
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "value"), JSIConverter<double>::toJSI(runtime, arg.value));
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "onChanged"), JSIConverter<std::function<void(double)>>::toJSI(runtime, arg.onChanged));
-      return obj;
-    }
-    static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-      if (!value.isObject()) {
-        return false;
-      }
-      jsi::Object obj = value.getObject(runtime);
-      if (!nitro::isPlainObject(runtime, obj)) {
-        return false;
-      }
-      if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "value")))) return false;
-      if (!JSIConverter<std::function<void(double)>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "onChanged")))) return false;
-      return true;
-    }
+    static margelo::nitro::test::JsStyleStruct fromJSI(jsi::Runtime& runtime, const jsi::Value& arg);
+    static jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::test::JsStyleStruct& arg);
+    static bool canConvert(jsi::Runtime& runtime, const jsi::Value& value);
   };
 
 } // namespace margelo::nitro

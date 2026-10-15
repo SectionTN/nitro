@@ -1,34 +1,25 @@
-import { NitroModules } from 'react-native-nitro-modules'
-import {
-  type TestObjectCpp,
-  type TestObjectSwiftKotlin,
-} from './specs/TestObject.nitro'
-import { type PlatformObject } from './specs/PlatformObject.nitro'
-import type { Base } from './specs/Base.nitro'
-import type { Child } from './specs/Child.nitro'
+import { TestObjectCpp, TestObjectSwiftKotlin } from './specs/TestObject.nitro'
+import { PlatformObject } from './specs/PlatformObject.nitro'
+import { Base } from './specs/Base.nitro'
+import { Child } from './specs/Child.nitro'
 
-// Export all Hybrid Object types
+// Export all Hybrid Object classes and types
 export * from './specs/Base.nitro'
 export * from './specs/Child.nitro'
 export * from './specs/PlatformObject.nitro'
 export * from './specs/TestObject.nitro'
-export * from './specs/TestView.nitro'
+export { Base, Child, PlatformObject, TestObjectCpp, TestObjectSwiftKotlin }
 
 // Export all HybridObject singleton instances
-export const HybridTestObjectCpp =
-  NitroModules.createHybridObject<TestObjectCpp>('TestObjectCpp')
-export const HybridTestObjectSwiftKotlin =
-  NitroModules.createHybridObject<TestObjectSwiftKotlin>(
-    'TestObjectSwiftKotlin'
-  )
-export const HybridBase = NitroModules.createHybridObject<Base>('Base')
-export const HybridChild = NitroModules.createHybridObject<Child>('Child')
-export const HybridPlatformObject =
-  NitroModules.createHybridObject<PlatformObject>('PlatformObject')
+export const HybridTestObjectCpp = new TestObjectCpp()
+export const HybridTestObjectSwiftKotlin = new TestObjectSwiftKotlin()
+export const HybridBase = new Base()
+export const HybridChild = new Child()
+export const HybridPlatformObject = new PlatformObject()
 
-// Export View (+ its ref type)
-export { TestView, type TestViewRef } from './views/TestView'
-export {
-  RecyclableTestView,
-  type RecyclableTestViewRef,
-} from './views/RecyclableTestView'
+// TODO: HybridViews are not supported by this version of Nitrogen yet.
+// export { TestView, type TestViewRef } from './views/TestView'
+// export {
+//   RecyclableTestView,
+//   type RecyclableTestViewRef,
+// } from './views/RecyclableTestView'

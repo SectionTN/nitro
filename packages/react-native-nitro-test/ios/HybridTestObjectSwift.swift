@@ -6,11 +6,12 @@
 //
 
 import Dispatch
+import Foundation
 import NitroModules
 import NitroTestExternal
 
 class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
-  private var pendingPromise: Promise<Double>?
+  private var pendingPromise: (any Promise<Double>)?
 
   var optionalArray: [String]? = []
 
@@ -46,7 +47,7 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
 
   var optionalEnumPlusOne: TruckPowertrain? = nil
 
-  var optionalCallback: ((Double) -> Void)? = nil
+  var optionalCallback: (any Callback<(Double), Void>)? = nil
 
   let hasBoolean = false
   let isBoolean = false
@@ -79,90 +80,91 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
     return value
   }
 
-  func callCallback(callback: @escaping (() -> Void)) throws {
+  func callCallback(callback: any Callback<(), Void>) throws {
     callback()
   }
 
-  func callCallbackThatReturnsPromiseVoid(callback: @escaping () -> Promise<Promise<Void>>) throws
-    -> Promise<Void>
+  func callWithOptional(value: Double?, callback: any Callback<(Double?), Void>) throws {
+    callback(value)
+  }
+
+  func callCallbackThatReturnsPromiseVoid(callback: any Callback<(), any Promise<Void>>) throws
+    -> any Promise<Void>
   {
-    return Promise.async {
-      let callPromise = callback()
-      let resultPromise = try await callPromise.await()
+    return .async {
+      let resultPromise = try await callback.callAsync()
       try await resultPromise.await()
     }
   }
 
-  func createNativeCallback(wrappingJsCallback: @escaping (_ num: Double) -> Void) throws -> (
-    _ num: Double
-  ) -> Void {
-    return { num in
+  func createNativeCallback(wrappingJsCallback: any Callback<(Double), Void>) throws
+    -> any Callback<(Double), Void>
+  {
+    return .native { num in
       wrappingJsCallback(num)
     }
   }
 
-  func callWithOptional(value: Double?, callback: @escaping ((_ maybe: Double?) -> Void)) throws {
-    callback(value)
-  }
-
-  func getValueFromJSCallbackAndWait(getValue: @escaping (() -> Promise<Double>)) throws -> Promise<
-    Double
-  > {
+  func getValueFromJSCallbackAndWait(getValue: any Callback<(), Double>) throws
+    -> any Promise<Double>
+  {
     return .async {
-      let jsResult = try await getValue().await()
+      let jsResult = try await getValue.callAsync()
       return jsResult
     }
   }
 
   func getValueFromJsCallback(
-    callback: @escaping (() -> Promise<String>),
-    andThenCall: @escaping ((_ valueFromJs: String) -> Void)
-  ) throws -> Promise<Void> {
+    callback: any Callback<(), String>,
+    andThenCall: any Callback<(String), Void>
+  ) throws -> any Promise<Void> {
     return .async {
-      let jsResult = try await callback().await()
+      let jsResult = try await callback.callAsync()
       andThenCall(jsResult)
     }
   }
 
-  func callSumUpNTimes(callback: @escaping (() -> Promise<Double>), n: Double) throws -> Promise<
-    Double
-  > {
-    var result = 0.0
-    return Promise.async {
+  func callSumUpNTimes(callback: any Callback<(), Double>, n: Double) throws
+    -> any Promise<Double>
+  {
+    return .async {
+      var result = 0.0
       for _ in 1...Int(n) {
-        let current = try await callback().await()
+        let current = try await callback.callAsync()
         result += current
       }
       return result
     }
   }
 
-  func callbackAsyncPromise(callback: @escaping (() -> Promise<Promise<Double>>)) throws -> Promise<
-    Double
-  > {
-    return Promise.async {
-      let promise = try await callback().await()
-      let result = try await promise.await()
-      return result
-    }
-  }
+  // TODO: Callbacks that return a Promise with a value fail to link, see TestObject.nitro.ts.
+  // func callbackAsyncPromise(callback: any Callback<(), any Promise<Double>>) throws
+  //   -> any Promise<Double>
+  // {
+  //   return .async {
+  //     let promise = try await callback.callAsync()
+  //     let result = try await promise.await()
+  //     return result
+  //   }
+  // }
 
-  func callbackAsyncPromiseBuffer(callback: @escaping (() -> Promise<Promise<ArrayBuffer>>)) throws
-    -> Promise<ArrayBuffer>
-  {
-    return Promise.async {
-      let promise = try await callback().await()
-      let result = try await promise.await()
-      return result
-    }
-  }
+  // func callbackAsyncPromiseBuffer(callback: any Callback<(), any Promise<ArrayBuffer>>) throws
+  //   -> any Promise<ArrayBuffer>
+  // {
+  //   return .async {
+  //     let promise = try await callback.callAsync()
+  //     let result = try await promise.await()
+  //     return result
+  //   }
+  // }
 
-  func getComplexCallback() throws -> (Double) -> Void {
-    return { value in print("Callback called with \(value).") }
+  func getComplexCallback() throws -> any Callback<(Double), Void> {
+    return .native { value in print("Callback called with \(value).") }
   }
 
   func twoOptionalCallbacks(
-    value: Double, first: ((_ value: Double) -> Void)?, second: ((_ value: String) -> Void)?
+    value: Double, first: (any Callback<(Double), Void>)?,
+    second: (any Callback<(String), Void>)?
   ) throws {
     if let first {
       first(value)
@@ -172,8 +174,8 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
     }
   }
 
-  func errorCallback(onError: @escaping (_ error: Error) -> Void) throws {
-    let error = RuntimeError.error(withMessage: "Some Error!")
+  func errorCallback(onError: any Callback<(any Error), Void>) throws {
+    let error: any Error = RuntimeError("Some Error!")
     onError(error)
   }
 
@@ -210,25 +212,24 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
     return array
   }
 
-  func complexEnumCallback(
-    array: [Powertrain], callback: @escaping ((_ array: [Powertrain]) -> Void)
-  ) throws {
-    callback(array)
-  }
+  // TODO: Callbacks with arrays of Swift enums fail to compile in the Swift bridge header, see TestObject.nitro.ts.
+  // func complexEnumCallback(array: [Powertrain], callback: any Callback<([Powertrain]), Void>) throws {
+  //   callback(array)
+  // }
 
   func bounceHybridObjects(array: [any HybridChildSpec]) -> [any HybridChildSpec] {
     return array
   }
 
-  func bounceFunctions(functions: [() -> Void]) throws -> [() -> Void] {
+  func bounceFunctions(functions: [any Callback<(), Void>]) throws -> [any Callback<(), Void>] {
     return functions
   }
 
-  func bounceMaps(maps: [AnyMap]) throws -> [AnyMap] {
+  func bounceMaps(maps: [AnyJSON]) throws -> [AnyJSON] {
     return maps
   }
 
-  func bouncePromises(promises: [Promise<Double>]) throws -> [Promise<Double>] {
+  func bouncePromises(promises: [any Promise<Double>]) throws -> [any Promise<Double>] {
     return promises
   }
 
@@ -250,67 +251,61 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
     return strings
   }
 
-  func createMap() throws -> AnyMap {
-    let map = AnyMap()
-    map.setDouble(key: "number", value: numberValue)
-    map.setBoolean(key: "bool", value: boolValue)
-    map.setString(key: "string", value: stringValue)
-    map.setInt64(key: "int64", value: int64Value)
-    map.setNull(key: "null")
-    let array: [AnyValue] = [
-      .number(numberValue), .bool(boolValue), .string(stringValue), .int64(int64Value),
-    ]
-    map.setArray(key: "array", value: array)
-    map.setObject(
-      key: "object",
-      value: [
+  func createMap() throws -> AnyJSON {
+    // `AnyJSON` can't hold a `bigint`, so there's no `int64` value.
+    let array: [JSONValue] = [.number(numberValue), .bool(boolValue), .string(stringValue)]
+    let map: JSONValue = .object([
+      "number": .number(numberValue),
+      "bool": .bool(boolValue),
+      "string": .string(stringValue),
+      "null": .null,
+      "array": .array(array),
+      "object": .object([
         "number": .number(numberValue),
         "bool": .bool(boolValue),
         "string": .string(stringValue),
-        "int64": .int64(int64Value),
         "null": .null,
-        "array": .array([
-          .number(numberValue), .bool(boolValue), .string(stringValue), .int64(int64Value),
-          .array(array),
-        ]),
-      ])
+        "array": .array(array + [.array(array)]),
+      ]),
+    ])
+    return try AnyJSON(encoding: map)
+  }
+
+  func mapRoundtrip(map: AnyJSON) throws -> AnyJSON {
     return map
   }
 
-  func mapRoundtrip(map: AnyMap) throws -> AnyMap {
-    return map
+  func getMapKeys(map: AnyJSON) throws -> [String] {
+    let object: [String: JSONValue] = try map.decode()
+    return Array(object.keys)
   }
 
-  func getMapKeys(map: AnyMap) throws -> [String] {
-    return map.getAllKeys()
+  func mergeMaps(a: AnyJSON, b: AnyJSON) throws -> AnyJSON {
+    var merged: [String: JSONValue] = try a.decode()
+    let other: [String: JSONValue] = try b.decode()
+    merged.merge(other) { _, new in new }
+    return try AnyJSON(encoding: merged)
   }
 
-  func mergeMaps(a: AnyMap, b: AnyMap) throws -> AnyMap {
-    a.merge(other: b)
-    return a
-  }
-
-  func copyAnyMap(map: AnyMap) throws -> AnyMap {
-    let dictionary = map.toDictionary()
-    return try AnyMap.fromDictionary(dictionary)
+  func copyAnyMap(map: AnyJSON) throws -> AnyJSON {
+    let value: JSONValue = try map.decode()
+    return try AnyJSON(encoding: value)
   }
 
   func newTestObject() throws -> any HybridTestObjectSwiftKotlinSpec {
     return HybridTestObjectSwift()
   }
 
-  func newTestObjectAsync() throws -> Promise<any HybridTestObjectSwiftKotlinSpec> {
-    return Promise.parallel { HybridTestObjectSwift() }
+  func newTestObjectAsync() throws -> any Promise<any HybridTestObjectSwiftKotlinSpec> {
+    return .parallel { HybridTestObjectSwift() }
   }
 
   func funcThatThrows() throws -> Double {
-    throw RuntimeError.error(
-      withMessage: "This function will only work after sacrificing seven lambs!")
+    throw RuntimeError("This function will only work after sacrificing seven lambs!")
   }
 
-  func funcThatThrowsBeforePromise() throws -> Promise<Void> {
-    throw RuntimeError.error(
-      withMessage: "This function will only work after sacrificing eight lambs!")
+  func funcThatThrowsBeforePromise() throws -> any Promise<Void> {
+    throw RuntimeError("This function will only work after sacrificing eight lambs!")
   }
 
   func throwError(error: Error) throws {
@@ -335,14 +330,6 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
 
   func tryTrailingOptional(num: Double, str: String, boo: Bool?) throws -> Bool {
     return boo ?? false
-  }
-
-  func add1Hour(date: Date) throws -> Date {
-    let oneHourInSeconds = 1.0 * 60 * 60
-    return date + oneHourInSeconds
-  }
-  func currentDate() throws -> Date {
-    return .now
   }
 
   func bounceMap(map: [String: Variant_Bool_Double]) throws -> [String: Variant_Bool_Double] {
@@ -440,89 +427,90 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
     return b
   }
 
-  func calculateFibonacciAsync(value: Double) throws -> Promise<Int64> {
-    return Promise.async {
+  func calculateFibonacciAsync(value: Double) throws -> any Promise<Int64> {
+    return .async {
       return try self.calculateFibonacciSync(value: value)
     }
   }
 
-  func wait(seconds: Double) throws -> Promise<Void> {
-    return Promise.async {
+  func wait(seconds: Double) throws -> any Promise<Void> {
+    return .async {
       let nanoseconds = UInt64((seconds * 1_000_000_000).rounded())
       try await Task.sleep(nanoseconds: nanoseconds)
     }
   }
 
-  func promiseThrows() throws -> Promise<Void> {
-    return Promise.async {
-      throw RuntimeError.error(withMessage: "Promise throws :)")
+  func promiseThrows() throws -> any Promise<Void> {
+    return .async {
+      throw RuntimeError("Promise throws :)")
     }
   }
 
-  func promiseReturnsInstantly() throws -> Promise<Double> {
-    return Promise.resolved(withResult: 55.0)
+  func promiseReturnsInstantly() throws -> any Promise<Double> {
+    return .resolved(with: 55.0)
   }
 
-  func promiseReturnsInstantlyAsync() throws -> Promise<Double> {
-    return Promise.async {
+  func promiseReturnsInstantlyAsync() throws -> any Promise<Double> {
+    return .async {
       return 55.0
     }
   }
 
-  func createPendingPromise() throws -> Promise<Double> {
+  func createPendingPromise() throws -> any Promise<Double> {
     guard pendingPromise == nil else {
-      throw RuntimeError.error(withMessage: "A pending Promise is already waiting for completion.")
+      throw RuntimeError("A pending Promise is already waiting for completion.")
     }
-    let promise = Promise<Double>()
+    let promise = Promise_double.pending()
     pendingPromise = promise
     return promise
   }
 
   func resolvePendingPromiseOnWorker() throws {
     guard let promise = pendingPromise else {
-      throw RuntimeError.error(withMessage: "No pending Promise is waiting for completion.")
+      throw RuntimeError("No pending Promise is waiting for completion.")
     }
     // Only JS calls access the slot; the worker owns the extracted Promise.
     pendingPromise = nil
     DispatchQueue.global().async {
-      promise.resolve(withResult: 55.0)
+      promise.resolve(result: 55.0)
     }
   }
 
-  func promiseThatResolvesVoidInstantly() throws -> Promise<Void> {
-    return Promise.resolved()
+  func promiseThatResolvesVoidInstantly() throws -> any Promise<Void> {
+    return .resolved()
   }
 
-  func promiseThatResolvesToUndefined() throws -> Promise<Double?> {
-    return Promise.resolved(withResult: nil)
+  func promiseThatResolvesToUndefined() throws -> any Promise<Double?> {
+    return .resolved(with: nil)
   }
 
-  func awaitNullablePromise() throws -> Promise<Double?> {
-    return Promise.async {
-      try await Promise<Double?>.resolved(withResult: nil).await()
+  func awaitNullablePromise() throws -> any Promise<Double?> {
+    return .async {
+      let promise: any Promise<Double?> = .resolved(with: nil)
+      return try await promise.await()
     }
   }
 
-  func awaitAndGetPromise(promise: Promise<Double>) throws -> Promise<Double> {
+  func awaitAndGetPromise(promise: any Promise<Double>) throws -> any Promise<Double> {
     return .async {
       let result = try await promise.await()
       return result
     }
   }
-  func awaitAndGetComplexPromise(promise: Promise<Car>) throws -> Promise<Car> {
+  func awaitAndGetComplexPromise(promise: any Promise<Car>) throws -> any Promise<Car> {
     return .async {
       let result = try await promise.await()
       return result
     }
   }
-  func awaitPromise(promise: Promise<Void>) throws -> Promise<Void> {
+  func awaitPromise(promise: any Promise<Void>) throws -> any Promise<Void> {
     return .async {
       try await promise.await()
     }
   }
 
   func callAll(
-    first: @escaping (() -> Void), second: @escaping (() -> Void), third: @escaping (() -> Void)
+    first: any Callback<(), Void>, second: any Callback<(), Void>, third: any Callback<(), Void>
   ) throws {
     first()
     second()
@@ -605,15 +593,15 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   }
 
   func createArrayBuffer() throws -> ArrayBuffer {
-    return ArrayBuffer.allocate(size: 1024 * 1024 * 10)  // 10 MB
+    return ArrayBuffer.allocate(1024 * 1024 * 10)  // 10 MB
   }
 
-  func createArrayBufferAsync() throws -> Promise<ArrayBuffer> {
-    return Promise.async { try self.createArrayBuffer() }
+  func createArrayBufferAsync() throws -> any Promise<ArrayBuffer> {
+    return .async { try self.createArrayBuffer() }
   }
 
   func copyBuffer(buffer: ArrayBuffer) throws -> ArrayBuffer {
-    return ArrayBuffer.copy(of: buffer)
+    return ArrayBuffer.copy(buffer)
   }
 
   func bounceArrayBuffer(buffer: ArrayBuffer) throws -> ArrayBuffer {
@@ -621,12 +609,18 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   }
 
   func getBufferLastItem(buffer: ArrayBuffer) throws -> Double {
-    let lastByte = buffer.data.advanced(by: buffer.size - 1)
+    guard let data = buffer.data, buffer.size > 0 else {
+      throw RuntimeError("ArrayBuffer is empty!")
+    }
+    let lastByte = data.advanced(by: buffer.size - 1)
     return Double(lastByte.pointee)
   }
 
   func setAllValuesTo(buffer: ArrayBuffer, value: Double) throws {
-    memset(buffer.data, Int32(value), buffer.size)
+    guard let data = buffer.data, buffer.size > 0 else {
+      throw RuntimeError("ArrayBuffer is empty!")
+    }
+    memset(data, Int32(value), buffer.size)
   }
 
   func createChild() throws -> any HybridChildSpec {
@@ -654,27 +648,24 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   }
 
   func castBase(base: any HybridBaseSpec) throws -> any HybridChildSpec {
-    guard let child = base as? HybridChildSpec else {
-      throw RuntimeError.error(withMessage: "Cannot cast Base to Child!")
+    guard let child = base as? any HybridChildSpec else {
+      throw RuntimeError("Cannot cast Base to Child!")
     }
     return child
   }
 
-  func getIsViewBlue(view: any HybridTestViewSpec) throws -> Bool {
-    guard let view = view as? HybridTestView else { return false }
-    return view.isBlue
-  }
-
-  func callbackSync(callback: @escaping () -> Double) throws -> Double {
-    let value = callback()
+  func callbackSync(callback: any Callback<(), Double>) throws -> Double {
+    let value = try callback.callSync()
     return value
   }
 
-  func getSyncNumberCallback() throws -> () -> Double {
-    return { 55 }
+  func getSyncNumberCallback() throws -> any Callback<(), Double> {
+    return .native { 55 }
   }
 
-  func bounceSyncInt64Callback(callback: @escaping (Int64) -> Int64) throws -> (Int64) -> Int64 {
+  func bounceSyncInt64Callback(callback: any Callback<(Int64), Int64>) throws
+    -> any Callback<(Int64), Int64>
+  {
     return callback
   }
 
@@ -692,10 +683,10 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
     return variant
   }
 
-  func createExternalVariantFromFunc(factory: @escaping () -> (any HybridSomeExternalObjectSpec))
+  func createExternalVariantFromFunc(factory: any Callback<(), (any HybridSomeExternalObjectSpec)>)
     throws -> (any HybridSomeExternalObjectSpec)
   {
-    let obj = factory()
+    let obj = try factory.callSync()
     return obj
   }
 
@@ -719,5 +710,80 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   }()
   private func stringify(_ value: Double) -> String {
     return formatter.string(for: value) ?? "\(value)"
+  }
+}
+
+/// A minimal JSON value to build and read `AnyJSON` in these tests.
+private enum JSONValue: Codable {
+  case null
+  case bool(Bool)
+  case number(Double)
+  case string(String)
+  case array([JSONValue])
+  case object([String: JSONValue])
+
+  init(from decoder: any Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    if container.decodeNil() {
+      self = .null
+    } else if let value = try? container.decode(Bool.self) {
+      self = .bool(value)
+    } else if let value = try? container.decode(Double.self) {
+      self = .number(value)
+    } else if let value = try? container.decode(String.self) {
+      self = .string(value)
+    } else if let value = try? container.decode([JSONValue].self) {
+      self = .array(value)
+    } else {
+      self = .object(try container.decode([String: JSONValue].self))
+    }
+  }
+
+  func encode(to encoder: any Encoder) throws {
+    var container = encoder.singleValueContainer()
+    switch self {
+    case .null:
+      try container.encodeNil()
+    case .bool(let value):
+      try container.encode(value)
+    case .number(let value):
+      try container.encode(value)
+    case .string(let value):
+      try container.encode(value)
+    case .array(let value):
+      try container.encode(value)
+    case .object(let value):
+      try container.encode(value)
+    }
+  }
+}
+
+// Generated structs are not `Equatable`, so `areCarsEqual(...)` compares them here.
+extension Person: Equatable {
+  public static func == (lhs: Person, rhs: Person) -> Bool {
+    return lhs.name == rhs.name && lhs.age == rhs.age
+  }
+}
+
+extension Variant_Double_String: Equatable {
+  public static func == (lhs: Variant_Double_String, rhs: Variant_Double_String) -> Bool {
+    switch (lhs, rhs) {
+    case (.first(let a), .first(let b)):
+      return a == b
+    case (.second(let a), .second(let b)):
+      return a == b
+    default:
+      return false
+    }
+  }
+}
+
+extension Car: Equatable {
+  public static func == (lhs: Car, rhs: Car) -> Bool {
+    return lhs.year == rhs.year && lhs.make == rhs.make && lhs.model == rhs.model
+      && lhs.power == rhs.power && lhs.powertrain == rhs.powertrain && lhs.driver == rhs.driver
+      && lhs.passengers == rhs.passengers && lhs.isFast == rhs.isFast
+      && lhs.favouriteTrack == rhs.favouriteTrack
+      && lhs.performanceScores == rhs.performanceScores && lhs.someVariant == rhs.someVariant
   }
 }

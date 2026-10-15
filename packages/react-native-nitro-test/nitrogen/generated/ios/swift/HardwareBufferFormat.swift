@@ -6,9 +6,19 @@
 ///
 
 /**
- * Represents the JS union `HardwareBufferFormat`, backed by a C++ enum.
+ * Represents the JS union `HardwareBufferFormat`.
  */
-public typealias HardwareBufferFormat = margelo.nitro.test.HardwareBufferFormat
+@_expose(Cxx)
+public enum HardwareBufferFormat: Int32, Sendable {
+  case `rgba8888` = 0
+  case `rgb565` = 1
+  case `rgbaFp16` = 2
+  case `blob` = 3
+
+  public static func fromRawValue(_ value: Int32) -> Self {
+    return Self(rawValue: value)!
+  }
+}
 
 public extension HardwareBufferFormat {
   /**

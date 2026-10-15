@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <NitroModules/JSIConverter.hpp>
+#include <NitroModulesCxx/JSIConverter.hpp>
 #include <string>
 
 namespace margelo::nitro::test {
