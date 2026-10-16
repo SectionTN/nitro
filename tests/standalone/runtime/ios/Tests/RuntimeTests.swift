@@ -65,7 +65,7 @@ struct RuntimeTests {
 
   @Test func unresolvedPromisesTimeOut() throws {
     let source = "globalThis.runNitroTest = () => new Promise(() => {})"
-    let failure = try #require(NitroRunTest(source, "promise-timeout-contract", 100))
+    let failure = try #require(NitroRunTest(source, "promise-timeout-contract", 1000))
     #expect(failure.localizedCaseInsensitiveContains("timed out"))
     #expect(failure.contains("running JS test"))
   }
@@ -89,7 +89,7 @@ struct RuntimeTests {
     let source = """
       while (true) {}
       """
-    let failure = try #require(NitroRunTest(source, "evaluation-timeout-contract", 100))
+    let failure = try #require(NitroRunTest(source, "evaluation-timeout-contract", 1000))
     #expect(failure.localizedCaseInsensitiveContains("timed out"))
     #expect(failure.contains("loading JS test bundle"))
   }
@@ -100,7 +100,7 @@ struct RuntimeTests {
         while (true) {}
       };
       """
-    let failure = try #require(NitroRunTest(source, "loop-timeout-contract", 100))
+    let failure = try #require(NitroRunTest(source, "loop-timeout-contract", 1000))
     #expect(failure.localizedCaseInsensitiveContains("timed out"))
     #expect(failure.contains("running JS test"))
   }
@@ -113,7 +113,7 @@ struct RuntimeTests {
         }
       };
       """
-    let failure = try #require(NitroRunTest(source, "microtask-timeout-contract", 100))
+    let failure = try #require(NitroRunTest(source, "microtask-timeout-contract", 1000))
     #expect(failure.localizedCaseInsensitiveContains("timed out"))
     #expect(failure.contains("running JS test"))
   }

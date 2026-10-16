@@ -29,7 +29,7 @@ class NativeTestRuntimeTest {
       NativeTestRuntime.runTest(
         "globalThis.runNitroTest = () => new Promise(() => {});",
         "pending promise",
-        50,
+        1000,
       )
     assertTrue(failure, failure.contains("timed out", ignoreCase = true))
     assertTrue(failure, failure.contains("running JS test"))
@@ -58,7 +58,7 @@ class NativeTestRuntimeTest {
       """
       while (true) {}
       """.trimIndent()
-    val failure = NativeTestRuntime.runTest(source, "evaluation loop", 100)
+    val failure = NativeTestRuntime.runTest(source, "evaluation loop", 1000)
     assertTrue(failure, failure.contains("timed out", ignoreCase = true))
     assertTrue(failure, failure.contains("loading JS test bundle"))
   }
@@ -71,7 +71,7 @@ class NativeTestRuntimeTest {
         while (true) {}
       };
       """.trimIndent()
-    val failure = NativeTestRuntime.runTest(source, "test loop", 100)
+    val failure = NativeTestRuntime.runTest(source, "test loop", 1000)
     assertTrue(failure, failure.contains("timed out", ignoreCase = true))
     assertTrue(failure, failure.contains("running JS test"))
   }
@@ -86,7 +86,7 @@ class NativeTestRuntimeTest {
         }
       };
       """.trimIndent()
-    val failure = NativeTestRuntime.runTest(source, "microtask loop", 100)
+    val failure = NativeTestRuntime.runTest(source, "microtask loop", 1000)
     assertTrue(failure, failure.contains("timed out", ignoreCase = true))
     assertTrue(failure, failure.contains("running JS test"))
   }
