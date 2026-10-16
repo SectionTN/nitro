@@ -27,7 +27,7 @@ bun tests/standalone/runtime/ios/run.mjs --help
 
 `RuntimeTests.swift` reads the generated `runtime-tests.json` manifest and runs each JavaScript test as a Swift Testing parameterized case. New exported tests in `js/**/*.test.ts` need no Swift changes. Each case keeps its file-qualified name in the test results and can be rerun individually in Xcode. Missing, invalid, empty or duplicate manifest entries fail discovery.
 
-The Objective-C++ bridge converts a failed assertion or native exception into a Swift error. Four handwritten tests deliberately throw or hang in JavaScript to check that errors reach Swift and that both unresolved promises and synchronous loops time out. These check the runner's failure handling; the automatically discovered TypeScript cases check HybridObject behavior.
+The Objective-C++ bridge converts a failed assertion or native exception into a Swift error. Handwritten tests check error propagation, independent setup and execution budgets, and timeouts for unresolved promises, synchronous loops, and endless microtask chains. The automatically discovered TypeScript cases check HybridObject behavior.
 
 `--sanitizer` accepts `none` (the default), `address` (ASan), or `thread` (TSan). CI runs all three modes. Xcode instruments the C++, Objective-C++, and Swift sources compiled for Core, generated bindings, fixtures, and the test runner. The prebuilt Hermes XCFramework is shared across modes and is not instrumented; these jobs check Core's native code, not the engine's internals or RN integration.
 

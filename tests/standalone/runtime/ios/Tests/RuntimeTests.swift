@@ -38,7 +38,7 @@ struct RuntimeTests {
     let resources = Bundle(for: TestBundle.self)
     let url = try #require(resources.url(forResource: "runtime-tests", withExtension: "js"))
     let source = try String(contentsOf: url, encoding: .utf8)
-    if let failure = NitroRunTest(source, name, 10000) {
+    if let failure = NitroRunTest(source, name, 150_000) {
       throw JavaScriptFailure(description: failure)
     }
   }
@@ -66,12 +66,55 @@ struct RuntimeTests {
   @Test func unresolvedPromisesTimeOut() throws {
     let source = "globalThis.runNitroTest = () => new Promise(() => {})"
     let failure = try #require(NitroRunTest(source, "promise-timeout-contract", 100))
-    #expect(failure.contains("Timed out"))
+    #expect(failure.localizedCaseInsensitiveContains("timed out"))
+    #expect(failure.contains("running JS test"))
+  }
+
+  @Test func evaluationAndTestHaveSeparateTimeouts() throws {
+    let source = """
+      function wait(ms) {
+        const deadline = Date.now() + ms;
+        while (Date.now() < deadline) {}
+      }
+      wait(600);
+      globalThis.runNitroTest = async () => {
+        wait(600);
+      };
+      """
+    let failure = NitroRunTest(source, "separate-timeouts-contract", 1000)
+    #expect(failure == nil)
+  }
+
+  @Test func evaluationLoopsTimeOut() throws {
+    let source = """
+      while (true) {}
+      """
+    let failure = try #require(NitroRunTest(source, "evaluation-timeout-contract", 100))
+    #expect(failure.localizedCaseInsensitiveContains("timed out"))
+    #expect(failure.contains("loading JS test bundle"))
   }
 
   @Test func synchronousLoopsTimeOut() throws {
-    let source = "globalThis.runNitroTest = () => { while (true) {} }"
+    let source = """
+      globalThis.runNitroTest = () => {
+        while (true) {}
+      };
+      """
     let failure = try #require(NitroRunTest(source, "loop-timeout-contract", 100))
-    #expect(failure.contains("timeout") || failure.contains("timed out"))
+    #expect(failure.localizedCaseInsensitiveContains("timed out"))
+    #expect(failure.contains("running JS test"))
+  }
+
+  @Test func microtaskLoopsTimeOut() throws {
+    let source = """
+      globalThis.runNitroTest = async () => {
+        while (true) {
+          await Promise.resolve();
+        }
+      };
+      """
+    let failure = try #require(NitroRunTest(source, "microtask-timeout-contract", 100))
+    #expect(failure.localizedCaseInsensitiveContains("timed out"))
+    #expect(failure.contains("running JS test"))
   }
 }

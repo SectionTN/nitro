@@ -102,9 +102,12 @@ namespace {
         runtime.unwatchTimeLimit();
       }
     } cleanup{dispatcher, *runtime};
+    const char* phase = "loading JS test bundle";
     // JSError owns JSI values. Convert it before destroying their runtime.
     try {
-      const auto deadline = Clock::now() + std::chrono::milliseconds(timeoutMs);
+      const auto timeout = std::chrono::milliseconds(timeoutMs);
+      const auto timeoutMessage = "Timed out after " + std::to_string(timeoutMs) + "ms";
+      const auto bundleDeadline = Clock::now() + timeout;
       runtime->watchTimeLimit(timeoutMs);
       install(*runtime, dispatcher);
       runtime->evaluateJavaScript(std::make_shared<jsi::StringBuffer>(bundle), "runtime-tests.js");
@@ -136,22 +139,35 @@ namespace {
                                                   return jsi::Value::undefined();
                                                 });
       auto run = runtime->global().getPropertyAsFunction(*runtime, "runNitroTest");
+      // Bundle compilation and initialization have their own budget. Stop the
+      // watchdog before checking elapsed time so an expired setup interrupt
+      // cannot carry over into the test when its deadline is reset.
+      runtime->unwatchTimeLimit();
+      if (Clock::now() >= bundleDeadline)
+        throw std::runtime_error(timeoutMessage);
+
+      phase = "running JS test";
+      const auto deadline = Clock::now() + timeout;
+      runtime->watchTimeLimit(timeoutMs);
       auto promise = run.call(*runtime, jsi::String::createFromUtf8(*runtime, name)).asObject(*runtime);
       promise.getPropertyAsFunction(*runtime, "then").callWithThis(*runtime, promise, success, failure);
 
       while (!result->done) {
         if (Clock::now() >= deadline)
-          throw std::runtime_error("Timed out waiting for JS test completion");
+          throw std::runtime_error(timeoutMessage);
         const bool drained = runtime->drainMicrotasks(128);
         if (!result->done && drained)
           dispatcher->tick(deadline);
       }
+      runtime->unwatchTimeLimit();
+      if (Clock::now() >= deadline)
+        throw std::runtime_error(timeoutMessage);
       return result->error;
     } catch (const std::exception& error) {
       std::string message = error.what();
-      return message.empty() ? "Native exception without a message" : message;
+      return std::string("While ") + phase + ": " + (message.empty() ? "Native exception without a message" : message);
     } catch (...) {
-      return "Unknown native exception";
+      return std::string("While ") + phase + ": unknown native exception";
     }
   }
 } // namespace

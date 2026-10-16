@@ -94,7 +94,7 @@ separate helper files. Each test gets a file-qualified name, such as
 
 Swift Testing and JUnit run the names as parameterized cases, preserving individual
 results and continuing after a case fails. Missing, invalid, or empty case lists
-fail discovery. The four native error/timeout contract tests remain handwritten.
+fail discovery. The native error/timeout contract tests remain handwritten.
 Jest and Vitest are not needed to run the JS cases.
 
 ## Execution and failures
@@ -115,9 +115,13 @@ install timer APIs such as `setTimeout`.
 Fulfillment passes. An assertion, JS exception, rejection, native exception, or
 timeout becomes a Swift error or JUnit assertion failure containing the case name
 and JS stack. The helper returns a message across the native boundary rather than
-exposing JSI values or throwing C++ exceptions into Swift. The default timeout is
-10 seconds; Hermes also interrupts synchronous JS loops. Late native callbacks
-cannot re-enter the runtime after it closes.
+exposing JSI values or throwing C++ exceptions into Swift. Bundle setup and test
+execution each get a 150-second timeout, matching the previous Harness CI test
+allowance for allocation and async stress cases. Setup cannot consume the test's
+budget. Native runner contracts pass shorter explicit limits to check timeouts.
+Hermes interrupts synchronous JS loops and endless microtask chains in either
+phase; timeout errors identify the phase. Late native callbacks cannot re-enter
+the runtime after it closes.
 
 Chai includes expected/actual values in assertion messages with truncation
 disabled. There is no custom property-diff reporter or source-map symbolicator

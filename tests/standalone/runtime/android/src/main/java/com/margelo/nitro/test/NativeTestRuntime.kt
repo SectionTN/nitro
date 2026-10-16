@@ -12,6 +12,6 @@ internal object NativeTestRuntime {
   external fun runTest(
     bundle: String,
     name: String,
-    timeoutMs: Int = 10_000,
+    timeoutMs: Int = 150_000,
   ): String
 }
