@@ -8,7 +8,7 @@ import {
   type Powertrain,
   type TestObjectCpp,
   type TestObjectSwiftKotlin,
-} from "../specs/LegacyTestObject.nitro";
+} from "../specs/TestObject.nitro";
 import { HybridSomeExternalObject } from "./utils/testObjects";
 
 import { TEST_CUSTOM_TYPE, TEST_PERSON } from "./utils/fixtures";

@@ -12,18 +12,6 @@ import NitroModules
 public final class NitroTestFixturesAutolinking {
   public typealias bridge = margelo.nitro.test.bridge.swift
 
-  public static func createTestObject() -> bridge.std__shared_ptr_HybridTestObjectSpec_ {
-    let hybridObject = HybridTestObject()
-    return { () -> bridge.std__shared_ptr_HybridTestObjectSpec_ in
-      let __cxxWrapped = hybridObject.getCxxWrapper()
-      return __cxxWrapped.getCxxPart()
-    }()
-  }
-  
-  public static func isTestObjectRecyclable() -> Bool {
-    return HybridTestObject.self is any RecyclableView.Type
-  }
-  
   public static func createTestObjectSwiftKotlin() -> bridge.std__shared_ptr_HybridTestObjectSwiftKotlinSpec_ {
     let hybridObject = HybridTestObjectSwift()
     return { () -> bridge.std__shared_ptr_HybridTestObjectSwiftKotlinSpec_ in

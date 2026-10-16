@@ -6,7 +6,7 @@ import type {
   OptionalWrapper,
   Person,
   WrappedJsStruct,
-} from "../../specs/LegacyTestObject.nitro";
+} from "../../specs/TestObject.nitro";
 
 export const TEST_PERSON: Person = {
   age: 24,

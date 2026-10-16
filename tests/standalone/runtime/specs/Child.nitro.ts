@@ -1,5 +1,5 @@
 import type { Base } from './Base.nitro'
-import type { NamedVariant } from './LegacyTestObject.nitro'
+import type { NamedVariant } from './TestObject.nitro'
 
 // This is a `HybridObject` that actually inherits from a different `HybridObject`.
 // This will set up an inheritance chain on the native side.

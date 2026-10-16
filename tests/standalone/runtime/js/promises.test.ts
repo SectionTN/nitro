@@ -8,7 +8,7 @@ import {
   withTimeout,
 } from "./utils/cases";
 
-import { type Car } from "../specs/LegacyTestObject.nitro";
+import { type Car } from "../specs/TestObject.nitro";
 
 import { TEST_CAR, TEST_CAR_2 } from "./utils/fixtures";
 import { deferred } from "./utils/helpers";

@@ -13,16 +13,6 @@
     "androidCxxLibName": "NitroRuntimeTests"
   },
   "autolinking": {
-    "TestObject": {
-      "ios": {
-        "language": "swift",
-        "implementationClassName": "HybridTestObject"
-      },
-      "android": {
-        "language": "kotlin",
-        "implementationClassName": "HybridTestObject"
-      }
-    },
     "TestObjectCpp": {
       "all": {
         "language": "c++",

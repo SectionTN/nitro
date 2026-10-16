@@ -10,7 +10,6 @@
 #import "NitroTestFixtures-Swift-Cxx-Umbrella.hpp"
 #import <type_traits>
 
-#include "HybridTestObjectSpecSwift.hpp"
 #include "HybridTestObjectCpp.hpp"
 #include "HybridTestObjectSwiftKotlinSpecSwift.hpp"
 #include "HybridBaseSpecSwift.hpp"
@@ -26,13 +25,6 @@
   using namespace margelo::nitro;
   using namespace margelo::nitro::test;
 
-  HybridObjectRegistry::registerHybridObjectConstructor(
-    "TestObject",
-    []() -> std::shared_ptr<HybridObject> {
-      std::shared_ptr<HybridTestObjectSpec> hybridObject = NitroTestFixtures::NitroTestFixturesAutolinking::createTestObject();
-      return hybridObject;
-    }
-  );
   HybridObjectRegistry::registerHybridObjectConstructor(
     "TestObjectCpp",
     []() -> std::shared_ptr<HybridObject> {

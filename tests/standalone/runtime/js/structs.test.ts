@@ -4,7 +4,7 @@ import { casesForTestObjects, recordCallback, waitFor } from "./utils/cases";
 import {
   type Car,
   type OptionalWrapper,
-} from "../specs/LegacyTestObject.nitro";
+} from "../specs/TestObject.nitro";
 
 import {
   sumUpAllPassengers,

@@ -17,6 +17,7 @@
 
 #include "JHybridBaseSpec.hpp"
 #include "JHybridChildSpec.hpp"
+#include "JHybridPlatformObjectSpec.hpp"
 #include "JHybridTestObjectSwiftKotlinSpec.hpp"
 #include "JFunc_void_double.hpp"
 #include "JFunc_void.hpp"
@@ -32,10 +33,8 @@
 #include "JFunc_void_std__exception_ptr.hpp"
 #include "JFunc_std__shared_ptr_Promise_std__string__.hpp"
 #include "JFunc_std__shared_ptr_margelo__nitro__test__external__HybridSomeExternalObjectSpec_.hpp"
-#include "JHybridPlatformObjectSpec.hpp"
-#include "JHybridTestObjectSpec.hpp"
-#include <NitroModules/DefaultConstructableObject.hpp>
 #include "HybridTestObjectCpp.hpp"
+#include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::test {
 
@@ -45,14 +44,6 @@ int initialize(JavaVM* vm) {
   });
 }
 
-struct JHybridTestObjectSpecImpl: public jni::JavaClass<JHybridTestObjectSpecImpl, JHybridTestObjectSpec::JavaPart> {
-  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridTestObject;";
-  static std::shared_ptr<JHybridTestObjectSpec> create() {
-    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridTestObjectSpecImpl::javaobject()>();
-    jni::local_ref<JHybridTestObjectSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
-    return javaPart->getJHybridTestObjectSpec();
-  }
-};
 struct JHybridTestObjectSwiftKotlinSpecImpl: public jni::JavaClass<JHybridTestObjectSwiftKotlinSpecImpl, JHybridTestObjectSwiftKotlinSpec::JavaPart> {
   static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridTestObjectKotlin;";
   static std::shared_ptr<JHybridTestObjectSwiftKotlinSpec> create() {
@@ -93,6 +84,7 @@ void registerAllNatives() {
   // Register native JNI methods
   margelo::nitro::test::JHybridBaseSpec::CxxPart::registerNatives();
   margelo::nitro::test::JHybridChildSpec::CxxPart::registerNatives();
+  margelo::nitro::test::JHybridPlatformObjectSpec::CxxPart::registerNatives();
   margelo::nitro::test::JHybridTestObjectSwiftKotlinSpec::CxxPart::registerNatives();
   margelo::nitro::test::JFunc_void_double_cxx::registerNatives();
   margelo::nitro::test::JFunc_void_cxx::registerNatives();
@@ -108,16 +100,8 @@ void registerAllNatives() {
   margelo::nitro::test::JFunc_void_std__exception_ptr_cxx::registerNatives();
   margelo::nitro::test::JFunc_std__shared_ptr_Promise_std__string___cxx::registerNatives();
   margelo::nitro::test::JFunc_std__shared_ptr_margelo__nitro__test__external__HybridSomeExternalObjectSpec__cxx::registerNatives();
-  margelo::nitro::test::JHybridPlatformObjectSpec::CxxPart::registerNatives();
-  margelo::nitro::test::JHybridTestObjectSpec::CxxPart::registerNatives();
 
   // Register Nitro Hybrid Objects
-  HybridObjectRegistry::registerHybridObjectConstructor(
-    "TestObject",
-    []() -> std::shared_ptr<HybridObject> {
-      return JHybridTestObjectSpecImpl::create();
-    }
-  );
   HybridObjectRegistry::registerHybridObjectConstructor(
     "TestObjectCpp",
     []() -> std::shared_ptr<HybridObject> {

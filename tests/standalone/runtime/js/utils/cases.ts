@@ -2,7 +2,7 @@ import { getNitroModules } from "nitro-core";
 import type {
   TestObjectCpp,
   TestObjectSwiftKotlin,
-} from "../../specs/LegacyTestObject.nitro";
+} from "../../specs/TestObject.nitro";
 
 export type TestCase = () => void | Promise<void>;
 type TestObject = TestObjectCpp | TestObjectSwiftKotlin;

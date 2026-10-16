@@ -4,7 +4,7 @@ import type { Child } from "../../specs/Child.nitro";
 import type {
   TestObjectCpp,
   TestObjectSwiftKotlin,
-} from "../../specs/LegacyTestObject.nitro";
+} from "../../specs/TestObject.nitro";
 
 export type TestObject = TestObjectCpp | TestObjectSwiftKotlin;
 

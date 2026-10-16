@@ -22,8 +22,6 @@ namespace margelo::nitro::test { class HybridChildSpec; }
 namespace margelo::nitro::test { class HybridPlatformObjectSpec; }
 // Forward declaration of `HybridSomeExternalObjectSpec` to properly resolve imports.
 namespace margelo::nitro::test::external { class HybridSomeExternalObjectSpec; }
-// Forward declaration of `HybridTestObjectSpec` to properly resolve imports.
-namespace margelo::nitro::test { class HybridTestObjectSpec; }
 // Forward declaration of `HybridTestObjectSwiftKotlinSpec` to properly resolve imports.
 namespace margelo::nitro::test { class HybridTestObjectSwiftKotlinSpec; }
 // Forward declaration of `JsStyleStruct` to properly resolve imports.
@@ -60,7 +58,6 @@ namespace margelo::nitro::test { struct WrappedJsStruct; }
 #include "HybridBaseSpec.hpp"
 #include "HybridChildSpec.hpp"
 #include "HybridPlatformObjectSpec.hpp"
-#include "HybridTestObjectSpec.hpp"
 #include "HybridTestObjectSwiftKotlinSpec.hpp"
 #include "JsStyleStruct.hpp"
 #include "MapWrapper.hpp"
@@ -109,8 +106,6 @@ namespace NitroTestFixtures { class HybridChildSpec_cxx; }
 namespace NitroTestFixtures { class HybridPlatformObjectSpec_cxx; }
 // Forward declaration of `HybridSomeExternalObjectSpec_cxx` to properly resolve imports.
 namespace NitroTestExternal { class HybridSomeExternalObjectSpec_cxx; }
-// Forward declaration of `HybridTestObjectSpec_cxx` to properly resolve imports.
-namespace NitroTestFixtures { class HybridTestObjectSpec_cxx; }
 // Forward declaration of `HybridTestObjectSwiftKotlinSpec_cxx` to properly resolve imports.
 namespace NitroTestFixtures { class HybridTestObjectSwiftKotlinSpec_cxx; }
 

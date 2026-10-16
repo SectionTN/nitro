@@ -35,15 +35,15 @@ target_sources(
   # Shared Nitrogen C++ sources
   ../nitrogen/generated/shared/c++/HybridBaseSpec.cpp
   ../nitrogen/generated/shared/c++/HybridChildSpec.cpp
+  ../nitrogen/generated/shared/c++/HybridPlatformObjectSpec.cpp
   ../nitrogen/generated/shared/c++/HybridTestObjectCppSpec.cpp
   ../nitrogen/generated/shared/c++/HybridTestObjectSwiftKotlinSpec.cpp
-  ../nitrogen/generated/shared/c++/HybridPlatformObjectSpec.cpp
-  ../nitrogen/generated/shared/c++/HybridTestObjectSpec.cpp
   # Android-specific Nitrogen C++ sources
   ../nitrogen/generated/android/c++/JHybridBaseSpec.cpp
   ../nitrogen/generated/android/c++/JHybridChildSpec.cpp
   ../nitrogen/generated/android/c++/JNamedVariant.cpp
   ../nitrogen/generated/android/c++/JVariant_Double_String.cpp
+  ../nitrogen/generated/android/c++/JHybridPlatformObjectSpec.cpp
   ../nitrogen/generated/android/c++/JHybridTestObjectSwiftKotlinSpec.cpp
   ../nitrogen/generated/android/c++/JVariant_NullType_String.cpp
   ../nitrogen/generated/android/c++/JVariant_HybridTestObjectSwiftKotlinSpec_Person.cpp
@@ -57,8 +57,6 @@ target_sources(
   ../nitrogen/generated/android/c++/JCoreTypesVariant.cpp
   ../nitrogen/generated/android/c++/JStringOrExternal.cpp
   ../nitrogen/generated/android/c++/JVariant_Boolean_DoubleArray_Array_String__Double_String.cpp
-  ../nitrogen/generated/android/c++/JHybridPlatformObjectSpec.cpp
-  ../nitrogen/generated/android/c++/JHybridTestObjectSpec.cpp
 )
 
 # From node_modules/react-native/ReactAndroid/cmake-utils/folly-flags.cmake

@@ -11,7 +11,7 @@ import type { Child } from "../specs/Child.nitro";
 import {
   type TestObjectCpp,
   type TestObjectSwiftKotlin,
-} from "../specs/LegacyTestObject.nitro";
+} from "../specs/TestObject.nitro";
 import { HybridSomeExternalObject } from "./utils/testObjects";
 
 const NitroModules = getNitroModules();

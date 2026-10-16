@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { casesForTestObjects, recordCallback, waitFor } from "./utils/cases";
 
-import { type Powertrain } from "../specs/LegacyTestObject.nitro";
+import { type Powertrain } from "../specs/TestObject.nitro";
 import { HybridChild } from "./utils/testObjects";
 
 import { TEST_MAP, TEST_MAP_2 } from "./utils/fixtures";

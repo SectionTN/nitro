@@ -22,8 +22,6 @@ namespace margelo::nitro::test { class HybridChildSpec; }
 namespace margelo::nitro::test { class HybridPlatformObjectSpec; }
 // Forward declaration of `HybridSomeExternalObjectSpec` to properly resolve imports.
 namespace margelo::nitro::test::external { class HybridSomeExternalObjectSpec; }
-// Forward declaration of `HybridTestObjectSpec` to properly resolve imports.
-namespace margelo::nitro::test { class HybridTestObjectSpec; }
 // Forward declaration of `HybridTestObjectSwiftKotlinSpec` to properly resolve imports.
 namespace margelo::nitro::test { class HybridTestObjectSwiftKotlinSpec; }
 // Forward declaration of `JsStyleStruct` to properly resolve imports.
@@ -58,8 +56,6 @@ namespace NitroTestFixtures { class HybridChildSpec_cxx; }
 namespace NitroTestFixtures { class HybridPlatformObjectSpec_cxx; }
 // Forward declaration of `HybridSomeExternalObjectSpec_cxx` to properly resolve imports.
 namespace NitroTestExternal { class HybridSomeExternalObjectSpec_cxx; }
-// Forward declaration of `HybridTestObjectSpec_cxx` to properly resolve imports.
-namespace NitroTestFixtures { class HybridTestObjectSpec_cxx; }
 // Forward declaration of `HybridTestObjectSwiftKotlinSpec_cxx` to properly resolve imports.
 namespace NitroTestFixtures { class HybridTestObjectSwiftKotlinSpec_cxx; }
 
@@ -69,7 +65,6 @@ namespace NitroTestFixtures { class HybridTestObjectSwiftKotlinSpec_cxx; }
 #include "HybridBaseSpec.hpp"
 #include "HybridChildSpec.hpp"
 #include "HybridPlatformObjectSpec.hpp"
-#include "HybridTestObjectSpec.hpp"
 #include "HybridTestObjectSwiftKotlinSpec.hpp"
 #include "JsStyleStruct.hpp"
 #include "OldEnum.hpp"
@@ -280,6 +275,27 @@ namespace margelo::nitro::test::bridge::swift {
   }
   inline Result_std__variant_std__string__Car__ create_Result_std__variant_std__string__Car__(const std::exception_ptr& error) noexcept {
     return Result<std::variant<std::string, Car>>::withError(error);
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridPlatformObjectSpec>
+  /**
+   * Specialized version of `std::shared_ptr<HybridPlatformObjectSpec>`.
+   */
+  using std__shared_ptr_HybridPlatformObjectSpec_ = std::shared_ptr<HybridPlatformObjectSpec>;
+  std::shared_ptr<HybridPlatformObjectSpec> create_std__shared_ptr_HybridPlatformObjectSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
+  void* NON_NULL get_std__shared_ptr_HybridPlatformObjectSpec_(std__shared_ptr_HybridPlatformObjectSpec_ cppType);
+  
+  // pragma MARK: std::weak_ptr<HybridPlatformObjectSpec>
+  using std__weak_ptr_HybridPlatformObjectSpec_ = std::weak_ptr<HybridPlatformObjectSpec>;
+  inline std__weak_ptr_HybridPlatformObjectSpec_ weakify_std__shared_ptr_HybridPlatformObjectSpec_(const std::shared_ptr<HybridPlatformObjectSpec>& strong) noexcept { return strong; }
+  
+  // pragma MARK: Result<std::string>
+  using Result_std__string_ = Result<std::string>;
+  inline Result_std__string_ create_Result_std__string_(const std::string& value) noexcept {
+    return Result<std::string>::withValue(value);
+  }
+  inline Result_std__string_ create_Result_std__string_(const std::exception_ptr& error) noexcept {
+    return Result<std::string>::withError(error);
   }
   
   // pragma MARK: std::shared_ptr<HybridTestObjectSwiftKotlinSpec>
@@ -1827,15 +1843,6 @@ namespace margelo::nitro::test::bridge::swift {
     return Result<double>::withError(error);
   }
   
-  // pragma MARK: Result<std::string>
-  using Result_std__string_ = Result<std::string>;
-  inline Result_std__string_ create_Result_std__string_(const std::string& value) noexcept {
-    return Result<std::string>::withValue(value);
-  }
-  inline Result_std__string_ create_Result_std__string_(const std::exception_ptr& error) noexcept {
-    return Result<std::string>::withError(error);
-  }
-  
   // pragma MARK: Result<nitro::NullType>
   using Result_nitro__NullType_ = Result<nitro::NullType>;
   inline Result_nitro__NullType_ create_Result_nitro__NullType_(nitro::NullType value) noexcept {
@@ -2330,29 +2337,5 @@ namespace margelo::nitro::test::bridge::swift {
   inline Result_std__variant_std__shared_ptr_margelo__nitro__test__external__HybridSomeExternalObjectSpec___std__string__ create_Result_std__variant_std__shared_ptr_margelo__nitro__test__external__HybridSomeExternalObjectSpec___std__string__(const std::exception_ptr& error) noexcept {
     return Result<std::variant<std::shared_ptr<margelo::nitro::test::external::HybridSomeExternalObjectSpec>, std::string>>::withError(error);
   }
-  
-  // pragma MARK: std::shared_ptr<HybridPlatformObjectSpec>
-  /**
-   * Specialized version of `std::shared_ptr<HybridPlatformObjectSpec>`.
-   */
-  using std__shared_ptr_HybridPlatformObjectSpec_ = std::shared_ptr<HybridPlatformObjectSpec>;
-  std::shared_ptr<HybridPlatformObjectSpec> create_std__shared_ptr_HybridPlatformObjectSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
-  void* NON_NULL get_std__shared_ptr_HybridPlatformObjectSpec_(std__shared_ptr_HybridPlatformObjectSpec_ cppType);
-  
-  // pragma MARK: std::weak_ptr<HybridPlatformObjectSpec>
-  using std__weak_ptr_HybridPlatformObjectSpec_ = std::weak_ptr<HybridPlatformObjectSpec>;
-  inline std__weak_ptr_HybridPlatformObjectSpec_ weakify_std__shared_ptr_HybridPlatformObjectSpec_(const std::shared_ptr<HybridPlatformObjectSpec>& strong) noexcept { return strong; }
-  
-  // pragma MARK: std::shared_ptr<HybridTestObjectSpec>
-  /**
-   * Specialized version of `std::shared_ptr<HybridTestObjectSpec>`.
-   */
-  using std__shared_ptr_HybridTestObjectSpec_ = std::shared_ptr<HybridTestObjectSpec>;
-  std::shared_ptr<HybridTestObjectSpec> create_std__shared_ptr_HybridTestObjectSpec_(void* NON_NULL swiftUnsafePointer) noexcept;
-  void* NON_NULL get_std__shared_ptr_HybridTestObjectSpec_(std__shared_ptr_HybridTestObjectSpec_ cppType);
-  
-  // pragma MARK: std::weak_ptr<HybridTestObjectSpec>
-  using std__weak_ptr_HybridTestObjectSpec_ = std::weak_ptr<HybridTestObjectSpec>;
-  inline std__weak_ptr_HybridTestObjectSpec_ weakify_std__shared_ptr_HybridTestObjectSpec_(const std::shared_ptr<HybridTestObjectSpec>& strong) noexcept { return strong; }
 
 } // namespace margelo::nitro::test::bridge::swift

@@ -9,7 +9,7 @@ import {
   type Powertrain,
   WeirdNumbersEnum,
   type WrappedJsStruct,
-} from "../specs/LegacyTestObject.nitro";
+} from "../specs/TestObject.nitro";
 
 import { TEST_CAR, TEST_CAR_2, TEST_PERSON } from "./utils/fixtures";
 import { debugOnly, deferred } from "./utils/helpers";

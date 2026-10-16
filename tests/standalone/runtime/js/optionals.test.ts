@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { casesForTestObjects, recordCallback, waitFor } from "./utils/cases";
 
-import { OldEnum } from "../specs/LegacyTestObject.nitro";
+import { OldEnum } from "../specs/TestObject.nitro";
 import { debugOnly } from "./utils/helpers";
 
 const TRUCK_POWERTRAINS = ["electric", "gas", "hybrid", "diesel"] as const;

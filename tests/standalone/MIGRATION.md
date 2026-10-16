@@ -37,8 +37,10 @@ data-driven cases.
 | variants       |            166 |
 | **Total**      |      **1,414** |
 
-The five original `core-split` JS cases and the native runner contract tests
-remain alongside these suites.
+The two JS runner checks and the native runner contract tests remain alongside
+these suites. The Promise runner check uses `TestObjectSwiftKotlin`. The original
+boolean/Fibonacci placeholder fixture and its three cases are removed; the full
+fixtures are defined in `runtime/specs/TestObject.nitro.ts`.
 
 ## Exclusions and adaptations
 
@@ -47,8 +49,8 @@ remain alongside these suites.
   are not migrated, including the `getIsViewBlue` fixture method.
 - The `PlatformObject` OS-version comparison uses React Native's `Platform`
   constants and is excluded. The native platform fixture remains available.
-- Registry expectations remove the two view registrations and include the
-  existing runner's `TestObject` fixture. Version checks use `nitro-core`.
+- Registry expectations remove the two view registrations. Version checks use
+  `nitro-core`.
 - HardwareBuffer tests remain: Android platform APIs do not require React Native.
 - The external fixture remains a separate native module, preserving tests of
   cross-module HybridObjects and optional primitives.

@@ -72,7 +72,7 @@ The native engine executes the bundled JavaScript. `chai` supplies assertions:
 ```ts
 import { expect } from "chai";
 
-expect(object.bounceBoolean(true)).to.equal(true);
+expect(object.addNumbers(5, 13)).to.equal(18);
 expect(await object.calculateFibonacciAsync(10)).to.equal(55n);
 ```
 
@@ -87,8 +87,14 @@ Export a named, zero-argument function from any `runtime/js/**/*.test.ts` file.
 It can return `void` or `Promise<void>`:
 
 ```ts
+import { expect } from "chai";
+import { getNitroModules } from "nitro-core";
+import type { TestObjectSwiftKotlin } from "../specs/TestObject.nitro";
+
 export async function fibonacci(): Promise<void> {
-  const object = getNitroModules().createHybridObject<TestObject>("TestObject");
+  const object = getNitroModules().createHybridObject<TestObjectSwiftKotlin>(
+    "TestObjectSwiftKotlin",
+  );
   expect(await object.calculateFibonacciAsync(10)).to.equal(55n);
 }
 ```
@@ -96,7 +102,8 @@ export async function fibonacci(): Promise<void> {
 The bundler discovers exported values using TypeScript's module information,
 without executing test modules in Bun. Keep helper functions unexported or in
 separate helper files. Each test gets a file-qualified name, such as
-`TestObject.fibonacci`. New files and cases require no Swift/Kotlin edits.
+`promises.fibonacci` for a function in `promises.test.ts`. New files and cases
+require no Swift/Kotlin edits.
 
 Swift Testing and JUnit run the names as parameterized cases, preserving individual
 results and continuing after a case fails. Missing, invalid, or empty case lists
