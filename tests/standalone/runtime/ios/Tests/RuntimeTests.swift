@@ -21,7 +21,7 @@ private struct JavaScriptFailure: Error, CustomStringConvertible {
 
 @Suite(.serialized)
 struct RuntimeTests {
-  private static func testNames() throws -> [String] {
+  private static func testNames(skipped: Bool = false) throws -> [String] {
     let resources = Bundle(for: TestBundle.self)
     guard let url = resources.url(forResource: "runtime-tests", withExtension: "json") else {
       throw JavaScriptFailure(
@@ -43,7 +43,29 @@ struct RuntimeTests {
     guard Set(names).count == names.count else {
       throw JavaScriptFailure(description: "runtime-tests.json contains duplicate test names.")
     }
-    return names
+    guard let skipsURL = resources.url(forResource: "runtime-test-skips", withExtension: "json")
+    else {
+      throw JavaScriptFailure(description: "Missing runtime-test-skips.json. Run bun test:prepare.")
+    }
+    let skips = try JSONDecoder().decode(
+      [String: [String: String]].self, from: Data(contentsOf: skipsURL))
+    guard Set(skips.keys).isSubset(of: Set(names)),
+      skips.values.allSatisfy({ rules in
+        rules.allSatisfy { key, reason in
+          ["ios", "android", "release"].contains(key) && !reason.isEmpty
+        }
+      })
+    else {
+      throw JavaScriptFailure(
+        description: "Invalid test exclusion metadata in runtime-test-skips.json.")
+    }
+    return names.filter { name in
+      var reason = skips[name]?["ios"]
+      #if !DEBUG
+        reason = reason ?? skips[name]?["release"]
+      #endif
+      return (reason != nil) == skipped
+    }
   }
 
   private func run(_ name: String) async throws {
@@ -57,6 +79,16 @@ struct RuntimeTests {
 
   @Test(arguments: try RuntimeTests.testNames())
   func javaScript(_ name: String) async throws {
+    try await run(name)
+  }
+
+  // Swift Testing conditions apply to a test function, so keep the source
+  // suite's platform/build exclusions in a separate, explicitly disabled group.
+  @Test(
+    "Existing exclusions from main",
+    .disabled("See runtime-test-skips.json for the original platform/build exclusion reasons"),
+    arguments: try RuntimeTests.testNames(skipped: true))
+  func excludedJavaScript(_ name: String) async throws {
     try await run(name)
   }
 
@@ -78,7 +110,7 @@ struct RuntimeTests {
   @Test func swiftTasksCanCompleteDuringNativeRun() async throws {
     let source = """
       globalThis.runNitroTest = async () => {
-        const object = NitroModulesProxy.createHybridObject('TestObject');
+        const object = NitroModulesProxy.createHybridObject('TestObjectSwiftKotlin');
         const value = await object.calculateFibonacciAsync(10);
         if (value !== 55n) throw new Error('Unexpected Fibonacci result');
       };
