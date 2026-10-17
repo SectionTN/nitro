@@ -111,6 +111,9 @@ if (!destination) {
       `No available ${deviceName ?? "iPhone"} simulator matches iOS ${values.os}. Install one or select --os, --device or --destination.`,
     );
   destination = `platform=iOS Simulator,id=${device.udid}`;
+  // Xcode can start tests while a fresh simulator is still migrating data.
+  // Finish booting before starting the test watchdogs.
+  run("xcrun", ["simctl", "bootstatus", device.udid, "-b"]);
 }
 if (values["skip-hermes-build"]) {
   const framework = path.join(
