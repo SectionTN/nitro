@@ -51,7 +51,7 @@ jobs:
         with:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
-      - run: bun specs:all
+      - run: bun specs
       - name: Verify generated bindings are committed
         shell: bash
         run: |

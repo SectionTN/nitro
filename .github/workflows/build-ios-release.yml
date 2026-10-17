@@ -43,7 +43,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Generate React Native test bindings
-        run: bun specs
+        run: bun specs:react-native
 
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1
