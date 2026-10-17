@@ -2,11 +2,11 @@
 
 Run `bun test:ios` from the repository root with Xcode, an iOS simulator, CMake and Ninja installed. The command prepares the TypeScript tests and Nitrogen bindings, builds the pinned Hermes sources, and runs Swift Testing through `xcodebuild`.
 
-The project has two static framework targets, `NitroModules` and `NitroTestFixtures`, and one test bundle. Xcode supplies the simulator test runner. There is no application target or React Native dependency.
+The project has three static framework targets, `NitroModules`, `NitroTestFixtures` and `NitroTestExternal`, and one test bundle. The external fixture remains a separate module so the migrated tests exercise generated bindings across module boundaries. Xcode supplies the simulator test runner. There is no application target or React Native dependency.
 
 `NitroRuntimeTests.xcodeproj` uses synchronized folders to discover sources and generated bindings. It excludes React Native's TurboModule, CallInvoker and Fabric code. The mixed Swift/C++ frameworks preserve the module names and headers emitted by Nitrogen. Hermes is a local Swift package wrapping an XCFramework built from its upstream CMake targets.
 
-`prepare-headers.sh` discovers core headers and creates build-directory symlinks for Nitrogen's existing `<NitroModules/Header.hpp>` imports. It removes stale links only in that generated directory and rejects duplicate header names. The two small umbrella headers expose the Swift/C++ bridge interfaces; they do not list the implementation sources.
+`prepare-headers.sh` discovers core and external fixture headers and creates build-directory symlinks for Nitrogen's existing `<NitroModules/Header.hpp>` and `<NitroTestExternal/Header.hpp>` imports. It removes stale links only in those generated directories and rejects duplicate header names within each module. The small umbrella headers expose the Swift/C++ bridge interfaces; they do not list the implementation sources.
 
 The mixed targets remain Xcode targets because [SwiftPM's mixed-language support requires Swift 6.5](https://docs.swift.org/main/documentation/packagemanagerdocs/creatingmixedlanguagetargets/). The current Swift 6.4 toolchain rejects mixed Swift/C++ package targets. Keeping them together lets C++ include the generated Swift header without depending on SwiftPM build internals.
 
