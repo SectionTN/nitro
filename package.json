@@ -46,7 +46,7 @@
     "sync-core": "node scripts/sync-core.mjs",
     "bootstrap:ios": "bun bootstrap && bun example bundle-install && bun example pods",
     "specs": "bun nitro-test specs",
-    "specs:all": "bun test:prepare && bun specs",
+    "specs:all": "bun specs && bun --cwd tests/standalone/runtime generate",
     "test:staging": "node --test scripts/sync-core.test.mjs",
     "test:performance-tools": "bun test scripts/performance",
     "typecheck:performance-tools": "tsc -p scripts/performance/tsconfig.json",
