@@ -47,6 +47,6 @@ ASan instruments Core and the native fixtures/test host. The test APK includes t
 
 `HybridObjectTest` reads the generated `runtime-tests.json` manifest and runs each JavaScript case as a named JUnit parameter. Adding a shared JS test requires no Kotlin changes. Missing, empty, malformed, or duplicate manifest entries fail discovery. JavaScript failures become JUnit assertion failures with the case name and stack.
 
-`NativeTestRuntimeTest` separately verifies rejected promises, synchronous exceptions, and both pending-promise and infinite-loop timeouts.
+`NativeTestRuntimeTest` separately verifies rejected promises, synchronous exceptions, cached bytecode with fresh runtime state, per-case timeout overrides, independent setup and execution budgets, and timeouts for pending promises, infinite loops, and endless microtask chains.
 
 Reports are written to `build/reports/androidTests/connected/debug/`, with machine-readable results under `build/outputs/androidTest-results/`. CI runs normal tests on API 36 and ASan tests on API 33, both using x86_64 emulators, and uploads separate results with the JavaScript bundle, manifest, and source map.

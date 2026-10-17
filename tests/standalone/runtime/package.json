@@ -7,7 +7,8 @@
     "generate": "rm -rf nitrogen/generated && bun ../../../packages/nitrogen/lib/index.js",
     "typecheck": "tsc --noEmit",
     "bundle": "bun scripts/bundle.ts",
-    "prepare-tests": "bun run typecheck && bun run generate && bun run bundle",
+    "test:helpers": "bun test scripts/*.test.ts",
+    "prepare-tests": "bun run typecheck && bun run test:helpers && bun run generate && bun run bundle",
     "test:ios": "bun ios/run.mjs",
     "test:android": "cd android && ./gradlew :connectedDebugAndroidTest"
   },

@@ -12,7 +12,7 @@ final class HybridTestObject: HybridTestObjectSpec {
           withMessage: "Fibonacci input must be an integer between 0 and 92."))
     }
     if value == 0 { return Promise.resolved(withResult: 0) }
-    return Promise.parallel {
+    return Promise.async {
       let count = Int(value)
       var previous: Int64 = 0
       var current: Int64 = 1
