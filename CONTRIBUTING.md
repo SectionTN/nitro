@@ -22,7 +22,7 @@ For Core-only iteration, install with `bun install --frozen-lockfile --ignore-sc
 
 ## Tests and generated bindings
 
-The standalone environment in `tests/standalone/` runs Nitro in Hermes through Swift Testing on an iOS simulator and instrumented JUnit on Android. Initialize its pinned engine before native tests:
+The standalone environment in `tests/standalone/` runs portable Nitro behavior tests in Hermes through Swift Testing on an iOS simulator and instrumented JUnit on Android. Add runtime regressions that do not need React Native here. Initialize its pinned engine before native tests:
 
 ```sh
 git submodule update --init --recursive -- tests/standalone/vendor/hermes
@@ -32,7 +32,7 @@ bun test:android
 
 See [the standalone guide](tests/standalone/README.md) for native toolchain requirements.
 
-The RN environment in `tests/react-native/` contains the example and benchmark apps plus two fixture libraries. Keep the external fixture separate because it tests cross-library behavior. The example app hosts the existing Harness tests, including views.
+The RN environment in `tests/react-native/` contains the example and benchmark apps plus two fixture libraries. Keep the external fixture separate because it tests cross-library behavior. The example app hosts eight Harness View tests and four React Native integration checks.
 
 ```sh
 bun bootstrap:ios
@@ -42,7 +42,7 @@ bun test:react-native:ios
 bun test:react-native:android
 ```
 
-See [the RN test guide](tests/react-native/README.md) for the Android Harness minimum SDK setting.
+See [the RN test guide](tests/react-native/README.md) for setup and test scope.
 
 After editing specs or Nitrogen, generate and commit all bindings:
 
@@ -50,11 +50,11 @@ After editing specs or Nitrogen, generate and commit all bindings:
 bun specs:all
 ```
 
-`bun specs` generates both RN fixture libraries. `bun test:prepare` generates and bundles the standalone fixtures. CI verifies that all three generated directories match their inputs, including newly generated files.
+`bun specs` generates both RN fixture libraries. `bun test:prepare` generates and bundles the standalone fixtures. CI verifies that all generated directories match their inputs, including newly generated files.
 
 Core changes run both standalone and RN checks. Wrapper changes run RN checks. Nitrogen changes regenerate all fixtures and run the native environments. Workflow filters also include their tests, build configuration, package manifests, and lockfiles.
 
-Sanitizers run in the standalone environment: ASan and TSan on iOS, and ASan on Android. Harness runs without sanitizers on both platforms to check React Native integration. Portable cases still in Harness gain sanitizer coverage as they move into the standalone suite.
+Sanitizers run in the standalone environment: ASan and TSan on iOS, and ASan on Android. Harness runs without sanitizers on both platforms to check React Native integration and Views. Portable cases run in the standalone suite with sanitizer coverage.
 
 ## Performance tests
 
