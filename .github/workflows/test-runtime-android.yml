@@ -3,7 +3,7 @@ name: Test standalone runtime (Android)
 on:
   workflow_dispatch:
   push:
-    branches: [main, core-split]
+    branches: [main]
     paths:
       - ".github/workflows/test-runtime-android.yml"
       - "packages/nitro-core/**"

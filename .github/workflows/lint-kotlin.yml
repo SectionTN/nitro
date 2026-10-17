@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - core-split
     paths:
       - '.github/workflows/lint-kotlin.yml'
       - 'scripts/kotlin-format.sh'

@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - main
-      - core-split
     paths:
       - '.github/workflows/lint-typescript.yml'
       - 'config/**'
