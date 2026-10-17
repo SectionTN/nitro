@@ -1,4 +1,4 @@
-name: Build shared sources and Nitrogen
+name: Build and validate published packages
 
 on:
   push:
@@ -7,21 +7,29 @@ on:
       - '.github/workflows/build.yml'
       - 'packages/nitro-core/**'
       - 'packages/nitrogen/**'
+      - 'packages/react-native-nitro-modules/**'
       - 'config/**'
+      - 'scripts/core-package.mjs'
+      - 'scripts/sync-core.mjs'
       - 'scripts/set-version.mjs'
       - 'scripts/releases/**'
-      - 'package.json'
+      - '**/package.json'
       - 'bun.lock'
+      - 'bunfig.toml'
   pull_request:
     paths:
       - '.github/workflows/build.yml'
       - 'packages/nitro-core/**'
       - 'packages/nitrogen/**'
+      - 'packages/react-native-nitro-modules/**'
       - 'config/**'
+      - 'scripts/core-package.mjs'
+      - 'scripts/sync-core.mjs'
       - 'scripts/set-version.mjs'
       - 'scripts/releases/**'
-      - 'package.json'
+      - '**/package.json'
       - 'bun.lock'
+      - 'bunfig.toml'
 
 permissions:
   contents: read
@@ -32,6 +40,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
       - run: bun install --frozen-lockfile
       - run: bun typecheck
       - name: Pack Nitro core
@@ -40,19 +50,8 @@ jobs:
       - name: Pack Nitrogen
         working-directory: packages/nitrogen
         run: npm pack --pack-destination "$RUNNER_TEMP"
-      - name: Install packed packages outside the workspace
-        run: |
-          mkdir "$RUNNER_TEMP/nitro-package-consumer"
-          cd "$RUNNER_TEMP/nitro-package-consumer"
-          npm init --yes > /dev/null
-          npm install --no-audit --no-fund "$RUNNER_TEMP"/nitro-core-*.tgz "$RUNNER_TEMP"/nitrogen-*.tgz
-          test ! -e node_modules/react-native
-          test ! -e node_modules/react-native-nitro-modules
-          test -f node_modules/nitro-core/native/cpp/utils/NitroDefines.hpp
-          test -f node_modules/nitro-core/native/apple/core/HybridObject.swift
-          test -f node_modules/nitro-core/native/android/src/main/java/com/margelo/nitro/core/HybridObject.kt
-          test -f node_modules/nitro-core/js/src/HybridObject.ts
-          test -f node_modules/nitro-core/js/lib/module/index.js
-          node --input-type=module -e "import { getInstalledNitro } from 'nitro-core'; if (getInstalledNitro() !== undefined) throw new Error('Unexpected native runtime')"
-          node -e "const core = require('nitro-core'); if (core.getInstalledNitro() !== undefined) throw new Error('Unexpected native runtime')"
-          node node_modules/nitrogen/lib/index.js --help
+      - name: Pack React Native Nitro Modules
+        working-directory: packages/react-native-nitro-modules
+        run: npm pack --pack-destination "$RUNNER_TEMP"
+      - name: Validate packed packages outside the workspace
+        run: node scripts/releases/check-consumer.mjs "$RUNNER_TEMP"/nitro-core-*.tgz "$RUNNER_TEMP"/nitrogen-*.tgz "$RUNNER_TEMP"/react-native-nitro-modules-*.tgz

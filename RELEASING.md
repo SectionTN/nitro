@@ -1,89 +1,82 @@
 # Releasing Nitro
 
-Choose one version in this repository. CI publishes `nitro-core` and `nitrogen`, then completes the GitHub release. The React Native repository picks up that release, pins its exact npm package versions, and publishes `react-native-nitro-modules` at the same version. After the split is merged, pushes to `main` also publish nightly versions.
+This repository publishes `nitro-core`, `nitrogen`, and `react-native-nitro-modules` at the same version from one source commit. Each release has one Git tag and one manifest containing all three npm tarballs and their checksums.
 
 ## One-time setup
 
-The release workflow lives on `core-split`; `main` stays unchanged until the split is merged. Before the merge, use the CLI command below to start a release through a temporary request branch. GitHub's **Run workflow** button and automatic nightlies become available once the workflow is on `main`. The React Native release workflow must be on that repository's `main` branch for scheduled runs.
+Configure an npm GitHub Actions trusted publisher for each package:
 
-Configure a GitHub Actions trusted publisher in the npm settings for each package:
+| npm package                  | GitHub repository | Workflow filename |
+| ---------------------------- | ----------------- | ----------------- |
+| `nitro-core`                 | `margelo/nitro`   | `release.yml`     |
+| `nitrogen`                   | `margelo/nitro`   | `release.yml`     |
+| `react-native-nitro-modules` | `margelo/nitro`   | `release.yml`     |
 
-| npm package | GitHub repository | Workflow filename |
-| --- | --- | --- |
-| `nitro-core` | `margelo/nitro` | `release.yml` |
-| `nitrogen` | `margelo/nitro` | `release.yml` |
-| `react-native-nitro-modules` | `margelo/react-native-nitro-modules` | `release.yml` |
+The RN package's trusted publisher must point to this repository. Leave the environment empty and enable **Allow npm publish**. The workflow uses npm OIDC authentication and does not need an npm token or separate `npm dist-tag` permission. Committing the workflow does not configure these npm settings.
 
-Leave the environment empty for the current workflow configuration and enable **Allow npm publish**. Separate `npm dist-tag` permission is not needed. The workflows use npm OIDC authentication. These npm settings must be configured separately; committing the workflows does not grant publish access. No npm token is needed.
-
-For the immediate downstream trigger, give the existing **Nitro Modules Bot** GitHub App **Actions: read and write** permission and installation access to `margelo/react-native-nitro-modules`. Approve the updated permissions on the installation. The Nitro repository already uses `NITRO_PERFORMANCE_APP_CLIENT_ID` (Actions variable) and `NITRO_PERFORMANCE_APP_PRIVATE_KEY` (Actions secret) for this App. The release workflow reuses them to create a short-lived installation token scoped to the RN repository and Actions permission. No personal access token is needed.
-
-The notification runs in a separate job with no source checkout or package builds. If the App variable is absent, notification is skipped; invalid credentials, permissions, or installation access fail that job visibly. The hourly fallback still discovers completed releases.
-
-Actions also needs permission to push the release commit and tag and create GitHub releases in each repository. If branch protection is enabled, allow the release workflow's push or adjust the release process before publishing. Release commits use Marc Rousavy's Git identity (`Marc Rousavy <me@mrousavy.com>`).
+GitHub Actions needs permission to push the release commit and tag and create releases. Branch protection must allow the workflow's push. Release commits use Marc Rousavy's Git identity (`Marc Rousavy <me@mrousavy.com>`).
 
 ## Start a release
 
-Choose an exact version, such as `0.37.2` or `0.38.0-beta.1`. CI does not infer a bump from commit messages. From a checkout with push access:
+In GitHub Actions, open **Release Nitro**, choose **Run workflow**, select `main` as `source-branch`, and enter an exact version such as `0.37.2` or `0.38.0-beta.1`. CI updates versions, validates the packages and native apps, and publishes the release.
+
+Until this work is merged, `core-split` is also an allowed source branch. GitHub's manual workflow button becomes available once the workflow is on the default branch. The CLI can start a release before then:
 
 ```sh
 git switch core-split
 bun release 0.37.2
-bun release 0.38.0-beta.1
 ```
 
-Each command starts a separate release. `bun release VERSION [npm-tag]` creates and pushes a temporary `release-request/<source-branch>/<version>/<npm-tag>/<timestamp>` branch from the remote source branch's tip. That push starts the workflow, which removes the request branch after success. Push the changes you want to release before running the command; uncommitted files and local-only commits are not included.
+After the merge, run the same command from `main`. `bun release VERSION [npm-tag]` pushes a temporary `release-request/<source-branch>/<version>/<npm-tag>/<timestamp>` branch from the remote source branch's tip. That push starts CI. The workflow deletes the request branch after success. Push the changes you want to release first; local changes and local-only commits are excluded.
 
-After merging the split into `main`, releases can also start from GitHub Actions on a phone or browser: open `.github/workflows/release.yml`, choose **Run workflow**, set `source-branch` to `main`, and enter the version. The input controls which code is released, separately from GitHub's workflow branch selector.
-
-Leave `npm-tag` empty to use `latest` for stable versions or the first prerelease identifier for prereleases (`beta` for `0.38.0-beta.1`, `rc` for `0.38.0-rc.1`). If that identifier does not start with a lowercase letter, it uses `next`. Supply an npm tag explicitly when needed:
+Leave `npm-tag` empty to use `latest` for stable versions or the first prerelease identifier, such as `beta` or `rc`. Identifiers that do not start with a lowercase letter use `next`. You can choose a tag explicitly:
 
 ```sh
 bun release 0.38.0-beta.1 beta
 ```
 
-A new release version must be greater than the current version. `0.37.1` was published before the split, so the first split release must use a new version. To publish a change made only in the React Native repository, start a patch release here with no core code changes.
+A new manual release must increase the current version. To retry an interrupted release, request its existing version and npm tag or rerun the failed workflow. The workflow's `dry-run` option performs the build and validation without committing, tagging, pushing, or publishing.
 
-## What CI publishes
+## Publish through GitHub Releases
 
-The core workflow:
+Publishing a GitHub release also starts the workflow. Its tag must be exactly `vVERSION` and already point to a commit on `main` whose package, JS, and native versions match `VERSION`. Until the merge, selecting `core-split` as the release target is also supported. Prepare that commit with `bun version:set VERSION`, refresh `bun.lock`, regenerate the RN test bindings, and update the apps' Pod lockfiles before creating the tag. The release checks require the tagged checkout to remain unchanged after rebuilding.
 
-1. Updates the root, `nitro-core`, and Nitrogen package versions, Nitrogen's core dependency, `js/src/version.ts`, and `NITRO_VERSION` in `native/cpp/utils/NitroDefines.hpp`, then refreshes `bun.lock`.
-2. Builds and typechecks both packages, packs them with `npm pack`, and checks the tarballs in a consumer outside the workspace.
-3. Pushes the version commit and `vVERSION` tag together with an atomic Git push.
-4. Saves the tarballs and `nitro-release.json` manifest on a draft GitHub release so a retry can use the same artifacts.
-5. Publishes `nitro-core`, then `nitrogen`, using the selected npm tag.
-6. Publishes the GitHub release after both npm packages succeed, marking prerelease versions accordingly.
-7. Dispatches the RN repository's `release.yml` workflow on `main`, passing the completed release's exact tag as `core-tag`.
+This path builds and publishes the existing tag without moving it. The GitHub release is already public while npm publishing runs, so a failed run can leave a public GitHub release with incomplete npm publication. Rerun that workflow to finish it. **Run workflow** is the simpler path when you want CI to prepare the version commit and publish the GitHub release only after npm succeeds.
 
-The direct trigger starts downstream adoption as soon as GitHub schedules the RN run. An hourly check recovers missed or failed notifications; GitHub may delay scheduled runs. The fallback processes regular releases oldest first, including beta and RC versions, then pending nightlies newest first. Only releases with a `nitro-release.json` manifest are considered; legacy releases are ignored. A failed nightly does not block a newer fix or a regular release.
+## Release validation and publication
 
-A successful dispatch confirms that GitHub accepted the request, not that the RN release succeeded. A failed notification leaves the completed core release intact. Retry the notification job or let the hourly check recover it. Duplicate requests reuse the existing release and verify already-published packages.
+For a new manual release, CI:
 
-For each release, the wrapper pins `nitro-core` and `nitrogen` to the exact published version, verifies their registry and lockfile checksums against the core release manifest, stages native sources from the installed `nitro-core` package, validates the package, and publishes `react-native-nitro-modules`. It uses the core release's version and npm tag, then creates its own GitHub release. Normal builds use the committed npm dependencies and Bun lockfile.
+1. Updates the root, public packages, RN fixture packages, and RN apps to the chosen version. It updates exact internal package dependencies, the JS version, and `NITRO_VERSION`, then refreshes `bun.lock`.
+2. Builds and typechecks the workspace, generates the RN test bindings, and runs the release-tooling, RN package, and performance-tool tests.
+3. Installs the example and benchmark Pods, then builds the example for the iOS simulator and Android. These checks run against the versioned workspace that will be packed.
+4. Packs all three packages. It installs Core and Nitrogen in an isolated consumer to check that they work without RN. A second consumer installs all three packages with RN and checks native sources, declarations, and object/view generation. Package checks reject workspace links, local dependency references, and development files.
+5. Commits the version changes and generated test files, then atomically pushes the commit and `vVERSION` tag.
+6. Saves the tarballs and `nitro-release.json` on a draft GitHub release. The manifest is uploaded last and records the source commit, release commit, package versions, and SHA-512 checksums.
+7. Publishes `nitro-core`, `nitrogen`, and `react-native-nitro-modules`, in that order, then publishes the GitHub release.
 
-The current development checkout still uses a temporary submodule/workspace bootstrap because the source-containing `nitro-core` package has not been published yet. The first downstream release removes those legacy entries before installing the published packages. No registry release is required to build the initial checkout.
+Nitrogen and the RN adapter pin `nitro-core` to the exact release version. Native sources in the adapter tarball are staged from the same local Core package. The template and standalone test package keep their own versions; private RN fixtures and apps track the release version.
 
-The root, shared packages, JS version, and native version move together. Nitrogen keeps its compatible `^VERSION` dependency on `nitro-core`; the RN package pins `nitro-core` to exactly `VERSION` so the JS and native runtime match. The wrapper does not publish either core package.
+After package publication, the iOS and Android release-build workflows build the example from the release tag and attach the app artifacts to the same GitHub release. A failure in one of those jobs leaves the npm packages published; rerun the failed artifact job.
 
 ## Nightlies
 
-Official releases require an explicit version request. Once the split is merged, each push to `main` starts one nightly for its final source commit; a push containing several commits does not publish each intermediate commit. Its version includes the workflow run number and source commit, for example `0.37.2-nightly.123.gabcdef012345`. A stable base of `0.37.1` advances to `0.37.2-nightly...`; a prerelease base of `0.38.0-beta.1` produces `0.38.0-nightly...`. Rerunning the same workflow keeps the same version.
+Each push to `main` starts a nightly for its final source commit. A push containing several commits produces one nightly. The version includes the workflow run number and source commit, for example `0.37.2-nightly.123.gabcdef012345`. A stable base of `0.37.1` advances to `0.37.2-nightly...`; a prerelease base of `0.38.0-beta.1` produces `0.38.0-nightly...`. Rerunning the same workflow preserves the version.
 
-CI creates a separate version commit and release tag for each nightly. It leaves `main` and its stable package versions unchanged. Nightlies use npm's `nightly` tag and GitHub prereleases, so installing `latest` continues to select the stable release. The GitHub prerelease holds the immutable tarballs and completion manifest that downstream consumes; it is never marked as the latest official release. The React Native repository follows completed nightly releases through the same direct trigger and hourly fallback, and creates its own nightly release commit without advancing the stable npm dependencies on `main`.
+Nightlies use the same validation and three-package publication process. CI creates a version commit and tag without advancing `main`, publishes to npm's `nightly` tag, and stores the artifacts on a GitHub prerelease. Stable package versions on `main` and npm's `latest` tag remain unchanged.
 
-If an older nightly finishes after a newer one, it is still published under its exact version with an npm tag of `nightly-<release-commit-prefix>`. It does not move the shared `nightly` tag backwards. Release runs are serialized; GitHub's queue limit still applies during bursts of pushes.
+An older nightly that finishes after a newer one uses the npm tag `nightly-<release-commit-prefix>` so it cannot move `nightly` backwards. Release runs are serialized; GitHub's queue limit still applies during bursts of pushes.
 
 ## Resume a failed release
 
-Rerun the failed workflow or request the same version again. Keep the same npm tag. For a nightly, rerun its original workflow so the run number and version stay the same. CI reuses the existing release commit, tag, and saved artifacts, checks each package's npm integrity against the saved tarball, and publishes only the missing packages. The GitHub release is completed after all packages succeed.
+Rerun the failed workflow or request the same version with the same npm tag. For a nightly, rerun the original workflow to preserve its run number and version.
 
-Do not delete or move a release tag, replace a saved tarball, or bump again just to retry a failed publish. npm versions are immutable. An integrity mismatch requires investigation before continuing; a registry or authentication error must not be treated as an unpublished package.
+CI reuses the existing tag and saved tarballs, verifies the checksums, and publishes only missing packages. A failure while publishing the RN adapter does not require republishing Core or Nitrogen. A registry or authentication error stops the run; it is never treated as an unpublished version. Conflicting package bytes stop publication before any missing package is published.
 
-A failed wrapper release can resume from its saved artifacts as well. The wrapper only follows completed core releases, so a draft core release does not start downstream publication. Check both repositories' Actions runs to follow the full release.
+Do not delete or move a release tag, replace saved artifacts, or bump again to work around a failed publish. npm versions are immutable. Investigate any integrity mismatch before continuing.
 
 ## Development checks
 
-`bun version:set VERSION` remains available for local preparation, and `bun check-versions` verifies the shared versions. The release workflow normally handles version changes. Implementation changes belong in this repository; do not bump `NITRO_VERSION` in the wrapper's generated header.
+`bun version:set VERSION` updates the shared versions locally. `bun check-versions` checks package versions and exact internal pins, and `bun test:release` tests the release tooling without publishing. The release workflow normally handles the version update.
 
-Before releasing native changes, run the relevant iOS/Android builds and Harness tests in the React Native repository with tarballs packed from the proposed core commit. The core release's package and consumer checks do not replace those native tests. See [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for development pin updates and [CONTRIBUTING.md](CONTRIBUTING.md) for validation expectations.
+Run the relevant standalone and RN Harness tests for implementation changes. The release's native builds and consumer checks do not execute the Harness suite. See [CONTRIBUTING.md](CONTRIBUTING.md) for validation commands.

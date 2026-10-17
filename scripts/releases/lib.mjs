@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
+import { releasePackages } from './packages.mjs'
 
 export function run(command, args, { cwd, capture = false, input, env } = {}) {
   const result = spawnSync(command, args, {
@@ -44,7 +45,12 @@ export function parseVersion(version) {
   ) {
     throw new Error(`Invalid release version: ${version}`)
   }
-  return { major: numbers[0], minor: numbers[1], patch: numbers[2], prerelease }
+  return {
+    major: numbers[0],
+    minor: numbers[1],
+    patch: numbers[2],
+    prerelease,
+  }
 }
 
 export function nightlyVersion(baseVersion, runNumber, sourceCommit) {
@@ -70,6 +76,14 @@ export function nightlyVersion(baseVersion, runNumber, sourceCommit) {
 
 export function isNightly(version) {
   return parseVersion(version).prerelease[0] === 'nightly'
+}
+
+export function versionFromTag(tag) {
+  if (typeof tag !== 'string' || !tag.startsWith('v'))
+    throw new Error('A GitHub release tag must be vVERSION')
+  const version = tag.slice(1)
+  parseVersion(version)
+  return version
 }
 
 export function compareVersions(a, b) {
@@ -128,7 +142,8 @@ export function validateManifest(manifest, { repository, tag, packages }) {
     manifest.repository !== repository ||
     manifest.tag !== tag ||
     tag !== `v${manifest.version}` ||
-    !/^[a-f0-9]{40}$/.test(manifest.commit)
+    !/^[a-f0-9]{40}$/.test(manifest.commit) ||
+    !/^[a-f0-9]{40}$/.test(manifest.sourceCommit)
   ) {
     throw new Error(
       'Release manifest does not match the repository, tag or commit'
@@ -216,11 +231,11 @@ export function downloadRelease(repo, tag, manifestName, directory) {
     directory,
   ])
   const manifest = readJSON(path.join(directory, manifestName))
-  const packages =
-    repo === 'margelo/nitro'
-      ? ['nitro-core', 'nitrogen']
-      : ['react-native-nitro-modules']
-  validateManifest(manifest, { repository: repo, tag, packages })
+  validateManifest(manifest, {
+    repository: repo,
+    tag,
+    packages: releasePackages,
+  })
   for (const pkg of manifest.packages) {
     run('gh', [
       'release',
@@ -347,10 +362,10 @@ export function saveDraft(
   manifest,
   directory,
   manifestName,
-  { lookup = getRelease, execute = run } = {}
+  { lookup = getRelease, execute = run, allowPublished = false } = {}
 ) {
   const existing = lookup(manifest.repository, manifest.tag)
-  if (existing && !existing.draft)
+  if (existing && !existing.draft && !allowPublished)
     throw new Error('Cannot replace assets of a completed release')
   if (existing?.assets.some((asset) => asset.name === manifestName)) {
     throw new Error('Release checkpoint already exists; download and resume it')
@@ -376,6 +391,29 @@ export function saveDraft(
   writeJSON(path.join(directory, manifestName), manifest)
   // Upload the manifest last. Its presence means every immutable tarball was saved.
   for (const pkg of manifest.packages) {
+    if (
+      existing &&
+      !existing.draft &&
+      existing.assets.some((asset) => asset.name === pkg.filename)
+    ) {
+      // A published-release run may have stopped between uploads. Verify its
+      // existing bytes instead of replacing a public asset during the retry.
+      const saved = path.join(directory, 'existing-assets')
+      mkdirSync(saved, { recursive: true })
+      execute('gh', [
+        'release',
+        'download',
+        manifest.tag,
+        '--repo',
+        manifest.repository,
+        '--pattern',
+        pkg.filename,
+        '--dir',
+        saved,
+      ])
+      verifyFiles({ packages: [pkg] }, saved)
+      continue
+    }
     execute('gh', [
       'release',
       'upload',
@@ -383,7 +421,7 @@ export function saveDraft(
       path.join(directory, pkg.filename),
       '--repo',
       manifest.repository,
-      '--clobber',
+      ...(!existing || existing.draft ? ['--clobber'] : []),
     ])
   }
   execute('gh', [
@@ -430,6 +468,19 @@ export function finishRelease(
 export function assertClean(cwd) {
   if (git(['status', '--porcelain'], { cwd }))
     throw new Error('Release requires a clean checkout, including submodules')
+}
+
+export function removeReleaseRequestBranch(
+  requestRef,
+  { gitCommand = git } = {}
+) {
+  const existing = gitCommand([
+    'ls-remote',
+    '--heads',
+    'origin',
+    `refs/heads/${requestRef}`,
+  ])
+  if (existing) gitCommand(['push', 'origin', '--delete', requestRef])
 }
 
 export function assertCI(repository) {

@@ -1,23 +1,31 @@
-name: Check runtime test fixtures
+name: Check standalone test fixtures
 
 on:
   push:
     branches: [main, core-split]
     paths:
-      - "tests/runtime/**"
+      - ".github/workflows/test-runtime-js.yml"
       - "packages/nitro-core/**"
       - "packages/nitrogen/**"
+      - "tests/standalone/**"
       - "package.json"
       - "bun.lock"
-      - ".github/workflows/test-runtime-js.yml"
+      - "bunfig.toml"
+      - "scripts/releases/**"
+      - "config/**"
+      - "scripts/set-version.mjs"
   pull_request:
     paths:
-      - "tests/runtime/**"
+      - ".github/workflows/test-runtime-js.yml"
       - "packages/nitro-core/**"
       - "packages/nitrogen/**"
+      - "tests/standalone/**"
       - "package.json"
       - "bun.lock"
-      - ".github/workflows/test-runtime-js.yml"
+      - "bunfig.toml"
+      - "scripts/releases/**"
+      - "config/**"
+      - "scripts/set-version.mjs"
 
 permissions:
   contents: read
@@ -34,5 +42,5 @@ jobs:
       - run: bun test:prepare
       - name: Verify generated bindings are committed
         run: |
-          git diff --exit-code -- tests/runtime/nitrogen/generated
-          test -z "$(git ls-files --others --exclude-standard tests/runtime/nitrogen/generated)"
+          git diff --exit-code -- tests/standalone/runtime/nitrogen/generated
+          test -z "$(git ls-files --others --exclude-standard tests/standalone/runtime/nitrogen/generated)"

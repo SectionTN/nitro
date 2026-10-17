@@ -7,10 +7,14 @@ on:
       - core-split
     paths:
       - '.github/workflows/lint-kotlin.yml'
+      - 'scripts/kotlin-format.sh'
+      - 'config/**'
       - '**/*.kt'
   pull_request:
     paths:
       - '.github/workflows/lint-kotlin.yml'
+      - 'scripts/kotlin-format.sh'
+      - 'config/**'
       - '**/*.kt'
 
 jobs:
@@ -20,6 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
 
       - name: Install ktlint
         run: |

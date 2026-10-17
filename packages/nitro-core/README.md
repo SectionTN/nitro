@@ -47,4 +47,4 @@ implementation changes belong in this package.
 
 The React Native entry resolves to compiled JavaScript. After editing this
 package, run `bun run build` before rebuilding an app. Validate native changes
-with the existing tests and fixtures in the React Native repository.
+in both `tests/standalone` and `tests/react-native` in this repository.

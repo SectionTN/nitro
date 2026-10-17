@@ -2,13 +2,10 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { parseVersion } from './releases/lib.mjs'
+import { releasePackages, versionedManifests } from './releases/packages.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const manifests = [
-  'package.json',
-  'packages/nitro-core/package.json',
-  'packages/nitrogen/package.json',
-].map((relativePath) => {
+const manifests = versionedManifests.map((relativePath) => {
   const filename = path.join(root, relativePath)
   return { filename, json: JSON.parse(readFileSync(filename, 'utf8')) }
 })
@@ -44,20 +41,29 @@ if (check) {
         `${filename}: expected version ${version}, found ${json.version}`
       )
   }
-  const nitrogen = manifests.find(({ json }) => json.name === 'nitrogen').json
-  if (nitrogen.dependencies['nitro-core'] !== `^${version}`) {
-    throw new Error(`Nitrogen must depend on nitro-core ^${version}`)
+  for (const { filename, json } of manifests) {
+    for (const field of ['dependencies', 'devDependencies']) {
+      for (const name of releasePackages) {
+        const dependency = json[field]?.[name]
+        if (dependency !== undefined && dependency !== version) {
+          throw new Error(`${filename}: ${field}.${name} must pin ${version}`)
+        }
+      }
+    }
   }
   for (const entry of sourceVersions) {
     if (entry.match[1] !== version)
       throw new Error(`${entry.path} must use ${version}`)
   }
-  console.log(`Nitro core, Nitrogen and native versions match: ${version}`)
+  console.log(`Nitro packages, test apps and native versions match: ${version}`)
 } else {
   for (const { filename, json } of manifests) {
     json.version = version
-    if (json.name === 'nitrogen')
-      json.dependencies['nitro-core'] = `^${version}`
+    for (const field of ['dependencies', 'devDependencies']) {
+      for (const name of releasePackages) {
+        if (json[field]?.[name] !== undefined) json[field][name] = version
+      }
+    }
     writeFileSync(filename, `${JSON.stringify(json, null, 2)}\n`)
   }
   for (const entry of sourceVersions) {
@@ -67,6 +73,6 @@ if (check) {
     )
   }
   console.log(
-    `Updated Nitro core and Nitrogen to ${version}. Run bun install to update bun.lock.`
+    `Updated Nitro packages and test apps to ${version}. Run bun install to update bun.lock.`
   )
 }

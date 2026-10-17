@@ -7,10 +7,14 @@ on:
       - core-split
     paths:
       - '.github/workflows/lint-swift.yml'
+      - 'scripts/swift-format.sh'
+      - 'config/**'
       - '**/*.swift'
   pull_request:
     paths:
       - '.github/workflows/lint-swift.yml'
+      - 'scripts/swift-format.sh'
+      - 'config/**'
       - '**/*.swift'
 
 jobs:
@@ -20,6 +24,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
 
       - name: Run swift format
         run: bun run lint-swift

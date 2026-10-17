@@ -8,6 +8,14 @@ on:
         'scripts/releases/**',
         'scripts/release.sh',
         'scripts/set-version.mjs',
+        'scripts/sync-core*.mjs',
+        'scripts/core-package.mjs',
+        'package.json',
+        'bun.lock',
+        'packages/**/package.json',
+        'tests/react-native/**/package.json',
+        'packages/nitro-core/js/src/version.ts',
+        'packages/nitro-core/native/cpp/utils/NitroDefines.hpp',
         '.github/workflows/*release.yml',
       ]
   pull_request:
@@ -16,6 +24,14 @@ on:
         'scripts/releases/**',
         'scripts/release.sh',
         'scripts/set-version.mjs',
+        'scripts/sync-core*.mjs',
+        'scripts/core-package.mjs',
+        'package.json',
+        'bun.lock',
+        'packages/**/package.json',
+        'tests/react-native/**/package.json',
+        'packages/nitro-core/js/src/version.ts',
+        'packages/nitro-core/native/cpp/utils/NitroDefines.hpp',
         '.github/workflows/*release.yml',
       ]
 
@@ -30,7 +46,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - run: node --test scripts/releases/lib.test.mjs
+      - run: node --test scripts/releases/*.test.mjs scripts/sync-core.test.mjs
       - uses: docker://rhysd/actionlint:1.7.12
         with:
           # queue:max is supported by GitHub; actionlint 1.7.12 predates it.
