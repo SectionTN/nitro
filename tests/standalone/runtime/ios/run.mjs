@@ -70,6 +70,9 @@ const root = path.resolve(
   "../../../..",
 );
 const environment = { ...process.env };
+// A single cooperative worker catches native runners that block Swift Tasks
+// needed to resolve their JavaScript Promises.
+environment.TEST_RUNNER_LIBDISPATCH_COOPERATIVE_POOL_STRICT = "1";
 function run(command, args, capture = false) {
   const result = spawnSync(command, args, {
     cwd: root,
