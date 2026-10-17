@@ -1,5 +1,13 @@
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
-import { spawnSync } from "node:child_process";
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  readFileSync,
+  readdirSync,
+  writeSync,
+} from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -17,6 +25,7 @@ const { values } = parseArgs({
       default: process.env.NITRO_TEST_JOBS ?? String(defaults.jobs),
     },
     destination: { type: "string", default: process.env.NITRO_IOS_DESTINATION },
+    sanitizer: { type: "string", default: "none" },
     "skip-hermes-build": { type: "boolean", default: false },
     help: { type: "boolean", short: "h" },
   },
@@ -30,6 +39,7 @@ Defaults live in tests/standalone/runtime/ios/config.json.
   --arch ARCH           auto, arm64 or x86_64 (default: ${defaults.arch})
   --jobs N              Parallel build jobs (default: ${defaults.jobs})
   --destination VALUE   Explicit xcodebuild destination, overriding OS/device selection
+  --sanitizer MODE      none, address or thread (default: none)
   --skip-hermes-build    Reuse an XCFramework already built for this architecture/toolchain
   -h, --help            Show this help
 
@@ -41,6 +51,9 @@ if (!/^\d+(\.\d+){0,2}$/.test(values.os)) {
 }
 if (!["auto", "arm64", "x86_64"].includes(values.arch)) {
   throw new Error("--arch must be auto, arm64 or x86_64");
+}
+if (!["none", "address", "thread"].includes(values.sanitizer)) {
+  throw new Error("--sanitizer must be none, address or thread");
 }
 const architecture =
   values.arch === "auto"
@@ -124,9 +137,26 @@ if (values["skip-hermes-build"]) {
     defaults.deploymentTarget,
   ]);
 }
-const results = path.join(root, "tests/standalone/.build/ios/results");
+const buildDirectory = path.join(
+  root,
+  "tests/standalone/.build/ios",
+  values.sanitizer,
+);
+const results = path.join(
+  buildDirectory,
+  "results",
+  `RuntimeTests-${Date.now()}-${process.pid}`,
+);
 mkdirSync(results, { recursive: true });
-run("xcodebuild", [
+if (values.sanitizer !== "none") {
+  const option =
+    values.sanitizer === "address" ? "ASAN_OPTIONS" : "TSAN_OPTIONS";
+  // xcodebuild forwards TEST_RUNNER_ variables to every test process. Preserve
+  // Xcode's options, but make a sanitizer finding terminate the test runner.
+  environment[`TEST_RUNNER_${option}`] =
+    `__CURRENT_VALUE__:halt_on_error=1:abort_on_error=1:log_path=${path.join(results, "sanitizer")}`;
+}
+const argumentsForTests = [
   "test",
   "-project",
   "tests/standalone/runtime/ios/NitroRuntimeTests.xcodeproj",
@@ -135,9 +165,13 @@ run("xcodebuild", [
   "-destination",
   destination,
   "-derivedDataPath",
-  "tests/standalone/.build/ios/DerivedData",
+  path.join(buildDirectory, "DerivedData"),
   "-resultBundlePath",
-  path.join(results, `RuntimeTests-${Date.now()}.xcresult`),
+  path.join(results, "RuntimeTests.xcresult"),
+  "-enableAddressSanitizer",
+  values.sanitizer === "address" ? "YES" : "NO",
+  "-enableThreadSanitizer",
+  values.sanitizer === "thread" ? "YES" : "NO",
   "-jobs",
   String(jobs),
   "-parallel-testing-enabled",
@@ -145,4 +179,41 @@ run("xcodebuild", [
   "CODE_SIGNING_ALLOWED=NO",
   `ARCHS=${architecture}`,
   `IPHONEOS_DEPLOYMENT_TARGET=${defaults.deploymentTarget}`,
-]);
+];
+const log = openSync(path.join(results, "xcodebuild.log"), "w");
+let sanitizerFailure = false;
+const diagnostic = /(?:ERROR|WARNING|SUMMARY): (?:Address|Thread)Sanitizer:/;
+const outputTails = new Map();
+const status = await new Promise((resolve, reject) => {
+  const child = spawn("xcodebuild", argumentsForTests, {
+    cwd: root,
+    env: environment,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  for (const [source, target] of [
+    [child.stdout, process.stdout],
+    [child.stderr, process.stderr],
+  ]) {
+    source.on("data", (chunk) => {
+      target.write(chunk);
+      writeSync(log, chunk);
+      const output = (outputTails.get(source) ?? "") + chunk.toString();
+      sanitizerFailure ||= diagnostic.test(output);
+      outputTails.set(source, output.slice(-256));
+    });
+  }
+  child.once("error", reject);
+  child.once("close", (code) => resolve(code ?? 1));
+}).finally(() => closeSync(log));
+for (const name of readdirSync(results).filter((name) =>
+  name.startsWith("sanitizer."),
+)) {
+  const report = readFileSync(path.join(results, name), "utf8");
+  if (report.trim()) {
+    process.stderr.write(report);
+    sanitizerFailure = true;
+  }
+}
+console.log(`Test results: ${results}`);
+if (sanitizerFailure) console.error("Sanitizer reported an error.");
+process.exitCode = status || (sanitizerFailure ? 1 : 0);

@@ -54,6 +54,8 @@ bun specs:all
 
 Core changes run both standalone and RN checks. Wrapper changes run RN checks. Nitrogen changes regenerate all fixtures and run the native environments. Workflow filters also include their tests, build configuration, package manifests, and lockfiles.
 
+Sanitizers run in the standalone environment: ASan and TSan on iOS, and ASan on Android. Harness runs without sanitizers on both platforms to check React Native integration. Portable cases still in Harness gain sanitizer coverage as they move into the standalone suite.
+
 ## Performance tests
 
 The benchmark app lives in `tests/react-native/apps/benchmark`. Performance CI is opt-in. A maintainer can request it on a PR with `@nitro-modules-bot please test performance`. See [.github/PERFORMANCE.md](.github/PERFORMANCE.md) for setup and reruns. Both revisions being compared must contain the benchmark app.

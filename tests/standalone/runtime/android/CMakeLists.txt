@@ -29,3 +29,6 @@ target_include_directories(NitroRuntimeTests PRIVATE
   ../cpp)
 target_link_libraries(NitroRuntimeTests PRIVATE
   nitro-core::NitroModules hermes::hermesvm fbjni::fbjni android log)
+
+include("${CMAKE_CURRENT_LIST_DIR}/sanitizer.cmake")
+nitro_apply_test_sanitizer(NitroRuntimeTests)

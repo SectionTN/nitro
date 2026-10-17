@@ -39,8 +39,19 @@ concurrency:
 
 jobs:
   swift-testing:
+    name: Standalone iOS (${{ matrix.sanitizer.name }})
     runs-on: macos-26
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - name: Default
+            value: none
+          - name: ASan
+            value: address
+          - name: TSan
+            value: thread
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.5.app/Contents/Developer
     steps:
@@ -74,19 +85,20 @@ jobs:
       - name: Test Swift HybridObjects in Hermes
         env:
           HERMES_CACHE_HIT: ${{ steps.hermes-cache.outputs.cache-hit }}
+          SANITIZER: ${{ matrix.sanitizer.value }}
         run: |
           if [ "$HERMES_CACHE_HIT" = 'true' ]; then
-            bun tests/standalone/runtime/ios/run.mjs --skip-hermes-build
+            bun tests/standalone/runtime/ios/run.mjs --sanitizer "$SANITIZER" --skip-hermes-build
           else
-            bun tests/standalone/runtime/ios/run.mjs
+            bun tests/standalone/runtime/ios/run.mjs --sanitizer "$SANITIZER"
           fi
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: runtime-ios-results
+          name: runtime-ios-results-${{ matrix.sanitizer.name }}
           path: |
-            tests/standalone/.build/ios/results/*.xcresult
+            tests/standalone/.build/ios/${{ matrix.sanitizer.value }}/results/
             tests/standalone/runtime/build/runtime-tests.js
             tests/standalone/runtime/build/runtime-tests.js.map
             tests/standalone/runtime/build/runtime-tests.json

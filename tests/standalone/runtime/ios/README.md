@@ -18,6 +18,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 bun tests/standalone/runtime/ios/run.mjs --os 26.5 --device 'iPhone 17 Pro' --arch arm64 --jobs 4
 
 bun tests/standalone/runtime/ios/run.mjs --destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UDID'
+bun tests/standalone/runtime/ios/run.mjs --sanitizer address
+bun tests/standalone/runtime/ios/run.mjs --sanitizer thread
 bun tests/standalone/runtime/ios/run.mjs --help
 ```
 
@@ -27,6 +29,8 @@ bun tests/standalone/runtime/ios/run.mjs --help
 
 The Objective-C++ bridge converts a failed assertion or native exception into a Swift error. Four handwritten tests deliberately throw or hang in JavaScript to check that errors reach Swift and that both unresolved promises and synchronous loops time out. These check the runner's failure handling; the automatically discovered TypeScript cases check HybridObject behavior.
 
-Test results are written to `tests/standalone/.build/ios/results/*.xcresult` and uploaded by CI. Open a result bundle in Xcode to inspect failures and logs. The shared JavaScript assertions include the assertion message and JS stack in the native test failure.
+`--sanitizer` accepts `none` (the default), `address` (ASan), or `thread` (TSan). CI runs all three modes. Xcode instruments the C++, Objective-C++, and Swift sources compiled for Core, generated bindings, fixtures, and the test runner. The prebuilt Hermes XCFramework is shared across modes and is not instrumented; these jobs check Core's native code, not the engine's internals or RN integration.
+
+Each mode has its own `DerivedData` and timestamped result directories under `tests/standalone/.build/ios/<mode>/`. Results include the `.xcresult` bundle, `xcodebuild.log`, and any sanitizer reports; CI uploads them even on failure. Sanitizer findings terminate the test process, and the runner also fails on sanitizer diagnostics or report files. Open a result bundle in Xcode to inspect failures and logs. The shared JavaScript assertions include the assertion message and JS stack in the native test failure.
 
 CI caches the completed Hermes XCFramework. The exact cache key includes the Hermes pin, architecture, Xcode/SDK and build-tool versions, checkout path, build helpers and iOS defaults. A cache hit passes `--skip-hermes-build`; a toolchain or engine update gets a fresh build. Only use that flag when the existing XCFramework matches the selected architecture and toolchain. Local builds compile Hermes incrementally by default.

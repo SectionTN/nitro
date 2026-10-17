@@ -18,4 +18,6 @@ For Android Harness, build the example with `minSdkVersion = 26` in `apps/exampl
 
 Native builds require the platform toolchains and an iOS simulator or Android emulator/device. These apps consume `packages/react-native-nitro-modules`, which stages native sources from the local `packages/nitro-core`. Nitrogen also resolves from this workspace.
 
+Harness CI runs once per platform without sanitizers. ASan and TSan coverage belongs to the [standalone Core tests](../standalone/README.md).
+
 Keep generated bindings committed. `bun specs:all` regenerates both RN libraries and the standalone fixtures. The Harness cases stay here during this repository move, including portable runtime coverage and view tests.

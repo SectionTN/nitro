@@ -39,8 +39,20 @@ concurrency:
 
 jobs:
   junit:
+    name: Standalone Android (${{ matrix.sanitizer.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - name: Default
+            flag: ""
+            api-level: 36
+          - name: ASan
+            flag: address
+            # Legacy x86_64 ASan uses the API 33 image verified by RN Harness.
+            api-level: 33
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 2
     steps:
@@ -80,20 +92,20 @@ jobs:
       - run: bun test:prepare
       - name: Build test APK
         working-directory: tests/standalone/runtime/android
-        run: ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 --no-daemon
+        run: ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --no-daemon
       - name: Run JUnit tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 36
+          api-level: ${{ matrix.sanitizer.api-level }}
           arch: x86_64
           target: google_apis
           disable-animations: true
-          script: cd tests/standalone/runtime/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 --no-daemon
+          script: cd tests/standalone/runtime/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --no-daemon
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: runtime-android-results
+          name: runtime-android-results-${{ matrix.sanitizer.name }}
           path: |
             tests/standalone/runtime/android/build/reports/androidTests
             tests/standalone/runtime/android/build/outputs/androidTest-results
