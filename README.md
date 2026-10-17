@@ -12,13 +12,14 @@
 This repository contains:
 
 - [**nitro-core**](packages/nitro-core): Shared native runtime, JavaScript API, and TypeScript definitions
-- [**nitrogen**](packages/nitrogen): An optional code generator for Nitro module library authors
+- [**nitrogen**](packages/nitrogen): Code generator for C++, Swift, and Kotlin bindings
+- [**react-native-nitro-modules**](packages/react-native-nitro-modules): React Native installation, views, worklets, and native build integration
 
-This repository owns the shared runtime, Nitrogen, and the documentation site in [docs/](docs). The `nitro-core` npm package contains the shared native sources, JavaScript API, and TypeScript definitions. The published `react-native-nitro-modules` package, React Native build integration, apps, tests, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules).
+All three packages are built and released together at the same version. The documentation site lives in [docs/](docs).
 
-Shared development targets this repository's `core-split` branch. The React Native repository uses `main` and depends on an exact `nitro-core` npm version.
+The tests have two environments: [standalone](tests/standalone) runs Nitro directly in Hermes through Swift Testing and JUnit; [React Native](tests/react-native) runs the example app and Harness suite. Both use the local Core and Nitrogen packages.
 
-Run `bun bootstrap` to install dependencies and build the shared API and Nitrogen. See [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for source ownership, package updates, and releases.
+Run `bun bootstrap` to install dependencies and build the workspace. See [CONTRIBUTING.md](CONTRIBUTING.md) for development and [RELEASING.md](RELEASING.md) for stable and nightly releases. Until this work lands on `main`, target `core-split` for contributions.
 
 ## Example
 
@@ -63,9 +64,9 @@ cd ios && pod install
 - [**Nitro Module Builder** AI GPT 🤖](https://chatgpt.com/g/g-6870125d0fcc8191925bd20a02c78bcf-nitro-module-builder)
 - [**How to build a Nitro Module** YouTube Tutorial ▶️](https://youtu.be/528SxTGnIlc?si=IxH7n09ZVe4iwRPv)
 - [**nitrogen**/README.md](./packages/nitrogen/README.md)
-- [**react-native-nitro-modules**/README.md](https://github.com/margelo/react-native-nitro-modules/blob/main/packages/react-native-nitro-modules/README.md)
-- [**react-native-nitro-test** example module](https://github.com/margelo/react-native-nitro-modules/blob/main/packages/react-native-nitro-test/README.md)
-- [`TestObject.nitro.ts` example playground](https://github.com/margelo/react-native-nitro-modules/blob/main/packages/react-native-nitro-test/src/specs/TestObject.nitro.ts)
+- [**react-native-nitro-modules**/README.md](./packages/react-native-nitro-modules/README.md)
+- [**react-native-nitro-test** example module](./tests/react-native/packages/react-native-nitro-test/README.md)
+- [`TestObject.nitro.ts` example playground](./tests/react-native/packages/react-native-nitro-test/src/specs/TestObject.nitro.ts)
 
 ## Supported Platforms
 

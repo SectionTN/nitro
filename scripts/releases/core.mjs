@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url'
 import {
   assertCI,
   assertClean,
-  assertPublishedPackages,
   compareVersions,
   downloadRelease,
   finishRelease,
@@ -19,11 +18,15 @@ import {
   publishPackages,
   readJSON,
   registryPackage,
+  removeReleaseRequestBranch,
   run,
   saveDraft,
   validateManifest,
+  versionFromTag,
 } from './lib.mjs'
 import { checkConsumer } from './check-consumer.mjs'
+import { releasePackages, versionedFiles } from './packages.mjs'
+import { checkNativeBuilds } from './native-checks.mjs'
 
 const root = fileURLToPath(new URL('../../', import.meta.url))
 process.chdir(root)
@@ -39,6 +42,7 @@ if (
   throw new Error('Invalid release request branch')
 }
 const automaticNightly = process.env.RELEASE_MODE === 'nightly'
+const releaseEventTag = process.env.RELEASE_EVENT_TAG || undefined
 let sourceCommit = git(['rev-parse', 'HEAD'])
 const version = automaticNightly
   ? nightlyVersion(
@@ -46,7 +50,9 @@ const version = automaticNightly
       process.env.GITHUB_RUN_NUMBER,
       sourceCommit
     )
-  : (request?.[2] ?? process.env.RELEASE_VERSION)
+  : releaseEventTag
+    ? versionFromTag(releaseEventTag)
+    : (request?.[2] ?? process.env.RELEASE_VERSION)
 parseVersion(version)
 const nightly = isNightly(version)
 const npmTag = npmTagFor(
@@ -73,7 +79,10 @@ assertClean()
 git(['fetch', 'origin', branch, '--tags'])
 const directory = mkdtempSync(path.join(tmpdir(), 'nitro-release-'))
 const exists = !!git(['tag', '--list', tag])
+if (releaseEventTag && !exists)
+  throw new Error('The GitHub release tag is missing')
 let manifest
+let allowPublishedCheckpoint = false
 
 if (exists) {
   const commit = git(['rev-parse', `${tag}^{commit}`])
@@ -82,18 +91,31 @@ if (exists) {
     '--format=%(contents)',
     `refs/tags/${tag}`,
   ])
-  if (
-    !annotation.split('\n').includes(`Nitro-Release: ${tag}`) ||
-    !annotation.split('\n').includes(`Npm-Tag: ${npmTag}`)
-  ) {
-    throw new Error(
-      `Tag ${tag} was not created by this release workflow with npm tag ${npmTag}`
+  const release = getRelease(repository, tag)
+  allowPublishedCheckpoint = releaseEventTag === tag && release?.draft === false
+  if (annotation.split('\n').includes(`Nitro-Release: ${tag}`)) {
+    if (!annotation.split('\n').includes(`Npm-Tag: ${npmTag}`))
+      throw new Error(`Tag ${tag} was created with a different npm tag`)
+    sourceCommit = annotation
+      .split('\n')
+      .find((line) => line.startsWith('Source-Commit: '))
+      ?.slice('Source-Commit: '.length)
+  } else {
+    if (
+      nightly ||
+      !release ||
+      release.draft ||
+      (releaseEventTag !== tag &&
+        !release.assets.some((asset) => asset.name === 'nitro-release.json'))
     )
+      throw new Error(
+        `Tag ${tag} must come from this workflow or a published GitHub release`
+      )
+    // A GitHub release already has an immutable tag. Its source must have been
+    // versioned before publishing the release; never move that tag to a bump commit.
+    sourceCommit = commit
+    allowPublishedCheckpoint = true
   }
-  sourceCommit = annotation
-    .split('\n')
-    .find((line) => line.startsWith('Source-Commit: '))
-    ?.slice('Source-Commit: '.length)
   if (!/^[a-f0-9]{40}$/.test(sourceCommit))
     throw new Error('Release tag does not record its source commit')
   if (nightly && git(['rev-parse', `${tag}^`]) !== sourceCommit)
@@ -108,7 +130,6 @@ if (exists) {
   run('node', ['scripts/set-version.mjs', '--check'])
   if (readJSON('package.json').version !== version)
     throw new Error('Tagged version does not match input')
-  const release = getRelease(repository, tag)
   if (release?.assets.some((asset) => asset.name === 'nitro-release.json')) {
     manifest = downloadRelease(repository, tag, 'nitro-release.json', directory)
     if (
@@ -119,13 +140,6 @@ if (exists) {
       throw new Error(
         'Saved release differs from its Git tag or requested npm tag'
       )
-    if (!release.draft) {
-      await assertPublishedPackages(manifest)
-      console.log(`${tag} is already complete`)
-      if (requestRef && !dryRun) git(['push', 'origin', '--delete', requestRef])
-      reportCompletedRelease()
-      process.exit(0)
-    }
   }
 } else {
   if (nightly && !automaticNightly)
@@ -165,7 +179,7 @@ if (exists) {
     if (!release || release.draft)
       throw new Error(`Resume ${releaseTag} before starting another release`)
   }
-  for (const name of ['nitro-core', 'nitrogen']) {
+  for (const name of releasePackages) {
     if (await registryPackage(name, version))
       throw new Error(`${name}@${version} already exists on npm`)
   }
@@ -178,10 +192,11 @@ if (!manifest) {
     '--ignore-scripts',
     ...(exists ? ['--frozen-lockfile'] : []),
   ])
-  run('node', ['--test', 'scripts/releases/lib.test.mjs'])
+  run('bun', ['run', 'test:release'])
   run('bun', ['run', 'build'])
   run('bun', ['run', 'typecheck'])
-  const packages = ['nitro-core', 'nitrogen'].map((name) =>
+  checkNativeBuilds(root)
+  const packages = releasePackages.map((name) =>
     packPackage(path.join(root, 'packages', name), directory)
   )
   checkConsumer(packages.map((pkg) => path.join(directory, pkg.filename)))
@@ -196,14 +211,15 @@ if (!manifest) {
     git(['config', 'user.email', 'me@mrousavy.com'])
     git([
       'add',
-      'package.json',
-      'packages/nitro-core/package.json',
-      'packages/nitrogen/package.json',
-      'packages/nitro-core/js/src/version.ts',
-      'packages/nitro-core/native/cpp/utils/NitroDefines.hpp',
-      'bun.lock',
+      ...versionedFiles,
+      'tests/react-native/apps/example/ios/Podfile.lock',
+      'tests/react-native/apps/benchmark/ios/Podfile.lock',
+      'tests/react-native/packages/react-native-nitro-test/nitrogen/generated',
+      'tests/react-native/packages/react-native-nitro-test-external/nitrogen/generated',
     ])
     git(['diff', '--exit-code'])
+    if (git(['ls-files', '--others', '--exclude-standard']))
+      throw new Error('Release generated unexpected untracked files')
     git(['commit', '-m', `chore: release ${version}`])
     git([
       'tag',
@@ -233,9 +249,11 @@ if (!manifest) {
       sourceCommit,
       packages,
     },
-    { repository, tag, packages: ['nitro-core', 'nitrogen'] }
+    { repository, tag, packages: releasePackages }
   )
-  saveDraft(manifest, directory, 'nitro-release.json')
+  saveDraft(manifest, directory, 'nitro-release.json', {
+    allowPublished: allowPublishedCheckpoint,
+  })
 }
 if (dryRun) {
   console.log(`Saved artifacts for ${tag} verified. No publication.`)
@@ -243,8 +261,6 @@ if (dryRun) {
 }
 await publishPackages(manifest, directory)
 finishRelease(manifest)
-if (requestRef) git(['push', 'origin', '--delete', requestRef])
+if (requestRef) removeReleaseRequestBranch(requestRef)
 reportCompletedRelease()
-console.log(
-  `Released ${tag}. The RN repository will pick up this completed release.`
-)
+console.log(`Released ${releasePackages.join(', ')} at ${version}`)

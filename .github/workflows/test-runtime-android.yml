@@ -1,4 +1,4 @@
-name: Test runtime on Android
+name: Test standalone runtime (Android)
 
 on:
   workflow_dispatch:
@@ -6,21 +6,29 @@ on:
     branches: [main, core-split]
     paths:
       - ".github/workflows/test-runtime-android.yml"
-      - ".gitmodules"
-      - "tests/**"
       - "packages/nitro-core/**"
       - "packages/nitrogen/**"
+      - "tests/standalone/**"
       - "package.json"
       - "bun.lock"
+      - "bunfig.toml"
+      - "scripts/releases/**"
+      - "config/**"
+      - "scripts/set-version.mjs"
+      - ".gitmodules"
   pull_request:
     paths:
       - ".github/workflows/test-runtime-android.yml"
-      - ".gitmodules"
-      - "tests/**"
       - "packages/nitro-core/**"
       - "packages/nitrogen/**"
+      - "tests/standalone/**"
       - "package.json"
       - "bun.lock"
+      - "bunfig.toml"
+      - "scripts/releases/**"
+      - "config/**"
+      - "scripts/set-version.mjs"
+      - ".gitmodules"
 
 permissions:
   contents: read
@@ -63,15 +71,15 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - name: Read pinned Hermes revision
         id: hermes
-        run: echo "revision=$(git -C tests/vendor/hermes rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+        run: echo "revision=$(git -C tests/standalone/vendor/hermes rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         with:
-          path: tests/.build/hermes/host
-          key: hermes-host-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.revision }}-${{ hashFiles('tests/hermes/build.mjs', 'tests/hermes/options.cmake') }}
-      - run: bun install --frozen-lockfile
+          path: tests/standalone/.build/hermes/host
+          key: hermes-host-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.revision }}-${{ hashFiles('tests/standalone/hermes/build.mjs', 'tests/standalone/hermes/options.cmake') }}
+      - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun test:prepare
       - name: Build test APK
-        working-directory: tests/runtime/android
+        working-directory: tests/standalone/runtime/android
         run: ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 --no-daemon
       - name: Run JUnit tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -80,16 +88,16 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          script: cd tests/runtime/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 --no-daemon
+          script: cd tests/standalone/runtime/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 --no-daemon
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: runtime-android-results
           path: |
-            tests/runtime/android/build/reports/androidTests
-            tests/runtime/android/build/outputs/androidTest-results
-            tests/runtime/build/runtime-tests.js
-            tests/runtime/build/runtime-tests.js.map
-            tests/runtime/build/runtime-tests.json
+            tests/standalone/runtime/android/build/reports/androidTests
+            tests/standalone/runtime/android/build/outputs/androidTest-results
+            tests/standalone/runtime/build/runtime-tests.js
+            tests/standalone/runtime/build/runtime-tests.js.map
+            tests/standalone/runtime/build/runtime-tests.json
           if-no-files-found: ignore

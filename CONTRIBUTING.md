@@ -1,39 +1,71 @@
 # Contributing to Nitro
 
-Nitro owns the shared native runtime, its JS/TS API, Nitrogen, and the docs. React Native packaging, apps, tests, and templates live in [react-native-nitro-modules](https://github.com/margelo/react-native-nitro-modules). Read [REPOSITORY_SPLIT.md](REPOSITORY_SPLIT.md) for setup and core package updates, and [RELEASING.md](RELEASING.md) for CI releases.
+This repository contains `nitro-core`, Nitrogen, `react-native-nitro-modules`, the test environments, and the documentation site. All published packages use the same version. See [RELEASING.md](RELEASING.md) for releases.
 
 ## Scope and code review
 
-Keep changes focused. Bug fixes and features need a test that reproduces the problem; runtime and generation fixtures live in the wrapper repository. A PR containing only a minimal failing test is also welcome. Link related PRs across repositories so reviewers can run the core change with its test.
-
-Reuse the existing specs and types, add the smallest assertion or method that covers the issue, and preserve existing cases. Avoid unrelated refactors, generated boilerplate, and speculative changes. AI-assisted contributions must meet the same requirements as other changes.
+Keep changes focused. Bug fixes and features need a test that reproduces the problem. A PR containing only a minimal failing test is welcome. Reuse existing specs and types, add the smallest assertion or method that covers the issue, and preserve existing cases. Avoid unrelated refactors and generated boilerplate. AI-assisted contributions must meet the same requirements.
 
 ## Development
 
-Use Bun for workspace installation and builds:
+Use the Bun version in `package.json`:
 
 ```sh
 bun bootstrap
 bun run build
 bun typecheck
-bun lint-all
 ```
 
-`packages/nitro-core/` contains the shared runtime: `native/{cpp,apple,android}/` and `js/src/`. Its npm package publishes native sources, JavaScript, and TypeScript declarations together. The React Native repository stages native sources from that package and owns RN JS integration and build configuration. The native sources still contain React Native-specific code. `packages/nitrogen/` is the published generator, including React Native view generation and autolinking.
+`packages/nitro-core/` owns the shared native sources and JS/TS API. `packages/react-native-nitro-modules/` owns the RN entry point and build configuration. `bun sync-core` stages local Core native sources into the RN package before builds and packing. Those staged directories are ignored; edit the authoritative sources in Core.
 
-For native or generator changes, pack `nitro-core` and `nitrogen` into a temporary directory and install those tarballs in a temporary `react-native-nitro-modules` checkout. Run `bun sync-core`, build the workspace, run `bun specs`, and build the example app on the affected platforms. Use exact npm versions for committed dependency updates; keep local tarball paths out of manifests and lockfiles committed to the wrapper. Run the existing harness tests for behavioral changes. Commit generated fixture changes in the wrapper repository. The [wrapper contribution guide](https://github.com/margelo/react-native-nitro-modules/blob/main/CONTRIBUTING.md) and [docs](https://nitro.margelo.com/docs/resources/contributing) describe the existing test harness and toolchains.
+For Core-only iteration, install with `bun install --frozen-lockfile --ignore-scripts` and run `bun run build:core`. This avoids building the RN JavaScript packages.
+
+## Tests and generated bindings
+
+The standalone environment in `tests/standalone/` runs Nitro in Hermes through Swift Testing on an iOS simulator and instrumented JUnit on Android. Initialize its pinned engine before native tests:
+
+```sh
+git submodule update --init --recursive -- tests/standalone/vendor/hermes
+bun test:ios
+bun test:android
+```
+
+See [the standalone guide](tests/standalone/README.md) for native toolchain requirements.
+
+The RN environment in `tests/react-native/` contains the example and benchmark apps plus two fixture libraries. Keep the external fixture separate because it tests cross-library behavior. The example app hosts the existing Harness tests, including views.
+
+```sh
+bun bootstrap:ios
+bun example ios
+bun example android
+bun test:react-native:ios
+bun test:react-native:android
+```
+
+See [the RN test guide](tests/react-native/README.md) for the Android Harness minimum SDK setting.
+
+After editing specs or Nitrogen, generate and commit all bindings:
+
+```sh
+bun specs:all
+```
+
+`bun specs` generates both RN fixture libraries. `bun test:prepare` generates and bundles the standalone fixtures. CI verifies that all three generated directories match their inputs, including newly generated files.
+
+Core changes run both standalone and RN checks. Wrapper changes run RN checks. Nitrogen changes regenerate all fixtures and run the native environments. Workflow filters also include their tests, build configuration, package manifests, and lockfiles.
+
+## Performance tests
+
+The benchmark app lives in `tests/react-native/apps/benchmark`. Performance CI is opt-in. A maintainer can request it on a PR with `@nitro-modules-bot please test performance`. See [.github/PERFORMANCE.md](.github/PERFORMANCE.md) for setup and reruns. Both revisions being compared must contain the benchmark app.
 
 ## Documentation
 
-The Docusaurus site lives in `docs/`. Run `bun docs start` for local development, `bun docs typecheck` to check its TypeScript, and `bun docs build` for a production build. See [docs/README.md](docs/README.md) for setup and deployment configuration.
+Run `bun docs start`, `bun docs typecheck`, or `bun docs build` for the Docusaurus site in `docs/`.
 
 ## Before requesting review
 
-- Target `core-split` here and `main` in the React Native repository.
-- Include or link a regression test for each fix. For a reproduction-only PR, describe the expected failure.
-- Run the retained package builds, typechecks, and relevant linters here.
-- Regenerate the wrapper's fixtures and run the relevant native builds and tests.
-- Preserve existing test coverage and report checks that could not run.
-- Use Conventional Commit messages (`fix:`, `feat:`, `docs:`, `chore:`, `perf:`).
-
-Core CI builds and typechecks the retained packages, runs linters, checks Nitrogen init, and packs `nitro-core` and Nitrogen. The wrapper owns generation comparisons, native builds, runtime harness tests, and performance CI. Validate shared changes there before merging them.
+- Target `core-split` until the reorganization lands on `main`.
+- Include a regression test for each fix, or describe the expected failure for a reproduction-only PR.
+- Build, typecheck, and run the relevant linters and native tests.
+- Commit generated bindings and report checks that could not run.
+- Use Conventional Commit messages such as `fix:`, `feat:`, `docs:`, `chore:`, or `perf:`.
