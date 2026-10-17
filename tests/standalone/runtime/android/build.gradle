@@ -28,7 +28,10 @@ android {
     }
   }
 
-  buildFeatures { prefab true }
+  buildFeatures {
+    prefab true
+    buildConfig true
+  }
   packaging { jniLibs { pickFirsts += ['**/libc++_shared.so', '**/libfbjni.so'] } }
   if (nitroSanitizer == 'address') {
     // Android must extract wrap.sh and the preloaded ASan runtime together.
