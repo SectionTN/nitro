@@ -50,7 +50,7 @@ After editing specs or Nitrogen, generate and commit all bindings:
 bun specs
 ```
 
-`bun specs` runs Nitrogen for the standalone and both RN fixture libraries. `bun specs:react-native` limits generation to the RN fixtures. The **Check Nitrogen output** job verifies that all three generated directories match their committed files, including detecting newly generated files.
+`bun specs` runs Nitrogen for the standalone and both RN fixture libraries. The **Check Nitrogen output** job verifies that all three generated directories match their committed files, including detecting newly generated files.
 
 The standalone iOS and Android jobs run `bun test:prepare` to typecheck the tests, generate their bindings, and bundle the JavaScript and test-name manifest before native execution. A preparation failure stops the job before the native tests run.
 

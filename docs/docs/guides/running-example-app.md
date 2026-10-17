@@ -138,10 +138,10 @@ The Nitro repository uses the [nitrogen](../concepts/nitrogen) CLI and contains 
 Every time you change a Nitro spec in one of those two test libraries, you can simply re-generate specs in the root folder;
 
 ```sh
-bun specs:react-native
+bun specs
 ```
 
-This runs [nitrogen](../concepts/nitrogen) for both test libraries. You might need to reinstall pods if any iOS files changed;
+This runs [nitrogen](../concepts/nitrogen) for both React Native test libraries and the standalone tests. You might need to reinstall pods if any iOS files changed;
 
 ```sh
 bun example pods

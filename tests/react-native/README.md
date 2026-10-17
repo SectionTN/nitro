@@ -6,7 +6,7 @@ From the repository root:
 
 ```sh
 bun bootstrap
-bun specs:react-native
+bun specs
 bun bootstrap:ios
 bun example ios
 bun example android

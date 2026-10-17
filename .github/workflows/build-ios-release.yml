@@ -42,8 +42,8 @@ jobs:
       - name: Install npm dependencies (bun)
         run: bun install --frozen-lockfile
 
-      - name: Generate React Native test bindings
-        run: bun specs:react-native
+      - name: Generate test bindings
+        run: bun specs
 
       - name: Setup Ruby (bundle)
         uses: ruby/setup-ruby@v1

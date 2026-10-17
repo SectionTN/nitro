@@ -56,8 +56,8 @@ jobs:
       - name: Install npm dependencies (bun)
         run: bun install --frozen-lockfile
 
-      - name: Generate React Native test bindings
-        run: bun specs:react-native
+      - name: Generate test bindings
+        run: bun specs
 
       - name: Set minSdk in build.gradle
         run: sed -i "s/minSdkVersion = 24/minSdkVersion = ${{ matrix.min-sdk }}/g" tests/react-native/apps/example/android/build.gradle
