@@ -25,7 +25,7 @@ android {
     ndk { abiFilters providers.gradleProperty('nitroTestAbi').get() }
     externalNativeBuild {
       cmake {
-        arguments '-DANDROID_STL=c++_shared', '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
+        arguments '-DANDROID_STL=c++_shared', '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON', "-DNITRO_SANITIZER=${providers.gradleProperty('nitroSanitizer').getOrElse('')}"
         targets 'NitroModules'
       }
     }

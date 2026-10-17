@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       device_api_level:
-        description: "Override the Android API level for both jobs"
+        description: "Android API level"
         required: false
         type: string
       device_profile:
@@ -17,7 +17,7 @@ on:
         default: "pixel_7"
         type: string
       avd_name:
-        description: "Override the AVD name for both jobs"
+        description: "AVD name"
         required: false
         type: string
   push:
@@ -62,27 +62,11 @@ env:
 
 jobs:
   harness_android_new:
-    name: Harness Android (${{ matrix.sanitizer.name }}, new architecture)
+    name: Harness Android
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        min-sdk:
-          - '26'
-        sanitizer:
-          - name: Default
-            gradle_property: ""
-            device_api_level: "36"
-            avd_name: Pixel_7_API_36
-          - name: ASan
-            gradle_property: "address"
-            # Keep legacy x86_64 ASan on the API 33 image verified in #1530.
-            # HWASan requires ARM64; this workflow uses an x86_64 emulator.
-            device_api_level: "33"
-            avd_name: Pixel_7_API_33
     env:
-      DEVICE_API_LEVEL: ${{ github.event.inputs.device_api_level || matrix.sanitizer.device_api_level }}
-      AVD_NAME: ${{ github.event.inputs.avd_name || matrix.sanitizer.avd_name }}
+      DEVICE_API_LEVEL: ${{ github.event.inputs.device_api_level || '36' }}
+      AVD_NAME: ${{ github.event.inputs.avd_name || 'Pixel_7_API_36' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -107,7 +91,7 @@ jobs:
         run: bun specs
 
       - name: Set minSdk in build.gradle
-        run: sed -i "s/minSdkVersion = 24/minSdkVersion = ${{ matrix.min-sdk }}/g" tests/react-native/apps/example/android/build.gradle
+        run: sed -i "s/minSdkVersion = 24/minSdkVersion = 26/g" tests/react-native/apps/example/android/build.gradle
 
       - name: Setup JDK 17
         uses: actions/setup-java@v6.0.0
@@ -124,13 +108,12 @@ jobs:
             ~/.gradle/wrapper
             tests/react-native/apps/example/android/.gradle
             tests/react-native/apps/example/android/app/.cxx
-          key: ${{ runner.os }}-gradle-${{ matrix.min-sdk }}-${{ env.DEVICE_ARCH }}-${{ matrix.sanitizer.name }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/CMakeLists.txt', '**/*.cmake') }}
+          key: ${{ runner.os }}-gradle-26-${{ env.DEVICE_ARCH }}-Default-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties', '**/CMakeLists.txt', '**/*.cmake') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-${{ matrix.min-sdk }}-${{ env.DEVICE_ARCH }}-${{ matrix.sanitizer.name }}-
-            ${{ runner.os }}-gradle-
+            ${{ runner.os }}-gradle-26-${{ env.DEVICE_ARCH }}-Default-
       - name: Build React Native Android app
         working-directory: tests/react-native/apps/example/android
-        run: ./gradlew :app:assembleDebug --no-daemon --build-cache -PreactNativeArchitectures=${{ env.DEVICE_ARCH }} -PnitroSanitizer=${{ matrix.sanitizer.gradle_property }}
+        run: ./gradlew :app:assembleDebug --no-daemon --build-cache -PreactNativeArchitectures=${{ env.DEVICE_ARCH }}
 
       - name: Run Harness E2E tests
         uses: callstackincubator/react-native-harness@v1.5.0

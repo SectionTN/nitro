@@ -49,6 +49,15 @@ NDK, JDK and a running emulator. See each platform directory for its toolchain a
 direct CLI command. The two native CI workflows run those same tests and retain
 their reports on failure.
 
+CI runs normal, AddressSanitizer (ASan), and ThreadSanitizer (TSan) configurations
+on iOS, and normal and ASan configurations on Android. Sanitized builds instrument
+Core, the native fixtures, and the test host. Hermes stays uninstrumented.
+See the [iOS](runtime/ios/README.md) and
+[Android](runtime/android/README.md) guides for local sanitizer commands.
+
+React Native Harness runs without sanitizers. Portable cases still in Harness
+gain sanitizer coverage when they move into this suite.
+
 ## Writing tests
 
 Specs and shared tests use TypeScript for editor feedback and compile-time checks.

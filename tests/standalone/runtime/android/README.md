@@ -37,8 +37,16 @@ The default ABI is `arm64-v8a`, suitable for Apple Silicon emulators and ARM64 d
 
 The leading `:` selects the runtime project's tests. The dependency libraries have no test suites of their own.
 
+To run AddressSanitizer on an API 33 x86_64 emulator:
+
+```sh
+./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=address
+```
+
+ASan instruments Core and the native fixtures/test host. The test APK includes the NDK's ASan runtime and startup wrapper; Hermes remains uninstrumented. Omit `-PnitroSanitizer` for a normal run. CI keeps ASan on API 33, the emulator image previously used for the sanitized Harness tests.
+
 `HybridObjectTest` reads the generated `runtime-tests.json` manifest and runs each JavaScript case as a named JUnit parameter. Adding a shared JS test requires no Kotlin changes. Missing, empty, malformed, or duplicate manifest entries fail discovery. JavaScript failures become JUnit assertion failures with the case name and stack.
 
 `NativeTestRuntimeTest` separately verifies rejected promises, synchronous exceptions, and both pending-promise and infinite-loop timeouts.
 
-Reports are written to `build/reports/androidTests/connected/debug/`, with machine-readable results under `build/outputs/androidTest-results/`. The Android CI workflow runs an API 36 x86_64 emulator and uploads those results with the JavaScript bundle, manifest, and source map.
+Reports are written to `build/reports/androidTests/connected/debug/`, with machine-readable results under `build/outputs/androidTest-results/`. CI runs normal tests on API 36 and ASan tests on API 33, both using x86_64 emulators, and uploads separate results with the JavaScript bundle, manifest, and source map.
