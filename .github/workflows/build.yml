@@ -2,7 +2,7 @@ name: Build and validate published packages
 
 on:
   push:
-    branches: [main, core-split]
+    branches: [main]
     paths:
       - '.github/workflows/build.yml'
       - 'packages/nitro-core/**'

@@ -2,7 +2,7 @@ name: Check generated test bindings
 
 on:
   push:
-    branches: [main, core-split]
+    branches: [main]
     paths:
       - 'packages/nitrogen/**'
       - 'packages/nitro-core/**'

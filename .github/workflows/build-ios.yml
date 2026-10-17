@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - core-split
     paths:
       - '.github/workflows/build-ios.yml'
       - 'packages/nitro-core/**'

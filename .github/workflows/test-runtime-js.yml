@@ -2,7 +2,7 @@ name: Check standalone test fixtures
 
 on:
   push:
-    branches: [main, core-split]
+    branches: [main]
     paths:
       - ".github/workflows/test-runtime-js.yml"
       - "packages/nitro-core/**"

@@ -2,7 +2,7 @@ name: Test standalone runtime (iOS)
 
 on:
   push:
-    branches: [main, core-split]
+    branches: [main]
     paths:
       - ".github/workflows/test-runtime-ios.yml"
       - "packages/nitro-core/**"
