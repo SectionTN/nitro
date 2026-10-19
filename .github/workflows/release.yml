@@ -73,7 +73,7 @@ jobs:
           RELEASE_DRY_RUN: ${{ inputs.dry-run }}
           RELEASE_EVENT_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
           BUNDLE_FROZEN: 'true'
-        run: node scripts/releases/core.mjs
+        run: bun release:ci
 
   # Releases created with GITHUB_TOKEN do not trigger other release workflows.
   ios-artifacts:

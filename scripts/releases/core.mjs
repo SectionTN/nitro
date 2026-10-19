@@ -124,7 +124,7 @@ if (exists) {
     `origin/${branch}`,
   ])
   git(['checkout', '--detach', commit])
-  run('node', ['scripts/set-version.mjs', '--check'])
+  run('bun', ['run', 'check-versions'])
   if (readJSON('package.json').version !== version)
     throw new Error('Tagged version does not match input')
   if (release?.assets.some((asset) => asset.name === 'nitro-release.json')) {
@@ -176,7 +176,7 @@ if (exists) {
     if (await registryPackage(name, version))
       throw new Error(`${name}@${version} already exists on npm`)
   }
-  run('node', ['scripts/set-version.mjs', version])
+  run('bun', ['run', 'version:set', version])
 }
 
 if (!manifest) {
