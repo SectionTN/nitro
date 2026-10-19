@@ -31,7 +31,7 @@ permissions:
 jobs:
   release:
     if: github.repository == 'margelo/nitro' && !github.event.deleted && (github.event_name == 'release' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1')
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 90
     outputs:
       tag: ${{ steps.release.outputs.tag }}
@@ -58,7 +58,10 @@ jobs:
         with:
           packages: platform-tools
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+        run: |
+          sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
+          xcodebuild -version
+          xcrun swift --version
       - name: Build, validate and release
         id: release
         env:
