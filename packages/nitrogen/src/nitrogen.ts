@@ -378,8 +378,7 @@ export async function runNitrogen({
   try {
     // write a .gitattributes file
     await mkdir(outputDirectory, { recursive: true })
-    const markAsGenerated = NitroConfig.current.getGitAttributesGeneratedFlag()
-    const file = await createGitAttributes(markAsGenerated, outputDirectory)
+    const file = await createGitAttributes(outputDirectory)
     filesAfter.push(file)
   } catch {
     Logger.error(`❌  Failed to write ${chalk.dim(`.gitattributes`)}!`)

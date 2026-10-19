@@ -79,13 +79,6 @@ export const NitroUserConfigSchema = z.object({
   autolinking: z.never({
     error: 'autolinking has moved to .nitro.ts: declare implementation in each platform and a public constructor to enable new.',
   }).optional(),
-  /**
-   * Configures whether all nitro-generated files are marked as
-   * [`linguist-generated`](https://docs.github.com/en/repositories/working-with-files/managing-files/customizing-how-changed-files-appear-on-github)
-   * for GitHub. This disables diffing for generated content and excludes them from language statistics.
-   * This is controlled via `.gitattributes` in the output directory.
-   */
-  gitAttributesGeneratedFlag: z.boolean().optional().default(true),
 })
 
 /**
