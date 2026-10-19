@@ -29,7 +29,8 @@
     "app.plugin.js",
     "nitro.json",
     "README.md",
-    "Package.swift"
+    "Package.swift",
+    "*.podspec"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
