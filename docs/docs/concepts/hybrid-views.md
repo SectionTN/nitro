@@ -4,30 +4,27 @@ description: Learn how Nitro Hybrid Views render native view components in React
 
 # Hybrid Views
 
-A **Hybrid View** is just a [**Hybrid Object**](hybrid-objects) that can also be rendered.
+A **Hybrid View** is just a [**Hybrid Object**](hybrid-objects) that can also be rendered in react-native.
 It has one additional class-member, `view`:
 
 <div className="side-by-side-container">
 <div className="side-by-side-block">
 
 ```ts title="Camera.nitro.ts"
-export interface CameraProps
-       extends HybridViewProps {
+@iOS(...)
+@Android(...)
+export declare class CameraView extends HybridView {
+  constructor()
   enableFlash: boolean
 }
-export interface CameraMethods
-       extends HybridViewMethods { }
-
-// highlight-next-line
-export type CameraView =
-  HybridView<CameraProps, CameraMethods>
+export * from '#nitro/CameraView'
 ```
 
 </div>
 <div className="side-by-side-block">
 
-```swift title="HybridCamera.swift"
-class HybridCamera : HybridCameraSpec {
+```swift title="HybridCameraView.swift"
+class HybridCameraView : HybridCameraSpec {
   var enableFlash: Bool = false
 
   var view: UIView {
@@ -43,24 +40,17 @@ class HybridCamera : HybridCameraSpec {
 
 ## Rendering Hybrid Views
 
-Unlike a **Hybrid Object**, **Hybrid Views** should not be created manually. Instead, you should use the `getHostComponent(...)` function to get a renderable version of your Hybrid View:
+In addition to the normal Hybrid Object constructor, a Hybrid View also creates a react-native Fabric component:
 
 ```ts
-export const Camera = getHostComponent<CameraProps, CameraMethods>(
-  'Camera',
-  () => CameraViewConfig
-)
-```
+import { CameraViewComponent } from './CameraView.nitro'
 
-This can then be rendered in React;
-
-```tsx
 function App() {
-  return <Camera />
+  return <CameraViewComponent />
 }
 ```
 
-Internally, the `<Camera />` view will create the `HybridCamera` hybrid object - one hybrid object per view.
+Internally, the `<CameraViewComponent />` view will create the `HybridCameraView` hybrid object and mount its `.view` - one hybrid object per view.
 
 ## Accessing the underlying Hybrid Object
 
@@ -69,9 +59,9 @@ To access the actual underlying object, you can use the `hybridRef`:
 ```jsx
 function App() {
   return (
-    <Camera
+    <CameraViewComponent
       hybridRef={(ref) => {
-        console.log(ref.name) // <-- HybridCamera
+        console.log(ref.toString()) // <-- [HybridObject HybridCameraView]
         const image = ref.takePhoto()
       }}
     />
