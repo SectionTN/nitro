@@ -19,7 +19,7 @@ This repository contains:
 
 Declaration (TypeScript):
 ```ts
-import { iOS, type HybridObject } from 'react-native-nitro-modules'
+import { iOS, type HybridObject } from 'nitro-core'
 
 @iOS({
   language: 'c++',

@@ -106,7 +106,7 @@ A Nitro spec file consists of one or more `declare class` statements and combine
 - Since `declare class` is type-only, no JS runtime code exists. Nitrogen generates this, which must be re-exported via `export * from '#nitro/Math'`.
 
 ```ts title="Math.nitro.ts"
-import { iOS, type HybridObject } from 'react-native-nitro-modules'
+import { iOS, type HybridObject } from 'nitro-core'
 
 @iOS({
   language: 'swift',

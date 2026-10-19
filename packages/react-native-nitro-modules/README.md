@@ -30,17 +30,26 @@ The package re-exports the shared `nitro-core` API and installs it into the Reac
 
 ### Inside a nitro module library
 
-If you are building a nitro module yourself, add [react-native-nitro-modules](https://npmjs.org/react-native-nitro-modules) as a `peerDependency` into your library's `package.json`:
+If you are building a Nitro module, declare `nitro-core` and `react-native-nitro-modules` as optional peer dependencies in your library's `package.json`:
 
 ```json
 {
-  ...
   "peerDependencies": {
-    ...
+    "nitro-core": "*",
     "react-native-nitro-modules": "*"
   },
+  "peerDependenciesMeta": {
+    "nitro-core": {
+      "optional": true
+    },
+    "react-native-nitro-modules": {
+      "optional": true
+    }
+  }
 }
 ```
+
+Also install both packages and Nitrogen as dev dependencies, keeping them on the same Nitro release version. The [library setup guide](../../docs/docs/getting-started/how-to-build-a-nitro-module.md#11-install-nitro-and-nitrogen) explains the optional peer configuration.
 
 Then install `react-native-nitro-modules` as a normal `dependency` in your library's `example/` app as seen above.
 
