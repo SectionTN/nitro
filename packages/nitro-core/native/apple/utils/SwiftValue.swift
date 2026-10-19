@@ -1,6 +1,6 @@
 
 /// Copies a value from borrowed Swift storage. The source must contain an initialized T.
-#if canImport(NitroModulesAppleCxx)
+#if SWIFT_PACKAGE
 public import NitroModulesAppleCxx
 #endif
 

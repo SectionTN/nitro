@@ -5,7 +5,7 @@
 //  Created by Marc Rousavy on 17.07.24.
 //
 
-#if canImport(NitroModulesAppleCxx)
+#if SWIFT_PACKAGE
 public import NitroModulesAppleCxx
 #endif
 

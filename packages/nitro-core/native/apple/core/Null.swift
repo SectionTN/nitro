@@ -6,7 +6,7 @@
 //
 
 
-#if canImport(NitroModulesAppleCxx)
+#if SWIFT_PACKAGE
 public import NitroModulesAppleCxx
 #endif
 
