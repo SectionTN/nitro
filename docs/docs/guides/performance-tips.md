@@ -14,17 +14,16 @@ Here are some tips to make your library even faster.
 
 Any dynamic types require runtime type checking, and cannot be optimized as good as statically known types (compile-time).
 
-### Untyped Maps
+### JSON values
 
-An [untyped map](../types/untyped-maps) (`AnyMap`) is not only untyped, but also in-efficient. If you can, avoid untyped maps:
+`AnyJSON` serializes values to JSON text at the native boundary. For a known shape, a [typed struct](../types/custom-structs) avoids that parse and stringify work:
 
 <div className="side-by-side-container">
 <div className="side-by-side-block">
 
 ```ts title="Bad ❌"
-interface BadDatabase
-  extends HybridObject<{ … }> {
-  getUser(): AnyMap
+export declare class BadDatabase extends HybridObject {
+  getUser(): AnyJSON
 }
 ```
 
@@ -36,8 +35,7 @@ interface User {
   name: string
   age: number
 }
-interface GoodDatabase
-  extends HybridObject<{ … }> {
+export declare class GoodDatabase extends HybridObject {
   getUser(): User
 }
 ```
@@ -46,7 +44,7 @@ interface GoodDatabase
 </div>
 
 In some cases (e.g. network requests) you do not know the shape of your data, like in a JSON web-request.
-In this case, it might make sense to use `ArrayBuffer` or `string`, and parse the data on the JS side using `JSON.parse` - benchmark your code (before vs after) to see if this optimization makes sense for you.
+`AnyJSON` already uses JSON text for this exchange. If the payload should stay opaque, a `string` or `ArrayBuffer` lets the caller choose when to parse it. Benchmark that choice with representative data.
 
 ### Variants
 
@@ -57,8 +55,7 @@ Those type-checks are very efficient so this is considered a micro-optimization,
 <div className="side-by-side-block">
 
 ```ts title="Bad ❌"
-interface BadDatabase
-  extends HybridObject<{ … }> {
+export declare class BadDatabase extends HybridObject {
   set(value: number | string): void
 }
 ```
@@ -67,8 +64,7 @@ interface BadDatabase
 <div className="side-by-side-block">
 
 ```ts title="Good ✅"
-interface GoodDatabase
-  extends HybridObject<{ … }> {
+export declare class GoodDatabase extends HybridObject {
   setNumber(value: number): void
   setString(value: string): void
 }
@@ -94,8 +90,7 @@ interface SetPayload {
   value: string
   onCompleted: () => void
 }
-interface BadDatabase
-  extends HybridObject<{ … }> {
+export declare class BadDatabase extends HybridObject {
   set(payload: SetPayload): void
 }
 ```
@@ -104,8 +99,7 @@ interface BadDatabase
 <div className="side-by-side-block">
 
 ```ts title="Good ✅"
-interface GoodDatabase
-  extends HybridObject<{ … }> {
+export declare class GoodDatabase extends HybridObject {
   set(key: string,
       value: string,
       onCompleted: () => void): void
@@ -126,8 +120,7 @@ In such cases, mark your function asynchronous by returning a [`Promise`](../typ
 <div className="side-by-side-block">
 
 ```ts title="Bad ❌"
-interface BadDatabase
-  extends HybridObject<{ … }> {
+export declare class BadDatabase extends HybridObject {
   writeLargeData(data: string): void
 }
 ```
@@ -136,8 +129,7 @@ interface BadDatabase
 <div className="side-by-side-block">
 
 ```ts title="Good ✅"
-interface GoodDatabase
-  extends HybridObject<{ … }> {
+export declare class GoodDatabase extends HybridObject {
   writeLargeData(data: string): Promise<void>
 }
 ```
@@ -158,8 +150,7 @@ For example, to return a large list of numbers we could use [array buffers](../t
 <div className="side-by-side-block">
 
 ```ts title="Bad ❌"
-interface BadDatabase
-  extends HybridObject<{ … }> {
+export declare class BadDatabase extends HybridObject {
   getAsBlob(): number[]
 }
 ```
@@ -168,8 +159,7 @@ interface BadDatabase
 <div className="side-by-side-block">
 
 ```ts title="Good ✅"
-interface GoodDatabase
-  extends HybridObject<{ … }> {
+export declare class GoodDatabase extends HybridObject {
   getAsBlob(): ArrayBuffer
 }
 ```
@@ -192,8 +182,7 @@ interface AllData {
 }
 
 
-interface BadDatabase
-  extends HybridObject<{ … }> {
+export declare class BadDatabase extends HybridObject {
   getAllData(): AllData
 }
 
@@ -207,13 +196,11 @@ const row = data.rows
 <div className="side-by-side-block">
 
 ```ts title="Good ✅"
-interface AllData
-  extends HybridObject<{ … }> {
+export declare class AllData extends HybridObject {
   findRowWithName(name: string): DataRow
 }
 
-interface GoodDatabase
-  extends HybridObject<{ … }> {
+export declare class GoodDatabase extends HybridObject {
   getAllData(): AllData
 }
 

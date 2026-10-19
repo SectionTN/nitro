@@ -6,7 +6,7 @@
 A Variant is a type of either one of the values defined in its declaration. Example:
 
 ```ts
-interface Math extends HybridObject<{ … }> {
+export declare class Math extends HybridObject {
   distance(value: number | Point): number
 }
 ```
@@ -16,12 +16,12 @@ While variants are still very efficient, they need runtime-checks for type conve
 which comes with a tiny overhead compared to all other statically defined types. If possible, **avoid variants**.
 :::
 
-## No literal values
+## String-literal unions
 
-A variant can only consist of types, not of literal values.
+A named union of string literals generates an enum. Give it a name rather than declaring it inline in a method:
 
 ```ts
-export interface Person extends HybridObject<{ … }> {
+export declare class Person extends HybridObject {
   // diff-remove
   getGender(): 'male' | 'female'
 }
@@ -41,7 +41,7 @@ Since the generated names are hard to read, it is recommended to declare type-al
 
 ```ts title="Bad ❌"
 
-interface Math extends HybridObject<{ … }> {
+export declare class Math extends HybridObject {
   calculate(): string | number
 }
 ```
@@ -51,7 +51,7 @@ interface Math extends HybridObject<{ … }> {
 
 ```ts title="Good ✅"
 type MathOutput = string | number
-interface Math extends HybridObject<{ … }> {
+export declare class Math extends HybridObject {
   calculate(): MathOutput
 }
 ```

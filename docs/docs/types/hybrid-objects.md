@@ -1,127 +1,58 @@
 ---
+description: Pass native Hybrid Object instances, use multiple implementations, and accept AnyHybridObject in C++.
 ---
 
-# Other Hybrid Objects (`HybridObject`)
+# Hybrid Object types
 
-Since Nitro Modules are object-oriented, a `HybridObject` itself is a first-class citizen.
-This means you can pass around instances of native `HybridObject`s between JS and native, allowing for safe interface-level abstractions:
-
-<div className="side-by-side-container">
-<div className="side-by-side-block">
+A Hybrid Object can accept or return another Hybrid Object. The bridge passes the native object by reference, so mutations affect the same instance.
 
 ```ts title="Camera.nitro.ts"
-interface Image
-  extends HybridObject<{ ios: 'swift' }> {
+import { iOS, type HybridObject } from 'nitro-core'
+
+export * from '#nitro/Image'
+export * from '#nitro/Camera'
+
+@iOS({ language: 'swift', allowMultipleImplementations: true })
+export declare class Image extends HybridObject {
   readonly width: number
   readonly height: number
 }
 
-interface Camera
-  extends HybridObject<{ ios: 'swift' }> {
+@iOS({ language: 'swift', implementation: { className: 'HybridCamera' } })
+export declare class Camera extends HybridObject {
+  constructor()
   takePhoto(): Image
 }
 ```
 
-</div>
-<div className="side-by-side-block">
+`Image` has no public constructor: `Camera.takePhoto()` supplies its instances. Consumers import both classes normally and can test `image instanceof Image`.
 
-```swift title="HybridCamera.swift"
-class HybridImage: HybridImageSpec {
-  let uiImage: UIImage
-  var width: Double { uiImage.size.width }
-  var height: Double { uiImage.size.height }
-}
+| TypeScript | C++ | Swift | Kotlin |
+| --- | --- | --- | --- |
+| `Image` | `std::shared_ptr<HybridImageSpec>` | `any HybridImageSpec` | `HybridImageSpec` |
 
-class HybridCamera: HybridCameraSpec {
-  func takePhoto() -> HybridImageSpec {
-    return HybridImage(uiImage: …)
-  }
-}
-```
+Use `const std::shared_ptr<HybridImageSpec>&` for a generated C++ parameter. Shared ownership keeps the native instance alive while JS or native code still retains it.
 
-</div>
-</div>
+## Multiple implementations
 
-## Interface-level abstraction
+`allowMultipleImplementations: true` allows several native classes to implement one spec. For example, `HybridUIImage` and `HybridCGImage` can both conform to `HybridImageSpec`, and a Swift method can return either as `any HybridImageSpec`.
 
-Since Hybrid Objects are declared as interfaces, `Image` could have different implementations...
-
-```swift
-class HybridUIImage: HybridImageSpec {
-  // ...
-  var uiImage: UIImage
-}
-class HybridCGImage: HybridImageSpec {
-  // ...
-  var cgImage: CGImage
-}
-class HybridBufferImage: HybridImageSpec {
-  // ...
-  var gpuBuffer: CMSampleBuffer
-}
-```
-
-...but still be used exactly the same in other places, as it is all a `HybridImageSpec`.
-Even if they use different implementations under the hood, they all share a common interface with properties like `width`, `height` and more:
-
-<div className="side-by-side-container">
-<div className="side-by-side-block">
-
-```ts title="Cropper.nitro.ts"
-interface Cropper
-  extends HybridObject<{ ios: 'swift' }> {
-  crop(image: Image, size: Size): Image
-}
-```
-
-</div>
-<div className="side-by-side-block">
-
-```swift title="Cropper.swift"
-class HybridCropper: HybridCropperSpec {
-  func crop(image: HybridImageSpec,
-            size: Size) -> HybridImageSpec {
-    let data = image.data
-    let croppedData = cropFunc(data, size)
-    return HybridCGImage(data: croppedData)
-  }
-}
-```
-
-</div>
-</div>
+With a concrete `implementation` and no multiple-implementation option, the Swift bridge expects instances of that selected class. Use the multiple-implementation option when returning different classes, and `allowInheritance: true` if another spec extends this one. See [class inheritance](../concepts/hybrid-objects#native-implementation-and-inheritance).
 
 ## `AnyHybridObject`
 
-If you don't need a specific type of `HybridObject` but instead just want any `HybridObject`, you can use Nitro's `AnyHybridObject` type.
-This type only works in C++.
+For a C++ API that accepts any native Hybrid Object, use `AnyHybridObject` from `nitro-core`:
 
-<div className="side-by-side-container">
-<div className="side-by-side-block">
+```ts
+import type { AnyHybridObject } from 'nitro-core'
 
-```ts title="Some.nitro.ts"
-import {
-  HybridObject,
-  AnyHybridObject
-} from 'react-native-nitro-modules'
-
-interface Some
-  extends HybridObject<{ ios: 'c++' }> {
-  something(obj: AnyHybridObject): void
+export declare class Store extends HybridObject {
+  retain(object: AnyHybridObject): void
 }
 ```
 
-</div>
-<div className="side-by-side-block">
-
-```cpp title="HybridSome.hpp"
-class HybridSome: public HybridSomeSpec {
-public:
-  void something(
-    const std::shared_ptr<HybridObject>& obj
-  ) override;
-};
+```cpp
+void retain(const std::shared_ptr<HybridObject>& object) override;
 ```
 
-</div>
-</div>
+`AnyHybridObject` is C++-only. Use a specific Hybrid Object spec for Swift or Kotlin APIs.

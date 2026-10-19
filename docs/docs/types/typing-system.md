@@ -1,189 +1,56 @@
 ---
-title: Nitro Typing System
-description: Understand Nitro's static, type-safe, and null-safe conversion system for JavaScript, C++, Swift, and Kotlin native module types.
+title: Nitro typing system
+description: TypeScript to C++, Swift, and Kotlin type mappings for Nitro v1.
 ---
 
-# Nitro's Typing System
+# Nitro's typing system
 
-Nitro uses an extensible typing system to efficiently convert between JS and C++ types - **statically defined** and fully **type-safe** and **null-safe at compile-time**.
+Nitrogen converts the types in your TypeScript specs into native signatures and generates the converters used at the JS boundary. Enable TypeScript's `strict` option to catch type and nullability errors before building.
 
-For example, a JS `number` will always be a `double` on the native side:
+## Supported types
 
-<div className="side-by-side-container">
-<div className="side-by-side-block">
+| TypeScript | C++ | Swift | Kotlin |
+| --- | --- | --- | --- |
+| [`number`](primitives) | `double` | `Double` | `Double` |
+| [`boolean`](primitives) | `bool` | `Bool` | `Boolean` |
+| [`string`](strings) | `std::string` | `String` | `String` |
+| [`Int64`](primitives#int64) | `int64_t` | `Int64` | `Long` |
+| [`UInt64`](primitives#uint64) | `uint64_t` | `UInt64` | `ULong` |
+| `void` (no result) | `void` | `Void` | `Unit` |
+| [`T[]`](arrays) | `std::vector<T>` | `[T]` | `Array<T>` or a primitive array |
+| [`[A, B]`](tuples) | `std::tuple<A, B>` | `(A, B)` | Unsupported |
+| [`A \| B`](variants) | `std::variant<A, B>` | Generated `Variant_...` enum | Generated `Variant_...` class |
+| [`Record<string, T>`](typed-maps) | `std::unordered_map<std::string, T>` | `Dictionary<String, T>` | `Map<String, T>` |
+| [`T \| undefined`](optionals) | `std::optional<T>` | `T?` | `T?` |
+| [`null`](nulls) | `NullType` | `NullType` | `NullType` |
+| [`(value: A) => R`](callbacks) | `Callback<R(A)>` | `any Callback<A, R>` | `(A) -> R` |
+| [`Inline<(value: A) => R>`](callbacks#inline-callbacks) | `InlineCallback<R(A)>` | Borrowed `InlineCallback<A, R>` | `(A) -> R` |
+| [`Error`](errors) | `std::exception_ptr` | `any Error` | `Throwable` |
+| [`Promise<T>`](promises) | `Promise<T>` | `any Promise<T>` | `Promise<T>` |
+| [`ArrayBuffer`](array-buffers) | `ArrayBuffer` | `ArrayBuffer` | `ArrayBuffer` |
+| [`AnyJSON`](untyped-maps) | `AnyJSON` | `AnyJSON` | `AnyJSON` |
+| [A Hybrid Object class `Image`](hybrid-objects) | `std::shared_ptr<HybridImageSpec>` | `any HybridImageSpec` | `HybridImageSpec` |
+| [`AnyHybridObject`](hybrid-objects#anyhybridobject) | `std::shared_ptr<HybridObject>` | Unsupported | Unsupported |
+| [Object `interface` / object `type`](custom-structs) | Generated struct | Generated struct | Generated data class |
+| [`enum` / string-literal union](custom-enums) | Generated enum | Generated enum | Generated enum |
+| [`CustomType<T, Name, Config>`](custom-types) | Your C++ type | Unsupported | Unsupported |
 
-```ts title="Math.nitro.ts"
-interface Math
-  extends HybridObject<{ ios: 'c++' }> {
-  add(a: number, b: number): number
-}
-```
+`T`, `A`, and `R` stand for their native equivalents. The table shows value types: C++ parameters usually use `const T&` for strings, containers, callbacks, promises, buffers, and Hybrid Object pointers. Generated headers are the reference for exact signatures. Swift inline callback parameters use `borrowing some InlineCallback<...> & ~Copyable & ~Escapable`.
 
-</div>
-<div className="side-by-side-block">
+## Spec declarations
 
-```cpp title="HybridMath.hpp"
-class HybridMath : public HybridMathSpec {
-public:
-  double add(double a, double b) override;
-}
-```
+Declare native objects with `export declare class` extending `HybridObject`. Plain interfaces and object type aliases describe data structs. A standalone `.nitro.ts` file must contain a Hybrid Object; put shared helper-only types in `.ts` files.
 
-</div>
-</div>
+The examples on individual type pages may omit imports, decorators, and runtime re-exports to focus on a signature. See [the complete setup](../getting-started/how-to-build-a-nitro-module) for a runnable spec.
 
-Nitro strictly enforces **type-safety** and **null-safety** - both at compile-time and at runtime.
-This prevents accidentally passing a wrong type to `add(..)` (for example, a `string`) and performs null-checks to prevent passing and returning `null`/`undefined` values.
+## Composition and limits
 
-On the JS side (TypeScript), type- and null-safety is enforced via TypeScript - so use it!
+Supported types can be nested in arrays, optionals, structs, maps, variants, and promises. `Inline` is restricted to required method, static method, and constructor parameters. `AnyJSON` accepts only JSON-serializable values and does not preserve arbitrary class instances.
 
-## Nitrogen
+`null` and `undefined` remain distinct: `T | null` is a variant, while `T | undefined` is optional. `void` describes a missing function result; use an optional for a possibly absent value.
 
-[Nitrogen](../concepts/nitrogen) ensures that TypeScript definitions are always in sync with native type definitions.
-You can also use Nitro without nitrogen, in this case TypeScript definitions have to be written manually.
+Use `Int64` or `UInt64` explicitly for 64-bit integers. Bare `bigint` is deprecated because it does not specify signedness. `any`, `unknown`, arbitrary classes, and cyclic object graphs do not have general-purpose generated mappings. For `Date`, `Map`, or `Set`, choose an explicit representation such as a number, a record, an array, or a Hybrid Object. A raw JSI method can handle values outside this type system.
 
-## Supported Types
+## Custom conversion
 
-These are all the types Nitro supports out of the box:
-
-<table>
-  <tr>
-    <th>JS Type</th>
-    <th>C++ Type</th>
-    <th>Swift Type</th>
-    <th>Kotlin Type</th>
-  </tr>
-
-  <tr>
-    <td><code>number</code></td>
-    <td><code>double</code> / <code>int</code> / <code>float</code></td>
-    <td><code>Double</code></td>
-    <td><code>Double</code></td>
-  </tr>
-  <tr>
-    <td><code>boolean</code></td>
-    <td><code>bool</code></td>
-    <td><code>Bool</code></td>
-    <td><code>Boolean</code></td>
-  </tr>
-  <tr>
-    <td><code>string</code></td>
-    <td><code>std::string</code></td>
-    <td><code>String</code></td>
-    <td><code>String</code></td>
-  </tr>
-  <tr>
-    <td><code>Int64</code> (<code>bigint</code>)</td>
-    <td><code>int64_t</code></td>
-    <td><code>Int64</code></td>
-    <td><code>Long</code></td>
-  </tr>
-  <tr>
-    <td><code>UInt64</code> (<code>bigint</code>)</td>
-    <td><code>uint64_t</code></td>
-    <td><code>UInt64</code></td>
-    <td><code>ULong</code></td>
-  </tr>
-  <tr>
-    <td><code>T[]</code></td>
-    <td><code>std::vector&lt;T&gt;</code></td>
-    <td><code>[T]</code></td>
-    <td><code>Array&lt;T&gt;</code> / <code>PrimitiveArray</code></td>
-  </tr>
-  <tr>
-    <td><code>T?</code></td>
-    <td><code>std::optional&lt;T&gt;</code></td>
-    <td><code>T?</code></td>
-    <td><code>T?</code></td>
-  </tr>
-  <tr>
-    <td><code>null</code></td>
-    <td><code>NullType</code></td>
-    <td><code>NullType</code></td>
-    <td><code>NullType</code></td>
-  </tr>
-  <tr>
-    <td><code>[A, B, ...]</code></td>
-    <td><code>std::tuple&lt;A, B, ...&gt;</code></td>
-    <td><code>(A, B)</code> 🟡  (<a href="https://github.com/margelo/nitro/issues/38">#38</a>)</td>
-    <td>❌</td>
-  </tr>
-  <tr>
-    <td><code>A | B | ...</code></td>
-    <td><code>std::variant&lt;A, B, ...&gt;</code></td>
-    <td><code>Variant_A_B_C</code></td>
-    <td><code>Variant_A_B_C</code></td>
-  </tr>
-  <tr>
-    <td><code>(T...) =&gt; void</code></td>
-    <td><code>std::function&lt;void (T...)&gt;</code></td>
-    <td><code>@escaping (T...) -&gt; Void</code></td>
-    <td><code>(T...) -&gt; Unit</code></td>
-  </tr>
-  <tr>
-    <td><code>(T...) =&gt; R</code></td>
-    <td><code>std::function&lt;std::shared_ptr&lt;Promise&lt;R&gt;&gt; (T...)&gt;</code></td>
-    <td><code>@escaping (T...) -&gt; <a href="https://github.com/margelo/nitro/tree/main/packages/nitro-core/native/apple/core/Promise.swift">Promise&lt;R&gt;</a></code></td>
-    <td><code>(T...) -&gt; <a href="https://github.com/margelo/nitro/tree/main/packages/nitro-core/native/android/src/main/java/com/margelo/nitro/core/Promise.kt">Promise&lt;R&gt;</a></code></td>
-  </tr>
-  <tr>
-    <td><code>Sync&lt;(T...) =&gt; R&gt;</code></td>
-    <td><code>std::function&lt;R (T...)&gt;</code></td>
-    <td><code>@escaping (T...) -&gt; R</code></td>
-    <td><code>(T...) -&gt; R</code></td>
-  </tr>
-  <tr>
-    <td><code>Record&lt;string, T&gt;</code></td>
-    <td><code>std::unordered_map&lt;std::string, T&gt;</code></td>
-    <td><code>Dictionary&lt;String, T&gt;</code></td>
-    <td><code>Map&lt;String, T&gt;</code></td>
-  </tr>
-  <tr>
-    <td><code>Error</code></td>
-    <td><code>std::exception_ptr</code></td>
-    <td><code>Error</code></td>
-    <td><code>Throwable</code></td>
-  </tr>
-  <tr>
-    <td><code>Promise&lt;T&gt;</code></td>
-    <td><code>std::shared_ptr&lt;<a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/include/NitroModules/Promise.hpp">Promise&lt;T&gt;</a>&gt;</code></td>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/apple/core/Promise.swift">Promise&lt;T&gt;</a></code></td>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/android/src/main/java/com/margelo/nitro/core/Promise.kt">Promise&lt;T&gt;</a></code></td>
-  </tr>
-  <tr>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/js/src/AnyMap.ts">AnyMap</a></code></td>
-    <td><code>std::shared_ptr&lt;<a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/core/AnyMap.hpp">AnyMap</a>&gt;</code></td>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/apple/core/AnyMap.swift">AnyMap</a></code></td>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/android/src/main/java/com/margelo/nitro/core/AnyMap.kt">AnyMap</a></code></td>
-  </tr>
-  <tr>
-    <td><code>ArrayBuffer</code></td>
-    <td><code>std::shared_ptr&lt;<a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/include/NitroModules/ArrayBuffer.hpp">ArrayBuffer</a>&gt;</code></td>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/apple/core/ArrayBuffer.swift">ArrayBuffer</a></code></td>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/android/src/main/java/com/margelo/nitro/core/ArrayBuffer.kt">ArrayBuffer</a></code></td>
-  </tr>
-  <tr>
-    <td>..any <code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/js/src/HybridObject.ts">HybridObject</a></code></td>
-    <td><code>std::shared_ptr&lt;<a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/include/NitroModules/HybridObject.hpp">HybridObject</a>&gt;</code></td>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/apple/core/HybridObject.swift">HybridObject</a></code></td>
-    <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/android/src/main/java/com/margelo/nitro/core/HybridObject.kt">HybridObject</a></code></td>
-  </tr>
-  <tr>
-    <td>..any <code>interface</code></td>
-    <td><code>struct T</code></td>
-    <td><code>struct T</code></td>
-    <td><code>data class T</code></td>
-  </tr>
-  <tr>
-    <td>..any <code>enum</code></td>
-    <td><code>enum T</code></td>
-    <td><code>enum T</code></td>
-    <td><code>enum T</code></td>
-  </tr>
-  <tr>
-    <td>..any <code>union</code></td>
-    <td><code>enum T</code></td>
-    <td><code>enum T</code></td>
-    <td><code>enum T</code></td>
-  </tr>
-</table>
+For handwritten C++, specialize `JSIConverter<T>` with `fromJSI`, `toJSI`, and `canConvert`. [Custom types](custom-types) connect that converter to a TypeScript type through Nitrogen. [Raw JSI methods](raw-jsi-value) expose the runtime and argument values directly when a typed converter is not appropriate.

@@ -12,7 +12,7 @@ For example, a JS `number` is always a 64-bit `double` in C++, a `Double` in Swi
 <Tabs>
   <TabItem value="ts" label="TypeScript" default>
     ```ts
-    interface Math extends HybridObject<{ … }> {
+    export declare class Math extends HybridObject {
       add(a: number, b: number): number
     }
     ```
@@ -48,6 +48,8 @@ While a `bigint` is technically a primitive in JS, it is not fully representable
 
 In Nitro, you can use `bigint` as either a signed, or unsigned 64-bit integer, which makes it a primitive, but limits its range to those within 64-bit signed/unsigned values.
 
+Import `Int64` and `UInt64` from `nitro-core` and pass JavaScript bigint values such as `42n`. Use these explicit aliases instead of bare `bigint` in specs.
+
 ### `Int64`
 
 A 64-bit signed integer that ranges from -2^63 to 2^63-1.
@@ -55,7 +57,7 @@ A 64-bit signed integer that ranges from -2^63 to 2^63-1.
 <Tabs>
   <TabItem value="ts" label="TypeScript" default>
     ```ts
-    interface Math extends HybridObject<{ … }> {
+    export declare class Math extends HybridObject {
       add(a: Int64, b: Int64): Int64
     }
     ```
@@ -90,7 +92,7 @@ A 64-bit unsigned integer that ranges from 0 to 2^64-1. On 64-bit systems, this 
 <Tabs>
   <TabItem value="ts" label="TypeScript" default>
     ```ts
-    interface Math extends HybridObject<{ … }> {
+    export declare class Math extends HybridObject {
       add(a: UInt64, b: UInt64): UInt64
     }
     ```
@@ -119,7 +121,7 @@ A 64-bit unsigned integer that ranges from 0 to 2^64-1. On 64-bit systems, this 
 </Tabs>
 
 :::warning
-A `UInt64` cannot be stored in an [AnyMap](untyped-maps).
+`Int64` and `UInt64` are JavaScript bigints, so neither can be stored in [AnyJSON](untyped-maps).
 :::
 
 ### Anything larger

@@ -8,7 +8,7 @@
 
 <br />
 
-Nitrogen generates C++ and Swift bindings from TypeScript class declarations using the [nitro-core](../nitro-core/) APIs.
+Nitrogen generates C++, Swift, and Kotlin bindings from TypeScript class declarations using the [nitro-core](../nitro-core/) APIs.
 
 ## Installation
 
@@ -80,7 +80,7 @@ The `implementation` object identifies the native type and, for C++ or Kotlin, i
 | C++ | `{ include: '<MyImages/HybridImage.hpp>', className: 'HybridImage' }` |
 | Kotlin | `{ className: 'HybridImage' }` |
 
-C++ `namespace` and Kotlin `package` are optional arrays of segments within the declaring spec's own `nitro.json` project. Omit them or use `[]` for that project's `cxxNamespace` or `androidNamespace`. For a project configured with `['image']`, `['internal']` selects `margelo::nitro::image::internal` or `com.margelo.nitro.image.internal`. Imported specs use their owning project's config. These options cannot select a namespace or package outside that project, and `null` is invalid. The C++ `include` must contain angle brackets or double quotes, for example `'<MyImages/HybridImage.hpp>'` or `'"HybridImage.hpp"'`. Nitrogen uses that header and the fully qualified C++ class name; the header filename can differ from the class name. Kotlin metadata is typed and validated, but Android generation is not implemented yet.
+C++ `namespace` and Kotlin `package` are optional arrays of segments within the declaring spec's own `nitro.json` project. Omit them or use `[]` for that project's `cxxNamespace` or `androidNamespace`. For a project configured with `['image']`, `['internal']` selects `margelo::nitro::image::internal` or `com.margelo.nitro.image.internal`. Imported specs use their owning project's config. These options cannot select a namespace or package outside that project, and `null` is invalid. The C++ `include` must contain angle brackets or double quotes, for example `'<MyImages/HybridImage.hpp>'` or `'"HybridImage.hpp"'`. Nitrogen uses that header and the fully qualified C++ class name; the header filename can differ from the class name.
 
 Use `@iOS({ ... })` and `@Android({ ... })` to declare platform options. Decorators require TypeScript 5 or newer; standard decorators work without `experimentalDecorators`. Nitrogen reads literal objects, arrays, strings, and booleans from the source. Variables, spreads and computed values are unsupported. The imported helpers provide argument checking. The decorators are metadata for Nitrogen. They sit on declared classes, which compile to no JavaScript, so they never run. If one does run, it throws. That happens when the spec uses `class` instead of `declare class`, or when a transpiler emits decorator calls for declared classes, as swc does with decorators enabled. Compile `.nitro.ts` specs with tsc, esbuild, oxc or Babel instead of swc, or use the library's built output. Write a class's JSDoc above its decorators: editors don't show docs placed between a decorator and `export declare class` when hovering the class in the library's own sources.
 
@@ -125,6 +125,8 @@ Re-export the class from your package entry point. Consumers import it from your
 ```ts
 export { Image } from './Image.nitro'
 ```
+
+In a React Native library whose specs import `nitro-core`, put `import 'react-native-nitro-modules'` before the entry point's re-exports so the native runtime is installed first. Standalone hosts must install Nitro before loading the library.
 
 Use named re-exports like this one. With `export * from './Image.nitro'`, the class export goes missing in Vite dev and in ESM library output from Rolldown or esbuild.
 
@@ -213,7 +215,7 @@ module.exports = {
 }
 ```
 
-Nitrogen generates Fabric registration and native prop updates alongside the class bindings. Swift implementations conform to the generated view spec and provide a `UIView`, with the existing update, drop and recycling hooks. Android generation remains unimplemented.
+Nitrogen generates Fabric registration and native prop updates alongside the class bindings. Swift implementations conform to the generated view spec and provide a `UIView`, with the existing update, drop and recycling hooks.
 
 ## Inline callbacks
 
@@ -344,7 +346,6 @@ The generated spec class redeclares every spec member without `override`. An int
 
 On the JVM, a spec property `width` compiles to a `getWidth()` method and, unless it's `readonly`, a `setWidth(value)` method. An interface function with one of those signatures, such as the Java getter `double getWidth()`, clashes with the property, and the property can't implement it. An interface property `width` clashes with a spec method `getWidth()` the same way.
 
-Android generation is not implemented yet. Nitrogen writes the Kotlin spec class, then stops at Android autolinking.
 
 ## Swift packages
 
@@ -417,10 +418,12 @@ Build with Swift 6.4's Swift Build backend or Xcode: the generated C++ bridge us
 
 Move constructor registration from `nitro.json.autolinking` into each spec's decorator `implementation` object and public constructor, then remove the `autolinking` field. Keep the namespace and build-module settings in `nitro.json`. Replace interface specs and `HybridObject<{ ... }>` platform arguments with decorated class declarations extending plain `HybridObject`. Use `allowInheritance: true` for inheritable specs, and `allowMultipleImplementations: true` for those bases. Use `export declare class` in `.nitro.ts` specs, add the `imports` entry, and run Nitrogen, which adds `export * from '#nitro/<ClassName>'` for each class. Import or re-export classes from their relative `.nitro` paths. Ordinary `.ts` and `.d.ts` files can still supply referenced types.
 
-Android/Kotlin generation is not implemented. Constructor and method overloads, rest parameters, static properties, generic specs and declaration merging are unsupported.
+Constructor and method overloads, rest parameters, static properties, generic specs and declaration merging are unsupported.
 
 Cross-package Swift class inheritance supports the class bindings described above. Reusing the same callback/promise helper types in multiple Swift modules still hits an existing helper-conformance generation limitation.
 
 Use `new` for construction. JSI host functions currently also permit direct calls to native constructors.
 
 JavaScript-authored subclasses are unsupported. Public constructors remain public, so TypeScript can accept `class Child extends Image`. This is not enforced by a private constructor. JSI host functions do not receive `new.target`; the native constructor returns an object with `Image.prototype`, so `new Child(...) instanceof Child` is false and methods declared on `Child.prototype` are unavailable. Declare inheritance in the native specs instead.
+
+See the [v1 migration guide](https://nitro.margelo.com/docs/getting-started/migrating-to-v1) for native callbacks, promises, buffers, JSON values, and React Native setup.

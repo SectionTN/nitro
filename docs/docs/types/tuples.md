@@ -7,7 +7,7 @@ A Tuple is a fixed-length set of items of the given types. Example:
 
 ```ts
 type Point = [number, number]
-interface Math extends HybridObject<{ … }> {
+export declare class Math extends HybridObject {
   distance(a: Point, b: Point): number
 }
 ```
@@ -19,7 +19,7 @@ Tuples can also have different types per value:
 
 ```ts title="Bad ❌"
 type Values = (number | string | Person)[]
-interface Math extends HybridObject<{ … }> {
+export declare class Math extends HybridObject {
   calculate(values: Values): void
 }
 ```
@@ -30,7 +30,7 @@ The type in the **Bad ❌** example generates an [array](arrays) of [variants](v
 
 ```ts title="Good ✅"
 type Values = [number, string, Person]
-interface Math extends HybridObject<{ … }> {
+export declare class Math extends HybridObject {
   calculate(values: Values): void
 }
 ```
@@ -38,3 +38,5 @@ The type in the **Good ✅** example generates a **tuple**, where its size is gu
 
 </div>
 </div>
+
+Tuples map to `std::tuple<...>` in C++ and native tuples in Swift. Their length and element types are fixed. Kotlin does not support generated tuple bindings; use a named struct for an API shared with Kotlin.

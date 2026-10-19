@@ -27,7 +27,7 @@ const FeatureList: FeatureItem[] = [
     description: (
       <>
         Nitro's code-generator ("Nitrogen") statically generates{' '}
-        <b>type-safe</b> C++/Swift/Kotlin types from your TypeScript interfaces.
+        <b>type-safe</b> C++/Swift/Kotlin types from your TypeScript class declarations.
         This way you'll never pass wrong types, nulls or undefined again!
       </>
     ),

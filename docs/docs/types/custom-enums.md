@@ -7,19 +7,21 @@ There's two different types of enums - [enums](#typescript-enums) and [unions](#
 
 ## TypeScript enums
 
-A [TypeScript enum](https://www.typescriptlang.org/docs/handbook/enums.html) is essentially just an object where each key is backed by ascending integer values. Nitrogen will generate a C++ enum natively, which bridges to JS as a simple integer:
+A [TypeScript enum](https://www.typescriptlang.org/docs/handbook/enums.html) is essentially just an object where each key is backed by numeric values. Auto-numbered members start at zero; explicit numeric values are also supported. Nitrogen will generate a C++ enum natively, which bridges to JS as a simple integer:
 
 ```ts
 enum Gender {
   MALE,
   FEMALE
 }
-interface Person extends HybridObject<{ … }> {
+export declare class Person extends HybridObject {
   getGender(): Gender
 }
 ```
 
 This is efficient because `MALE` is the number `0`, `FEMALE` is the number `1`, and all other values are invalid.
+
+String-valued TypeScript enums are not supported. Use a named string-literal union instead.
 
 ## TypeScript union
 
@@ -27,7 +29,7 @@ A [TypeScript union](https://www.typescriptlang.org/docs/handbook/unions-and-int
 
 ```ts
 type Gender = 'male' | 'female'
-interface Person extends HybridObject<{ … }> {
+export declare class Person extends HybridObject {
   getGender(): Gender
 }
 ```
@@ -43,7 +45,7 @@ A TypeScript union consisting of only literal strings needs to be aliased to a s
 
 ```ts title="Bad ❌"
 
-interface Person extends HybridObject<{ … }> {
+export declare class Person extends HybridObject {
   getGender(): 'male' | 'female'
 }
 ```
@@ -53,7 +55,7 @@ interface Person extends HybridObject<{ … }> {
 
 ```ts title="Good ✅"
 type Gender = 'male' | 'female'
-interface Person extends HybridObject<{ … }> {
+export declare class Person extends HybridObject {
   getGender(): Gender
 }
 ```

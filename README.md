@@ -17,31 +17,41 @@ This repository contains:
 
 ## Example
 
-Declaration (TypeScript):
+Declaration (`Math.nitro.ts`):
 ```ts
-export interface Math extends HybridObject<{ ios: 'c++' }> {
+import { iOS, Android, type HybridObject } from 'nitro-core'
+
+export * from '#nitro/Math'
+
+@iOS({ language: 'c++', implementation: { className: 'HybridMath', include: '"HybridMath.hpp"' } })
+@Android({ language: 'c++', implementation: { className: 'HybridMath', include: '"HybridMath.hpp"' } })
+export declare class Math extends HybridObject {
+  constructor()
   add(a: number, b: number): number
 }
 ```
 
-Implementation (C++, Swift or Kotlin):
+Implementation (C++):
 ```cpp
 class HybridMath: public HybridMathSpec {
 public:
-  HybridMath(): HybridObject(TAG) {}
+  HybridMath() = default;
   double add(double a, double b) override {
     return a + b;
   }
-}
+};
 ```
 
 Usage (TypeScript):
 ```ts
-import { NitroModules } from 'react-native-nitro-modules'
+import 'react-native-nitro-modules'
+import { Math } from './Math.nitro'
 
-const math = NitroModules.createHybridObject<Math>('Math')
+const math = new Math()
 const result = math.add(5, 3)
 ```
+
+Map `#nitro/*` to `./nitrogen/generated/shared/javascript/*.cjs` in your library's `package.json` `imports` field. Run Nitrogen before compiling TypeScript, and use named re-exports for classes in your package entry point. The [setup guide](https://nitro.margelo.com/docs/getting-started/how-to-build-a-nitro-module) covers TypeScript resolution, Babel decorator parsing, and native build integration.
 
 ## Installation
 
@@ -76,7 +86,7 @@ JS <-> C++ type converters are statically generated ahead of time - no more dyna
 ### iOS
 
 iOS native modules and view components can be written either in pure C++, or pure Swift.
-Thanks to Swift 5.9, Swift Nitro Modules [bridge directly to C++](https://www.swift.org/documentation/cxx-interop/) instead of going through Objective-C message sends. Woohoo, no more Objective-C, and **zero overhead** C++ -> Swift calls! 🥳
+Swift Nitro Modules [bridge directly to C++](https://www.swift.org/documentation/cxx-interop/) instead of going through Objective-C message sends. Woohoo, no more Objective-C, and **zero overhead** C++ -> Swift calls! 🥳
 
 ### Android
 

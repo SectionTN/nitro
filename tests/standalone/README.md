@@ -149,7 +149,7 @@ Hermes' watchdog cannot interrupt the native compiler.
 
 The native thread owns the runtime and pumps its dispatcher. On iOS, a dedicated
 serial queue runs this blocking work while the Swift test awaits a continuation.
-This leaves Swift's cooperative executor free to run `Promise.async` tasks that
+This leaves Swift's cooperative executor free to run `.async` promise tasks that
 the JavaScript case awaits. The iOS runner restricts the cooperative pool to one
 worker so the concurrent native Promise test checks this behavior.
 Native work runs on background threads; its callbacks are queued back to the

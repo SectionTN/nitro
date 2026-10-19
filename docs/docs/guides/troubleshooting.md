@@ -76,7 +76,7 @@ Nitro was installed twice: once with native version X and once with JS version Y
 
 ...then two different copies of `react-native-nitro-modules` ended up in your project - the native build linked one, and Metro bundled the other.
 
-The most common cause is **installing a Nitro pre-release** (e.g. `0.37.0-beta.0`). Semver ranges never match pre-release versions, so a library declaring `"react-native-nitro-modules": "*"` as a required peer dependency does not consider the beta a match - and your package manager silently installs a second, stable copy inside that library's `node_modules` to satisfy the peer.
+The most common cause is **installing a Nitro pre-release** (e.g. `1.0.0-alpha.0`). Semver ranges never match pre-release versions, so a library declaring `"react-native-nitro-modules": "*"` as a required peer dependency does not consider the beta a match - and your package manager silently installs a second, stable copy inside that library's `node_modules` to satisfy the peer.
 
 To fix it:
 
@@ -84,12 +84,12 @@ To fix it:
    ```sh
    npm ls react-native-nitro-modules
    ```
-2. If a library nests its own copy, ask the library author to mark the peer dependency as [optional](../getting-started/how-to-build-a-nitro-module#11-install-nitro-and-nitrogen).
+2. If a library nests its own copy, check that its peer range accepts your exact prerelease version. Library authors should keep runtime and generator versions aligned; see [setup](../getting-started/how-to-build-a-nitro-module#1-create-a-library).
 3. As a workaround until then, force a single version from your app's `package.json`:
    ```json title="package.json"
    {
      "overrides": {
-       "react-native-nitro-modules": "0.37.0-beta.0"
+       "react-native-nitro-modules": "1.0.0-alpha.0"
      }
    }
    ```
@@ -120,3 +120,15 @@ If your app crashes at runtime, make sure to inspect the native logs.
 
   </TabItem>
 </Tabs>
+
+## Cannot resolve `#nitro/...`
+
+The library's nearest `package.json` must map `#nitro/*` to its generated `.cjs` files. Run Nitrogen before compiling TypeScript, publish the generated directory, and enable `resolvePackageJsonImports` in the TypeScript project consuming the declarations. A nested `package.json` in compiled output can hide the root mapping; check Builder Bob's output configuration.
+
+## Decorator parsing or runtime errors
+
+When Metro compiles `.nitro.ts`, add `parserOpts: { plugins: ['decorators'] }` to the app's Babel config. Specs must use `export declare class`. If an `iOS` or `Android` annotation throws at runtime, the compiler emitted a decorator call that should have been erased. Use tsc, esbuild, oxc, or Babel for specs; swc can emit decorator calls for declared classes.
+
+## Class has no public constructor
+
+Add an explicit public `constructor(...)` to the spec and an `implementation` to each platform decorator if the class should support `new`. Regenerate, rebuild, and import the class from its `.nitro` file or the library's public entry point. A native implementation alone does not expose a constructor. Views are created by Fabric through their generated component.

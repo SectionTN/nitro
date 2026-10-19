@@ -11,7 +11,7 @@ Optional or undefined values can be declared with the question mark operator (`?
 <Tabs>
   <TabItem value="ts" label="TypeScript" default>
     ```ts
-    interface Math extends HybridObject<{ … }> {
+    export declare class Math extends HybridObject {
       a?: number
       b: number | undefined
     }

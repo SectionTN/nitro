@@ -43,3 +43,18 @@ npx react-native spm
 If your project already uses CocoaPods, convert it with `npx react-native spm add --deintegrate` first. The conversion needs CocoaPods to remove its existing integration. Open the app's `.xcodeproj` in Xcode after setup.
 
 Keep Nitro and the libraries' generated bindings on matching V1 versions. The [minimum requirements](../getting-started/minimum-requirements) describe the supported native toolchains.
+
+## TypeScript and Babel
+
+Enable `resolvePackageJsonImports: true` in your app's TypeScript config so installed Nitro declarations can resolve their generated `#nitro/*` exports. Use `moduleResolution: "bundler"`, `"node16"`, or `"nodenext"`.
+
+If a library exposes `.nitro.ts` source files to Metro, enable decorator parsing in your app:
+
+```js title="babel.config.js"
+module.exports = {
+  presets: ['module:@react-native/babel-preset'],
+  parserOpts: { plugins: ['decorators'] },
+}
+```
+
+Use the classes or generated components exported by the library. For example, create an instance with `new Example()` instead of looking up a string name in Nitro. Libraries ship their generated bindings, so you do not need to run Nitrogen in the app.

@@ -1,326 +1,123 @@
 ---
+description: Build Nitro v1 view components with declared HybridView classes, generated React exports, and native lifecycle hooks.
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+# View components
 
-# View Components
+Nitro views use Fabric with Nitro's type converters for props. Follow the [module setup](../getting-started/how-to-build-a-nitro-module) first, including the `#nitro/*` package imports, TypeScript resolution, decorator parsing, and native build integration.
 
-Nitro provides first-class support for creating React Native Views.
+## Declare the view
 
-Such views can be rendered within React Native apps using [Fabric](https://reactnative.dev/architecture/fabric-renderer), and are backed by a C++ ShadowNode.
-The key difference to a Fabric view is that it uses Nitro for prop parsing, which is more lightweight, performant and flexible.
+```ts title="CameraView.nitro.ts"
+import { iOS, Android, type HybridView } from 'react-native-nitro-modules'
 
-:::note
-Nitro Views require React Native 0.88 or newer with the New Architecture.
-:::
+export * from '#nitro/CameraView'
 
-## Create a Nitro View
-
-### 1. Declaration
-
-To create a new Nitro View, declare its props and methods in a `*.nitro.ts` file, and create a type that specializes `HybridView<P, M>` - here `CameraView`:
-
-```ts title="Camera.nitro.ts"
-import type { HybridView, HybridViewProps, HybridViewMethods } from 'react-native-nitro-modules'
-
-export interface CameraProps extends HybridViewProps {
+@iOS({ language: 'swift', implementation: { className: 'HybridCameraView' } })
+@Android({ language: 'kotlin', implementation: { className: 'HybridCameraView' } })
+export declare class CameraView extends HybridView {
   enableFlash: boolean
+  onReady?: () => void
+  readonly isReady: boolean
+  focus(): void
 }
-export interface CameraMethods extends HybridViewMethods { }
-
-// highlight-next-line
-export type CameraView = HybridView<CameraProps, CameraMethods>
 ```
 
-### 2. Code Generation
+Writable properties become React props. Readonly properties and methods are available on the native ref. A view needs a concrete native implementation; omit its constructor or declare it protected because Fabric creates it.
 
-Then, run [nitrogen](../concepts/nitrogen):
+Run `npx nitrogen` after changing the spec. Nitrogen generates native bindings, the Fabric view configuration, and runtime exports for the class and component.
 
-<Tabs groupId="package-manager">
-  <TabItem value="npm" label="npm" default>
-    ```sh
-    npx nitrogen
-    ```
-  </TabItem>
-  <TabItem value="yarn" label="yarn">
-    ```sh
-    yarn nitrogen
-    ```
-  </TabItem>
-  <TabItem value="pnpm" label="pnpm">
-    ```sh
-    pnpm nitrogen
-    ```
-  </TabItem>
-  <TabItem value="bun" label="bun">
-    ```sh
-    bun nitrogen
-    ```
-  </TabItem>
-</Tabs>
+## Implement the view
 
-This will create a C++ ShadowNode, with an iOS (Swift) and Android (Kotlin) interface, just like any other [Hybrid Object](../concepts/hybrid-objects).
-Additionally, a view config (`CameraViewConfig.json`) will be generated - this is required by Fabric.
+The Swift class implements the generated spec and supplies a stable `UIView` instance:
 
-### 3. Implementation
+```swift title="HybridCameraView.swift"
+import UIKit
+import NitroModules
 
-Now it's time to implement the View - simply create a new Swift/Kotlin class/file, extend from `HybridCameraViewSpec` and implement your `.enableFlash` property, as well as the common `.view` accessor:
+class HybridCameraView: HybridCameraViewSpec {
+  var enableFlash = false
+  var onReady: (any Callback<(), Void>)?
+  var isReady: Bool { true }
+  var view: UIView = UIView()
 
-<Tabs groupId="native-view-language">
-  <TabItem value="swift" label="Swift" default>
-    ```swift title="HybridCameraView.swift"
-    class HybridCameraView : HybridCameraViewSpec {
-      // Props
-      var enableFlash: Bool = false
-
-      // View
-      var view: UIView = UIView()
-    }
-    ```
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    ```kotlin title="HybridCameraView.kt"
-    class HybridCameraView(val context: ThemedReactContext) : HybridCameraViewSpec() {
-      // Props
-      override var enableFlash: Boolean = false
-
-      // View
-      override val view: View = View(context)
-    }
-    ```
-  </TabItem>
-</Tabs>
-
-### 4. Autolink
-
-Just like any other Hybrid Object, add the Hybrid View to your `nitro.json`'s autolinking configuration:
-
-```json title="nitro.json"
-{
-  // ...
-  "autolinking": {
-    "CameraView": {
-      "ios": {
-        "language": "swift",
-        "implementationClassName": "HybridCameraView"
-      },
-      "android": {
-        "language": "kotlin",
-        "implementationClassName": "HybridCameraView"
-      }
-    }
+  func focus() throws {
+    // Focus the native camera here.
   }
 }
 ```
 
-Now run nitrogen again.
+On Android, implement the generated Kotlin spec and provide its native view:
 
-#### 4.1. Android: Register the View Manager
+```kotlin title="HybridCameraView.kt"
+class HybridCameraView(context: ThemedReactContext): HybridCameraViewSpec() {
+  override var enableFlash = false
+  override var onReady: (() -> Unit)? = null
+  override val isReady: Boolean get() = true
+  override val view: View = View(context)
 
-On Android, you need to register the generated view manager in your React Native package:
-
-```kotlin title="CameraPackage.kt"
-// ...
-public class CameraPackage: BaseReactPackage() {
-  // ...
-
-  override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {
-    val viewManagers = ArrayList<ViewManager<*, *>>()
-    // diff-add
-    viewManagers.add(HybridCameraViewManager())
-    return viewManagers
+  override fun focus() {
+    // Focus the native camera here.
   }
 }
 ```
 
-### 5. Initialization
+Add the generated `HybridCameraViewManager()` to your React Native package's `createViewManagers` list. The spec decorators select native implementations; no separate `nitro.json` constructor registration is needed.
 
-Then, to use the view in JavaScript, use `getHostComponent(..)`:
+## Export and render
 
-```ts
-import { getHostComponent } from 'react-native-nitro-modules'
-import CameraViewConfig from '../nitrogen/generated/shared/json/CameraViewConfig.json'
+Use named exports in your package entry point:
 
-export const Camera = getHostComponent<CameraProps, CameraMethods>(
-  'Camera',
-  () => CameraViewConfig
-)
+```ts title="index.ts"
+export {
+  CameraView,
+  CameraViewComponent,
+  type CameraViewProps,
+  type CameraViewRef,
+} from './CameraView.nitro'
 ```
 
-### 6. Rendering
-
-And finally, render it:
-
-```jsx
-function App() {
-  return <Camera enableFlash={true} />
-}
-```
-
-## Props
-
-Since every `HybridView` is also a `HybridObject`, you can use any type that Nitro supports as a property - including custom types (`interface`), `ArrayBuffer`, and even other `HybridObject`s!
-
-For example, a custom `<ImageView>` component can be used to render custom `Image` types:
-
-<div className="side-by-side-container">
-<div className="side-by-side-block">
-
-```ts title="Image.nitro.ts"
-export interface Image
-  extends HybridObject<{ ios: 'swift' }> {
-  readonly width: number
-  readonly height: number
-  save(): Promise<string>
-}
-```
-
-</div>
-<div className="side-by-side-block">
-
-```ts title="ImageView.nitro.ts"
-import { type Image } from './Image.nitro.ts'
-export interface ImageProps
-  extends HybridViewProps {
-  image: Image
-}
-export type ImageView = HybridView<ImageProps>
-```
-
-</div>
-</div>
-
-Then;
-
-```jsx
-function App() {
-  const image = await loadImage('https://...')
-  return <ImageView image={image} />
-}
-```
-
-### Threading
-
-Since Nitro bridges props directly to JS, you are responsible for ensuring thread-safety.
-- If props are set normally via React, they will be set on the UI Thread.
-- If the user sets props on the view `hybridRef` (e.g. also if the `HybridView` is passed to a `HybridObject` in native), props _could_ be set on a different Thread, like the JS Thread.
-
-### Before/After update
-
-To batch prop changes, you can override `beforeUpdate()` and `afterUpdate()` in your views:
-
-<Tabs groupId="native-view-language">
-  <TabItem value="swift" label="Swift" default>
-    ```swift title="HybridCameraView.swift"
-    class HybridCameraView: HybridCameraViewSpec {
-      // View
-      var view: UIView = UIView()
-
-      func beforeUpdate() { }
-      func afterUpdate() { }
-    }
-    ```
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    ```kotlin title="HybridCameraView.kt"
-    class HybridCameraView(context: ThemedReactContext): HybridCameraViewSpec() {
-      // View
-      override val view: View = View(context)
-
-      override fun beforeUpdate() { }
-      override fun afterUpdate() { }
-    }
-    ```
-  </TabItem>
-</Tabs>
-
-### Callbacks
-
-Pass functions directly to Nitro View props:
+The generated component includes ordinary React Native `ViewProps` such as `style` and `onLayout`. There is no need to import a generated JSON config or call `getHostComponent` yourself.
 
 ```tsx
-export interface CameraProps extends HybridViewProps {
-  onCaptured: (image: Image) => void
-}
-export type CameraView = HybridView<CameraProps>
+import { CameraViewComponent } from 'my-camera-library'
 
-function App() {
-  return <Camera onCaptured={(i) => console.log(i)} />
-}
-```
-
-### Recycling
-
-For improved performance and lower memory footprint, Nitro Views can be _recycled_.
-To allow your view to be recycled, implement the `RecyclableView` interface/protocol from Nitro:
-
-<Tabs groupId="native-view-language">
-  <TabItem value="swift" label="Swift" default>
-    ```swift title="HybridMyView.swift"
-    import NitroModules
-
-    class HybridMyView: HybridMyViewSpec, RecyclableView {
-      // ...
-      func prepareForRecycle() {}
-    }
-    ```
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    ```kotlin title="HybridMyView.kt"
-    import com.margelo.nitro.views.RecyclableView
-
-    class HybridMyView: HybridMyViewSpec(), RecyclableView {
-      // ...
-      override fun prepareForRecycle() {}
-    }
-    ```
-  </TabItem>
-</Tabs>
-
-When Fabric decides to re-use a previously created view, the `prepareForRecycle()` method will be called.
-Inside that method you should reset any internal state to its default values.
-
-For example, an asynchronous Image component should reset its displayed image when it is being recycled, otherwise it would display an old image while the new one is still loading:
-
-```swift
-class HybridImageView: HybridImageViewSpec, RecyclableView {
-  var view: UIView { imageView }
-  private var imageView = UIImageView()
-
-  func prepareForRecycle() {
-    // highlight-next-line
-    imageView.image = nil
-  }
-}
-```
-
-## Methods
-
-Since every `HybridView` is also a `HybridObject`, methods can be directly called on the object.
-Assuming our `<Camera>` component has a `takePhoto()` function like so:
-
-```ts
-export interface CameraProps extends HybridViewProps { ... }
-export interface CameraMethods extends HybridViewMethods {
-  takePhoto(): Promise<Image>
-}
-
-export type CameraView = HybridView<CameraProps, CameraMethods>
-```
-
-To call the function, you would need to get a reference to the `HybridObject` first using `hybridRef`:
-
-```jsx
 function App() {
   return (
-    <Camera
-      hybridRef={(ref) => {
-        const image = ref.takePhoto()
-      }}
+    <CameraViewComponent
+      style={{ flex: 1 }}
+      enableFlash={false}
+      onReady={() => console.log('Ready')}
+      hybridRef={(camera) => camera.focus()}
     />
   )
 }
 ```
 
-The `ref` from within `hybridRef`'s callback is pointing to the `HybridObject` directly - you can also pass this around freely.
+`hybridRef` receives the `CameraView` instance and can call native methods or inspect readonly properties. React's normal `ref` points to the host instance.
+
+## Props and threading
+
+Props support Nitro types, including structs, callbacks, ArrayBuffers, and other Hybrid Objects. Callbacks are passed directly as functions. For Swift, a callback prop uses `Callback`, so native code can call it asynchronously without accessing JS from the UI thread.
+
+React prop updates run on the UI thread. Direct calls and property writes through `hybridRef` run on the caller's thread. Dispatch native UI operations to the UI thread as needed.
+
+Override `beforeUpdate()` and `afterUpdate()` to batch work around a React prop update. For example, collect changes in setters and apply the combined native update in `afterUpdate()`.
+
+## Recycling
+
+Use `onDropView()` for cleanup when Fabric drops the view. Keep cleanup safe for the view's lifecycle and cancel work that should no longer update it.
+
+To opt into recycling, implement `RecyclableView` and reset transient state in `prepareForRecycle()`:
+
+```swift
+class HybridCameraView: HybridCameraViewSpec, RecyclableView {
+  // Implement the spec's properties, view, and methods here.
+
+  func prepareForRecycle() {
+    // Cancel pending requests and reset preview state.
+  }
+}
+```
+
+In Kotlin, implement `RecyclableView` from `com.margelo.nitro.views` and override `prepareForRecycle()`. Reset images, pending operations, and other state that must not leak into the next use of the native view.

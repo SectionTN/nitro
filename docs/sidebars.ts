@@ -18,6 +18,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'getting-started/what-is-nitro',
         'getting-started/how-to-build-a-nitro-module',
+        'getting-started/migrating-to-v1',
         'getting-started/configuration-nitro-json',
         'getting-started/minimum-requirements',
       ]
@@ -59,6 +60,7 @@ const sidebars: SidebarsConfig = {
         'types/optionals',
         'types/nulls',
         'types/promises',
+        'types/errors',
         'types/callbacks',
         'types/tuples',
         'types/variants',

@@ -1,90 +1,81 @@
 ---
+description: Return and receive JavaScript promises with Nitro's C++ Promise values and Swift Promise protocol.
 ---
-
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 # Promises (`Promise<T>`)
 
-A function can be made asynchronous by returning a `Promise` to JS.
-This allows your native code to perform heavy-, long-running tasks in parallel, while the JS thread can continue rendering and performing other business logic.
+Use the built-in TypeScript `Promise<T>` for an asynchronous result. Returning a promise does not move work off the calling thread by itself; schedule the work in the native implementation.
 
-<Tabs>
-  <TabItem value="ts" label="TypeScript" default>
-    In TypeScript, a `Promise<T>` is represented using the built-in `Promise<T>` type, which can be awaited:
+```ts
+export declare class Math extends HybridObject {
+  fibonacci(n: number): Promise<number>
+}
+```
 
-    ```ts
-    interface Math extends HybridObject<{ … }> {
-      fibonacci(n: number): Promise<number>
-    }
+This is a spec excerpt; see [setup](../getting-started/how-to-build-a-nitro-module) for the decorator and runtime export.
 
-    const math = // ...
-    await math.fibonacci(13)
-    ```
+## C++
 
-    :::note
-    The `Promise<T>` type is built-in in JavaScript.
-    :::
-  </TabItem>
-  <TabItem value="swift" label="Swift">
-    In Swift, a `Promise<T>` can be created via Nitro's [`Promise<T>`](https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/apple/core/Promise.swift) type - for example, to use Swift's new async/await syntax:
+Nitrogen generates `Promise<T>` values, and takes promise parameters by `const Promise<T>&`. Include `<NitroModules/Promise.hpp>` in handwritten code.
 
-    ```swift
-    func fibonacci(n: Double) -> Promise<Double> {
-      return Promise.async {
-        // This runs on a separate Thread, and can use `await` syntax!
-        return try await calculateFibonacciSequence(n)
-      }
-    }
-    ```
+```cpp
+Promise<double> fibonacci(double n) override {
+  return Promise<double>::async([n]() -> double {
+    return calculateFibonacciSequence(n);
+  });
+}
+```
 
-    :::note
-    Import Promise from Nitro: `import NitroModules`
-    :::
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    In Kotlin, a `Promise<T>` can be created via Nitro's [`Promise<T>`](https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/android/src/main/java/com/margelo/nitro/core/Promise.kt) type - for example, to use Kotlin's coroutine syntax:
+`async` runs the closure on Nitro's thread pool and rejects if it throws. `Promise<T>::resolved(value)` and `Promise<T>::rejected(error)` create settled promises. Use `Promise<void>::resolved()` for a void result. `awaitFuture` adapts a `std::future`.
 
-    ```kotlin
-    fun fibonacci(n: Double): Promise<Double> {
-      return Promise.async {
-        // This runs on a separate Thread, and can use suspending coroutine functions!
-        return calculateFibonacciSequence(n)
-      }
-    }
-    ```
+For callback-based native APIs, create `Promise<T>::pending()`, copy the handle into the completion handler, and call `resolve` or `reject` there. Copies share the same state. Always arrange for one completion path; creating a promise does not guarantee it will settle.
 
-    :::note
-    Import Promise from Nitro: `import com.margelo.nitro.core.Promise`
-    :::
-  </TabItem>
-  <TabItem value="cpp" label="C++">
-    In C++, a `Promise<T>` can be created via Nitro's [`Promise<T>`](https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/include/NitroModules/Promise.hpp) type - for example, to use an asynchronous Thread pool:
+## Swift
 
-    ```cpp
-    std::shared_ptr<Promise<double>> fibonacci(double n) {
-      return Promise<double>::async([=]() -> double {
-        // This runs on a separate Thread!
-        return calculateFibonacciSequence(n);
-      });
-    }
-    ```
+Nitrogen generates return types such as `any Promise<Double>`. `Promise` is a protocol whose concrete specializations are generated from your specs. Use the inferred factories rather than constructing the protocol:
 
-    :::note
-    Import Promise from Nitro: `#include <NitroModules/Promise.hpp>`
-    :::
-  </TabItem>
-</Tabs>
-
-Additionally, Nitro statically enforces that **Promises can never go stale**, preventing you from accidentally "forgetting" to resolve or reject a Promise:
-
-```swift title="HybridMath.swift"
-func saveToFile(image: HybridImage) -> Promise<Void> {
-  guard let data = image.data else { return }
-  // code-error
-                                     ^ // Error: Cannot return void!
-  return Promise.async {
-    try await data.writeToFile("file://tmp/img.png")
+```swift
+func fibonacci(n: Double) -> any Promise<Double> {
+  return .async {
+    return try await calculateFibonacciSequence(n)
   }
 }
 ```
+
+Use `.resolved(with: value)`, `.resolved()` for `Void`, `.rejected(with: error)`, or `.pending()` with an explicit `any Promise<T>` context. A pending promise exposes `resolve(result:)` and `reject(error:)`.
+
+```swift
+func getCachedValue() -> any Promise<Double> {
+  return .resolved(with: 42)
+}
+
+func readInput(input: any Promise<Double>) -> any Promise<Double> {
+  return .async {
+    return try await input.await()
+  }
+}
+```
+
+Promise listener callbacks run on the thread that settles the promise, or immediately when it is already settled. Dispatch UI work to the main thread yourself.
+
+## Kotlin
+
+Import `com.margelo.nitro.core.Promise`. Use `Promise.async` with suspending native work:
+
+```kotlin
+override fun fibonacci(n: Double): Promise<Double> {
+  return Promise.async {
+    calculateFibonacciSequence(n)
+  }
+}
+```
+
+## Passing promises
+
+Promises work in either direction and can be used in parameters, properties, containers, and callback results. JavaScript awaits the result as usual:
+
+```ts
+const result = await math.fibonacci(13)
+```
+
+The originating runtime needs a [dispatcher](../guides/worklets#dispatcher) so native completion can reach JS. See [sync vs async](../guides/sync-vs-async) for choosing where to perform work.

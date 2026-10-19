@@ -1,71 +1,55 @@
 ---
+description: Register handwritten C++ methods that access jsi::Runtime and jsi::Value directly.
 ---
 
-# Raw `jsi::Value` / `jsi::Runtime`
+# Raw JSI values
 
-Even though Nitro supports virtually any JS type, there are certain use cases where you might want to work with a raw `jsi::Value` or a `jsi::Runtime` directly - and Nitro provides an escape hatch for this.
+A raw JSI method receives the runtime, `this`, arguments, and argument count directly. Use it when a typed converter cannot express your API. You must validate arguments and maintain the matching TypeScript declaration yourself.
 
-Since JSI is not typed, Nitrogen does not have typing support for a method that takes raw `jsi::Value`s - so you have to define it yourself by **overriding** `loadHybridMethods()` in C++:
-
-```cpp
-class HybridMath : public HybridMathSpec {
-public:
-  HybridMath(): HybridObject(TAG) {}
-
-public:
-  jsi::Value myRawMethod(jsi::Runtime& runtime,
-                         const jsi::Value& thisValue,
-                         const jsi::Value* args,
-                         size_t count);
-
-public:
-  void loadHybridMethods() override;
-}
-```
-
-:::warning
-In JS, `myRawMethod` is not typed. You are expected to provide type-safety for it by safely checking the arguments and return values yourself.
-:::
-
-The implementation of your `loadHybridMethods()` should call the base's `loadHybridMethods()`, and then register your raw JSI methods:
+Register the method in a handwritten [class descriptor](../concepts/hybrid-objects#handwritten-c-bindings):
 
 ```cpp
-void HybridMath::loadHybridMethods() {
-  // 1. Load base methods
-  HybridMathSpec::loadHybridMethods();
-  // 2. Register own methods
-  registerHybrids(this, [](Prototype& prototype) {
-    prototype.registerRawHybridMethod("myRawMethod",
-                                      /* args count */ 2,
-                                      &HybridMath::myRawMethod);
+#include <NitroModules/HybridObject.hpp>
+
+using namespace margelo::nitro;
+
+class HybridMath: public HybridObject {
+public:
+  struct Class {
+    using Base = HybridObject::Class;
+    static constexpr const char* name = "Math";
+    static const std::shared_ptr<const HybridClass>& get();
+  };
+
+  jsi::Value add(jsi::Runtime& runtime,
+                 const jsi::Value& thisValue,
+                 const jsi::Value* args,
+                 size_t count) {
+    if (count != 2 || !args[0].isNumber() || !args[1].isNumber()) {
+      throw jsi::JSError(runtime, "add expects two numbers");
+    }
+    return jsi::Value(args[0].asNumber() + args[1].asNumber());
+  }
+
+protected:
+  const std::shared_ptr<const HybridClass>& getHybridClass() override {
+    return Class::get();
+  }
+};
+
+inline const std::shared_ptr<const HybridClass>& HybridMath::Class::get() {
+  static const auto descriptor = HybridClass::create<Class>([](HybridClass& cls) {
+    cls.registerRawHybridMethod("add", 2, &HybridMath::add);
+    cls.registerHybridConstructor(+[]() -> std::shared_ptr<HybridMath> {
+      return std::make_shared<HybridMath>();
+    });
   });
+  return descriptor;
 }
 ```
 
-:::important
-If you don't have a base spec (here, `HybridMathSpec` is a nitrogenerated spec), you just want to call `HybridObject::loadHybridMethods()`.
-:::
+The expected argument count supplies JavaScript function metadata; validate `count` before indexing `args`. Register `HybridMath::Class::get()` through `HybridClassRegistry` before exposing the constructor.
 
-And lastly, implement your raw JSI method:
+For a handwritten subclass of a generated spec, its descriptor can set `Base = HybridMathSpec::Class` and register additional raw methods. Override `getHybridClass()` to return that descriptor. Keep Nitrogen's generated files unchanged.
 
-```cpp
-jsi::Value HybridMath::myRawMethod(jsi::Runtime& runtime,
-                                   const jsi::Value& thisValue,
-                                   const jsi::Value* args,
-                                   size_t count) {
-  double a = args[0].asNumber();
-  double b = args[1].asNumber();
-  return jsi::Value(a + b);
-}
-```
-
-:::note
-The syntax of a raw JSI method is always the same as the one of a `jsi::HostFunctionType`.
-:::
-
-:::tip
-You can use Nitro's converters by including `#include <NitroModules/JSIConverter.hpp>`, then using it:
-```cpp
-double a = JSIConverter<double>::fromJSI(runtime, args[0]);
-```
-:::
+All JSI access must stay on the runtime's thread and within its lifetime. Do not retain the argument array or move runtime operations to a worker thread. You can still use `JSIConverter<T>::fromJSI(runtime, value)` and `toJSI` inside a raw method by including `<NitroModules/JSIConverter.hpp>`.

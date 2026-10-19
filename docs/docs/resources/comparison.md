@@ -270,12 +270,17 @@ Codegen is similar to Nitrogen as it also generates native interfaces from TypeS
 <div className="side-by-side-block">
 
 ```ts title="Nitrogen"
-interface Math extends HybridObject<{ … }> {
+import { iOS, type HybridObject } from 'nitro-core'
+
+export * from '#nitro/Math'
+
+@iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
+export declare class Math extends HybridObject {
+  constructor()
   add(a: number, b: number): Promise<number>
 }
 
-export const Math =
- NitroModules.createHybridObject<Math>('Math')
+export const math = new Math()
 ```
 
 </div>
@@ -614,7 +619,7 @@ Note: It is also possible for Nitro specs to go out of sync, but only if you for
     <td>✅</td>
   </tr>
   <tr>
-    <td><code>object</code></td>
+    <td>JSON values (<code>AnyJSON</code> in Nitro)</td>
     <td>✅</td>
     <td>✅</td>
     <td>✅</td>

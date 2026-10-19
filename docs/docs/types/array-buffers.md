@@ -1,230 +1,122 @@
 ---
+description: Share bytes between JavaScript and native code with ArrayBuffer, including ownership, copies, and thread-safe lifetime handling.
 ---
-
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 # ArrayBuffers (`ArrayBuffer`)
 
-Array Buffers allow highly efficient access to shared raw binary data from both JS and native.
-Passing an `ArrayBuffer` between JS and native is zero-copy.
+Use the built-in JavaScript `ArrayBuffer` to exchange binary data. Nitrogen maps it to an `ArrayBuffer` value in both C++ and Swift. Passing the buffer shares its bytes; copying a native handle does not copy its contents.
 
-<Tabs>
-  <TabItem value="ts" label="TypeScript" default>
-    ```ts
-    interface Image extends HybridObject<{ … }> {
-      getData(): ArrayBuffer
-    }
-    ```
+```ts
+export declare class Image extends HybridObject {
+  getData(): ArrayBuffer
+  setData(data: ArrayBuffer): void
+}
+```
 
-    :::note
-    The `ArrayBuffer` type is built-in in JavaScript.
-    :::
-  </TabItem>
-  <TabItem value="swift" label="Swift">
-    ```swift
-    class HybridImage: HybridImageSpec {
-      func getData() -> ArrayBuffer
-    }
-    ```
+This is a spec excerpt; see [setup](../getting-started/how-to-build-a-nitro-module) for the decorator and runtime export.
 
-    :::note
-    Import ArrayBuffer from Nitro: `import NitroModules`
-    :::
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    ```kotlin
-    class HybridImage: HybridImageSpec() {
-      fun getData(): ArrayBuffer
-    }
-    ```
+```cpp
+ArrayBuffer getData() override;
+void setData(const ArrayBuffer& data) override;
+```
 
-    :::note
-    Import ArrayBuffer from Nitro: `import com.margelo.nitro.core.ArrayBuffer`
-    :::
-  </TabItem>
-  <TabItem value="cpp" label="C++">
-    ```cpp
-    class HybridImage: public HybridImageSpec {
-      std::shared_ptr<ArrayBuffer> getData();
-    }
-    ```
-
-    :::note
-    Import ArrayBuffer from Nitro: `#include <NitroModules/ArrayBuffer.hpp>`
-    :::
-  </TabItem>
-</Tabs>
-
-It is crucial to understand the ownership and threading concerns around shared memory access.
+```swift
+func getData() throws -> ArrayBuffer
+func setData(data: ArrayBuffer) throws
+```
 
 ## Ownership
 
-There's two kinds of `ArrayBuffer`s, **owning** and **non-owning**:
+A native-backed owning buffer retains its storage independently of the JS runtime. A JS-backed buffer borrows storage tied to that runtime. Check `isOwner()` in C++ or `isOwner` in Swift; a buffer received from JS may be borrowed even when native code originally allocated its bytes.
 
-### Owning
+Before keeping JS-backed bytes for later or accessing them on another thread, call `asOwning()` synchronously on the owning JS runtime's thread. It retains recoverable native backing storage without a copy, or copies JS-managed bytes into native storage:
 
-An `ArrayBuffer` that was created on the native side is **owning** (`isOwner = true`), which means you can safely access its data as long as the `ArrayBuffer` reference is alive.
-It can be safely held strong for longer, e.g. as a class property/member, and accessed from different Threads.
-
-```swift
-func doSomething() -> ArrayBuffer {
-  // highlight-next-line
-  let buffer = ArrayBuffer.allocate(1024 * 10)
-  print(buffer.isOwner)    // <-- ✅ true
-  let data = buffer.data   // <-- ✅ safe to do because we own it!
-  self.buffer = buffer     // <-- ✅ safe to use it later!
-  DispatchQueue.global().async {
-    let data = buffer.data // <-- ✅ also safe because we own it!
-  }
-  return buffer
+```cpp
+void setData(const ArrayBuffer& data) override {
+  storedData = data.asOwning();
 }
 ```
 
-### Non-owning
-
-An `ArrayBuffer` that was created in JS cannot be safely kept strong as the JS VM can delete it at any point, hence it is **non-owning** (`isOwner = false`).
-Its data can only be safely accessed before the synchronous function returned, as this will stay within the JS bounds.
-
 ```swift
-func doSomething(buffer: ArrayBuffer) {
-  print(buffer.isOwner)    // <-- ❌ false
-  let data = buffer.data   // <-- ✅ safe to do because we're still sync
-  DispatchQueue.global().async {
-    // code-error
-    let data = buffer.data // <-- ❌ NOT safe
-  }
-}
-```
-If you need a non-owning buffer's data for longer, **copy it first**:
-```swift
-func doSomething(buffer: ArrayBuffer) {
-  // diff-add
-  let copy = buffer.isOwner
-  // diff-add
-      ? buffer
-  // diff-add
-      : ArrayBuffer.copy(of: buffer)
-  let data = copy.data   // <-- ✅ safe now because we have an owning copy
-  DispatchQueue.global().async {
-    let data = copy.data // <-- ✅ still safe now because we have an owning copy
-  }
+func setData(data: ArrayBuffer) {
+  storedData = data.asOwning()
 }
 ```
 
-:::note
-Not every `ArrayBuffer` received from JS is **non-owning**, eg if the buffer was created in native and then did a JS-roundtrip it is still **owning**!
+Use an optional member for `storedData` if it starts empty: `ArrayBuffer` has no default constructor. Call `ArrayBuffer::empty()` in C++ or `ArrayBuffer.empty()` in Swift for an owning zero-length buffer.
 
-Always check the `isOwner` property to prevent unnecessary copies.
-:::
+Owning handles keep storage alive, but do not synchronize access. Coordinate readers and writers across JS and native threads to avoid data races. Raw pointers must not outlive their buffer, and borrowed pointers must not escape the synchronous JS call.
 
-## Threading
+## Creating buffers in C++
 
-An `ArrayBuffer` can be accessed from both JS and native, and even from multiple Threads at once, but they are **not thread-safe**.
-To prevent race conditions or garbage-data from being read, make sure to not read from- and write to- the `ArrayBuffer` at the same time.
+Include `<NitroModules/ArrayBuffer.hpp>`:
 
-## Creating Buffers
+```cpp
+auto buffer = ArrayBuffer::allocate(4096);
+auto copy = ArrayBuffer::copy(buffer);
 
-Buffers can either be created from native (**owning**), or from JS (**non-owning**).
+std::vector<uint8_t> bytes = {1, 2, 3};
+auto moved = ArrayBuffer::move(std::move(bytes));
 
-### From native
+auto data = new uint8_t[4096];
+auto wrapped = ArrayBuffer::wrap(data, 4096, [data]() {
+  delete[] data;
+});
+```
 
-On the native side, an **owning** `ArrayBuffer` can either **wrap-**, or **copy-** an existing buffer:
+`wrap` does not copy. Its cleanup function runs after the final owner releases the storage. Keep wrapped bytes valid until then. `copy` also accepts a pointer and size, or a `std::vector<uint8_t>`.
 
-<Tabs groupId="native-language">
-  <TabItem value="swift" label="Swift">
-    ```swift
-    let myData = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
+Read `buffer.data()` and `buffer.size()` to access the bytes. Empty or invalidated JS buffers can have a null data pointer. Equality compares backing-handle identity, not byte contents.
 
-    // wrap (no copy)
-    let wrappingArrayBuffer = ArrayBuffer.wrap(dataWithoutCopy: myData,
-                                               size: 4096,
-                                               onDelete: { myData.deallocate() })
-    // copy
-    let copiedArrayBuffer = ArrayBuffer.copy(of: wrappingArrayBuffer)
-    // new blank buffer
-    let newArrayBuffer = ArrayBuffer.allocate(size: 4096)
-    ```
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    ```kotlin
-    val myData = ByteBuffer.allocateDirect(4096)
+## Creating buffers in Swift
 
-    // wrap (no copy)
-    val wrappingArrayBuffer = ArrayBuffer.wrap(myData)
+Import `NitroModules`:
 
+```swift
+let buffer = ArrayBuffer.allocate(4096)
+let copy = ArrayBuffer.copy(buffer)
 
-    // copy
-    let copiedArrayBuffer = ArrayBuffer.copy(myData)
-    // new blank buffer
-    val newArrayBuffer = ArrayBuffer.allocate(4096)
-    ```
-  </TabItem>
-  <TabItem value="cpp" label="C++">
-    ```cpp
-    auto myData = new uint8_t[4096];
+let bytes = UnsafeMutablePointer<UInt8>.allocate(capacity: 4096)
+let wrapped = ArrayBuffer.wrap(
+  dataWithoutCopy: bytes,
+  size: 4096,
+  onDelete: { bytes.deallocate() }
+)
+```
 
-    // wrap (no copy)
-    auto wrappingArrayBuffer = ArrayBuffer::wrap(myData, 4096, [=]() {
-      delete[] myData;
-    });
-    // copy
-    auto copiedArrayBuffer = ArrayBuffer::copy(myData, 4096);
-    // new blank buffer
-    auto newArrayBuffer = ArrayBuffer::allocate(4096);
-    ```
-  </TabItem>
-</Tabs>
+Prefer scoped access when reading or writing bytes:
 
-#### Language-native buffer types
+```swift
+buffer.withUnsafeMutableBytes { bytes in
+  bytes[0] = 42
+}
+```
 
-ArrayBuffers also provide helper and conversion methods for the language-native conventional buffer types:
+The pointer passed to `withUnsafeBytes` or `withUnsafeMutableBytes` must stay inside the closure. These helpers do not make a borrowed JS buffer owning or synchronize writes.
 
-<Tabs groupId="native-language">
-  <TabItem value="swift" label="Swift">
-    Swift often uses [`Data`](https://developer.apple.com/documentation/foundation/data) to represent Data.
-    ```swift
-    let data = Data(capacity: 1024)
-    let buffer = ArrayBuffer.copy(data: data)
-    let dataAgain = buffer.toData(copyIfNeeded: true)
-    ```
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    Kotlin often uses [`ByteBuffer`](https://developer.android.com/reference/java/nio/ByteBuffer) to represent Data.
-    ```kotlin
-    val data = ByteBuffer.allocateDirect(1024)
-    val buffer = ArrayBuffer.copy(data)
-    val dataAgain = buffer.getBuffer(copyIfNeeded = true)
-    ```
-  </TabItem>
-  <TabItem value="cpp" label="C++">
-    C++ often uses [`std::vector<uint8_t>`](https://en.cppreference.com/w/cpp/container/vector) to represent Data.
-    ```cpp
-    std::vector<uint8_t> data;
-    auto buffer = ArrayBuffer::copy(data);
-    /* convert back to vector would be a copy. */
-    ```
-  </TabItem>
-</Tabs>
+Use `try ArrayBuffer.copy(data: data)` to copy Foundation `Data`. `buffer.toData(copyIfNeeded: true)` copies borrowed bytes if needed; an owning buffer can be shared with `Data` without copying. Passing `false` requires keeping the borrowed storage valid yourself.
 
-### From JS
+## Creating buffers in Kotlin
 
-From JS, a **non-owning** `ArrayBuffer` can be created via the [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) web APIs, and viewed or edited using the typed array APIs (e.g. [`Uint8Array`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Uint8Array)).
+Import `com.margelo.nitro.core.ArrayBuffer`. Kotlin buffers can wrap or copy a `ByteBuffer`:
+
+```kotlin
+val bytes = ByteBuffer.allocateDirect(4096)
+val wrapped = ArrayBuffer.wrap(bytes)
+val copied = ArrayBuffer.copy(bytes)
+val allocated = ArrayBuffer.allocate(4096)
+```
+
+`getBuffer(copyIfNeeded = true)` returns a `ByteBuffer`, copying when needed for safe access. Each returned buffer has its own position and limit while shared storage still shares writes. Call `buffer.asOwning()` before retaining borrowed bytes or sending them to a worker; Kotlin copies the bytes when the buffer is borrowed. Kotlin also supports wrapping Android `HardwareBuffer` instances on supported API levels.
+
+## Creating buffers in JavaScript
 
 ```ts
-const arrayBuffer = new ArrayBuffer(4096)
-const view = new Uint8Array(arrayBuffer)
-view[0] = 64
-view[1] = 128
-view[2] = 255
+const buffer = new ArrayBuffer(4096)
+const bytes = new Uint8Array(buffer)
+bytes[0] = 64
 ```
 
-#### Creating a native buffer from JS
+Pass the `ArrayBuffer`, not the typed-array view. A view's `.buffer` can include bytes outside its `byteOffset` and `byteLength`; slice the relevant range when your API needs only that range.
 
-To create an **owning** `ArrayBuffer` from JS, you can use the `createNativeArrayBuffer(size)` helper:
-
-```ts
-const arrayBuffer = NitroModules.createNativeArrayBuffer(4096)
-```
-
-In contrast to using the default JS `ArrayBuffer` constructor, this allocates a native `ArrayBuffer` using Nitro's implementation, allowing you to use this buffer in native, without performing any copies as it already is **owning**.
+For a native allocation, use `NitroModules.createNativeArrayBuffer(4096)` from `nitro-core`. Native code should still use `asOwning()` when retaining a buffer received from JS.

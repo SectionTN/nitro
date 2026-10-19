@@ -1,74 +1,31 @@
 ---
-description: Understand Nitro Modules, the React Native library structure for type-safe native modules backed by Hybrid Objects and statically compiled JSI bindings.
+description: Structure a Nitro Module with TypeScript specs, native implementations, and generated bindings.
 ---
-
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
 
 # Nitro Modules
 
-A **Nitro Module** is a library built with Nitro. It may contain one or more [**Hybrid Objects**](hybrid-objects).
+A Nitro Module is a library exposing one or more [Hybrid Objects](hybrid-objects), and optionally [Hybrid Views](hybrid-views).
 
 ## Structure
 
-A Nitro Module contains native source folders, a `package.json`, and a `Package.swift` for iOS. Its `swiftpmConfig` entry enables React Native's SwiftPM autolinking. A metadata-only `*.podspec` lets React Native CLI discover the iOS dependency.
-In addition to the base react-native library template, a Nitro Module also contains:
+A module contains:
 
-- A TypeScript setup
-- A `nitro.json` configuration file
+- TypeScript `.nitro.ts` specs and a public entry point with named exports.
+- Native implementations in C++, Swift, or Kotlin.
+- `nitro.json` for native names and namespaces.
+- `nitrogen/generated` with native bindings and JavaScript class exports.
+- A `package.json` `imports` mapping for `#nitro/*`.
+- `Package.swift`, `swiftpmConfig`, and a metadata-only podspec for React Native's iOS integration.
+- Gradle, CMake, and JNI setup for Android.
 
-## Creating a Nitro Module
-
-### 1. Initialize the template
-
-To create a new Nitro Module, simply run `nitrogen init <moduleName>`:
+## Create and use a module
 
 ```sh
 npx nitrogen@alpha init react-native-math
 ```
 
-### 2. Implement your Hybrid Objects
+Declare a class, select native implementations in its decorators, and add a public constructor if users should create it with `new`. Run Nitrogen, implement the generated native spec, and re-export the class by name from your library.
 
-Once you set up the library, you can start implementing your Hybrid Objects!
+Nitrogen generates class registration. For handwritten C++ bindings, define a `Class` descriptor and register it with `HybridClassRegistry` before JavaScript accesses the class.
 
-
-<Tabs groupId="nitrogen-or-not">
-  <TabItem value="nitrogen" label="With Nitrogen ✨" default>
-
-  With [Nitrogen](nitrogen) you can ✨ automagically ✨ generate all native interfaces from your TypeScript definitions.
-  After implementing the generated specs, register them using the `HybridObjectRegistry`.
-
-  See [Hybrid Objects (Implementation)](hybrid-objects#implementation) for more information.
-
-  </TabItem>
-  <TabItem value="manually" label="Manually">
-
-  If you don't want to use Nitrogen, simply create your native C++ classes that inherit from `HybridObject`, and register them using the `HybridObjectRegistry`.
-
-  See [Hybrid Objects (Implementation)](hybrid-objects#implementation) for more information.
-
-  </TabItem>
-</Tabs>
-
-### 3. Set up an example app
-
-After creating a Nitro Module, it's time to set up an example app to test your library!
-
-<Tabs groupId="expo-or-bare">
-  <TabItem value="expo" label="Expo" default>
-  ```sh
-  npx create-expo-app@latest
-  ```
-  </TabItem>
-  <TabItem value="bare" label="Bare RN">
-  ```sh
-  npx @react-native-community/cli@latest init NitroMathExample
-  ```
-  </TabItem>
-</Tabs>
-
-:::tip
-The Hybrid Objects from your Nitro Module will be registered in the `HybridObjectRegistry`. This registration process needs to be called from somewhere:
-- In React Native, this happens in the `*Package.kt` file which calls `.initializeNative()`.
-- If you are not using React Native, you need to manually call `.initializeNative()` in your library's entry point.
-:::
+See [How to build a Nitro Module](../getting-started/how-to-build-a-nitro-module) for the full setup and [entry points](../guides/entry-point) for host runtime installation.

@@ -20,4 +20,8 @@ The package pins Nitro and Nitrogen to the exact alpha version that created it. 
 - `nitrogen/generated` contains native bindings and the lazy JavaScript class exports. Commit it and include it in the published package.
 - `package.json` maps `#nitro/*` to the generated `.cjs` modules. Keep that mapping available to the compiled files as well as the source specs.
 
-React Native's SwiftPM autolinking uses `Package.swift` and `swiftpmConfig` from `package.json`. Nitrogen adds targets for the Swift sources in `ios/`, C++ sources in `cpp/`, and generated bindings. The metadata-only podspec lets React Native CLI discover the iOS dependency. Android has no implementation yet.
+React Native's SwiftPM autolinking uses `Package.swift` and `swiftpmConfig` from `package.json`. Nitrogen adds targets for the Swift sources in `ios/`, C++ sources in `cpp/`, and generated bindings. The metadata-only podspec lets React Native CLI discover the iOS dependency. Add an `@Android` decorator and a native implementation when targeting Android.
+
+In the consuming app's `tsconfig.json`, enable `resolvePackageJsonImports` (React Native's base config disables it). Use `moduleResolution: "bundler"`, `"node16"`, or `"nodenext"`. If Metro compiles this package's source specs, add `parserOpts: { plugins: ['decorators'] }` to the app's Babel config. Declared class decorators are removed during TypeScript compilation; `experimentalDecorators` is not required.
+
+Run `npx react-native spm` from your example app after generation, then open its `.xcodeproj`. For an existing CocoaPods app, convert it first with `npx react-native spm add --deintegrate`.

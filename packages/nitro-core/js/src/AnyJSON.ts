@@ -7,8 +7,11 @@
  * - Arrays of arrays or objects
  * - Objects of arrays or objects
  *
- * @note It is recommended to always use typed `interface`s instead of `AnyMap` for
- * both type safety, as well as better performance.
+ * Values cross the native boundary as serialized JSON. Functions, bigints,
+ * undefined values, and cyclic objects are not supported.
+ *
+ * @note Prefer typed interfaces for known shapes to retain type safety and
+ * avoid JSON serialization.
  */
 export type AnyJSON =
   | string

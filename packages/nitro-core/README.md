@@ -10,10 +10,12 @@ dependency. Views, TurboModules, and React Native dispatchers live in
 builds.
 
 ```ts
-import { HybridObject, iOS, Android } from 'nitro-core'
+import { type HybridObject, iOS, Android } from 'nitro-core'
 
-@iOS({ language: 'swift' })
-@Android({ language: 'kotlin' })
+export * from '#nitro/Image'
+
+@iOS({ language: 'swift', allowMultipleImplementations: true })
+@Android({ language: 'kotlin', allowMultipleImplementations: true })
 export declare class Image extends HybridObject {
   readonly width: number
   readonly height: number
@@ -46,3 +48,5 @@ belong in `react-native-nitro-modules`.
 The React Native entry resolves to compiled JavaScript. After editing this
 package, run `bun run build` before rebuilding an app. Validate native changes
 in both `tests/standalone` and `tests/react-native` in this repository.
+
+Specs use `export declare class` and re-export their runtime value from `#nitro/<ClassName>`. Map `#nitro/*` to `./nitrogen/generated/shared/javascript/*.cjs` in `package.json`. A public constructor in the spec enables `new Image(...)`; without one, native APIs return the instances. See the [Nitrogen README](../nitrogen/README.md) for setup and inheritance.

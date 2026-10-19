@@ -14,8 +14,7 @@ interface Person {
   age: number
 }
 
-interface Nitro
-  extends HybridObject<{ ios: 'swift' }> {
+export declare class Nitro extends HybridObject {
   getAuthor(): Person
 }
 ```

@@ -13,7 +13,7 @@ While it can be used as a separate type directly, `null` most commonly used to m
 <Tabs>
   <TabItem value="ts" label="TypeScript" default>
     ```ts
-    interface Math extends HybridObject<{ … }> {
+    export declare class Math extends HybridObject {
       a: number | null
     }
     ```

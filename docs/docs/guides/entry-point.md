@@ -27,7 +27,7 @@ std::shared_ptr<Dispatcher> dispatcher = ...
 margelo::nitro::install(runtime, dispatcher);
 ```
 
-Your `Dispatcher` implementation must properly implement `runAsync` and `runSync` to schedule calls on a Thread that can safely access the `jsi::Runtime`.
+Your `Dispatcher` implementation must properly implement `runAsync`, `runSync`, and `isOnDispatcher` to schedule calls on a Thread that can safely access the `jsi::Runtime`.
 
 :::tip
 If your Runtime can be accessed from any Thread, you can also skip Thread-hops here and just call the functions directly in your Dispatcher.

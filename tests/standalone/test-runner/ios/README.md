@@ -37,7 +37,7 @@ bun tests/standalone/test-runner/ios/run.mjs --help
 
 `RuntimeTests.swift` reads the generated `runtime-tests.json` manifest and runs each JavaScript test as a Swift Testing parameterized case. New exported tests in `js/**/*.test.ts` need no Swift changes. Each case keeps its file-qualified name in the test results and can be rerun individually in Xcode. Missing, invalid, empty or duplicate manifest entries fail discovery.
 
-The Swift tests await a dedicated serial queue that owns the blocking native runner. This keeps Swift's cooperative executor available for `Promise.async` completions. The shared Xcode scheme and command-line runner set `LIBDISPATCH_COOPERATIVE_POOL_STRICT=1` in the test process so the concurrent native Promise case runs with one cooperative worker.
+The Swift tests await a dedicated serial queue that owns the blocking native runner. This keeps Swift's cooperative executor available for `.async` promise completions. The shared Xcode scheme and command-line runner set `LIBDISPATCH_COOPERATIVE_POOL_STRICT=1` in the test process so the concurrent native Promise case runs with one cooperative worker.
 
 The Objective-C++ bridge converts a failed assertion or native exception into a Swift error. Handwritten tests check error propagation, cached bytecode with fresh runtime state, per-case timeout overrides, independent setup and execution budgets, and timeouts for unresolved promises, synchronous loops, and endless microtask chains. The automatically discovered TypeScript cases check HybridObject behavior.
 

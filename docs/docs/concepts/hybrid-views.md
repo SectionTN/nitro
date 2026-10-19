@@ -1,84 +1,39 @@
 ---
-description: Learn how Nitro Hybrid Views render native view components in React Native while keeping Hybrid Object state and type-safe native bindings.
+description: Render native Hybrid Views with generated React components and access their native methods.
 ---
 
 # Hybrid Views
 
-A **Hybrid View** is just a [**Hybrid Object**](hybrid-objects) that can also be rendered.
-It has one additional class-member, `view`:
+A Hybrid View is a [Hybrid Object](hybrid-objects) rendered by React Native's Fabric renderer. Declare a class extending `HybridView`, with writable properties for props and methods for imperative native calls:
 
-<div className="side-by-side-container">
-<div className="side-by-side-block">
+```ts title="CameraView.nitro.ts"
+import { iOS, Android, type HybridView } from 'react-native-nitro-modules'
 
-```ts title="Camera.nitro.ts"
-export interface CameraProps
-       extends HybridViewProps {
+export * from '#nitro/CameraView'
+
+@iOS({ language: 'swift', implementation: { className: 'HybridCameraView' } })
+@Android({ language: 'kotlin', implementation: { className: 'HybridCameraView' } })
+export declare class CameraView extends HybridView {
   enableFlash: boolean
-}
-export interface CameraMethods
-       extends HybridViewMethods { }
-
-// highlight-next-line
-export type CameraView =
-  HybridView<CameraProps, CameraMethods>
-```
-
-</div>
-<div className="side-by-side-block">
-
-```swift title="HybridCamera.swift"
-class HybridCamera : HybridCameraSpec {
-  var enableFlash: Bool = false
-
-  var view: UIView {
-    get {
-      return CameraPreviewView()
-    }
-  }
+  onReady?: () => void
+  focus(): void
 }
 ```
 
-</div>
-</div>
-
-## Rendering Hybrid Views
-
-Unlike a **Hybrid Object**, **Hybrid Views** should not be created manually. Instead, you should use the `getHostComponent(...)` function to get a renderable version of your Hybrid View:
-
-```ts
-export const Camera = getHostComponent<CameraProps, CameraMethods>(
-  'Camera',
-  () => CameraViewConfig
-)
-```
-
-This can then be rendered in React;
+Nitrogen generates `CameraViewComponent`, `CameraViewProps`, and `CameraViewRef`. Fabric creates the native instance, so views do not declare public constructors.
 
 ```tsx
-function App() {
-  return <Camera />
-}
-```
+import { CameraViewComponent } from './CameraView.nitro'
 
-Internally, the `<Camera />` view will create the `HybridCamera` hybrid object - one hybrid object per view.
-
-## Accessing the underlying Hybrid Object
-
-To access the actual underlying object, you can use the `hybridRef`:
-
-```jsx
 function App() {
   return (
-    <Camera
-      hybridRef={(ref) => {
-        console.log(ref.name) // <-- HybridCamera
-        const image = ref.takePhoto()
-      }}
+    <CameraViewComponent
+      enableFlash={false}
+      onReady={() => console.log('Ready')}
+      hybridRef={(camera) => camera.focus()}
     />
   )
 }
 ```
 
-## Full Guides
-
-Check out the [View Components](../guides/view-components) section for a full guide on Hybrid Views.
+`hybridRef` receives the native Hybrid Object. The normal React `ref` retains React Native's host-instance behavior. See [View components](../guides/view-components) for implementation, lifecycle, and packaging.

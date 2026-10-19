@@ -1,4 +1,5 @@
 ---
+description: Exchange typed arrays between JavaScript, C++, Swift, and Kotlin.
 ---
 
 import Tabs from '@theme/Tabs';
@@ -12,7 +13,7 @@ Arrays are represented with the most common and efficient native data structures
 <Tabs>
   <TabItem value="ts" label="TypeScript" default>
     ```ts
-    interface Contacts extends HybridObject<{ … }> {
+    export declare class Contacts extends HybridObject {
       getAllUsers(): User[]
     }
     ```
@@ -20,7 +21,7 @@ Arrays are represented with the most common and efficient native data structures
   <TabItem value="swift" label="Swift">
     ```swift
     class HybridContacts: HybridContactsSpec {
-      fun getAllUsers() -> Array<User>
+      func getAllUsers() throws -> [User]
     }
     ```
   </TabItem>
@@ -49,3 +50,5 @@ This will replace the following arrays:
 - `Array<Double>` -> [`DoubleArray`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double-array/)
 - `Array<Boolean>` -> [`BooleanArray`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean-array/)
 - `Array<Long>` -> [`LongArray`](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long-array/)
+
+Arrays are converted element by element when crossing the boundary. The native container and JavaScript array are separate containers; changing one does not update the other. Elements that are Hybrid Objects still refer to the same native instances. Use `ArrayBuffer` for bulk binary data instead of a number array.

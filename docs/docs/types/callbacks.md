@@ -1,197 +1,106 @@
 ---
+description: Pass JavaScript functions as native Callback values, choose synchronous or asynchronous invocation, and borrow Inline callbacks.
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+# Callbacks
 
-# Callbacks (`(...) => T`)
+Use ordinary function types in TypeScript. Nitrogen maps them to `Callback<R(Args...)>` in C++ and `any Callback<Arguments, Return>` in Swift. `Callback` is a native type; there is no TypeScript `Callback` wrapper to import.
 
-Callbacks are functions created in one language and passed to another to provide a way to "call back" later.
+```ts title="Device.nitro.ts"
+import { iOS, type HybridObject, type Inline } from 'nitro-core'
 
-Nitro has a clever reference counting system to allow users to use callbacks/functions from JS safely, and without any limitations.
-Each callback holds a strong reference on the native side and can be called as often as needed.
-Once the callback is no longer used, it will be safely deleted from memory.
+export * from '#nitro/Device'
 
-<Tabs>
-  <TabItem value="ts" label="TypeScript" default>
-    In TypeScript, a callback is represented as an anonymous function:
-
-    ```ts
-    interface Server extends HybridObject<{ … }> {
-      start(onNewUserJoined: (user: User) => void): void
-    }
-    ```
-  </TabItem>
-  <TabItem value="swift" label="Swift">
-    In Swift, a callback is represented as a closure:
-
-    ```swift
-    func start(onNewUserJoined: (User) -> Void) {
-      onNewUserJoined(user)
-    }
-    ```
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    In Kotlin, a callback is represented as a lambda:
-
-    ```kotlin
-    fun start(onNewUserJoined: (User) -> Unit) {
-      onNewUserJoined(user)
-    }
-    ```
-  </TabItem>
-  <TabItem value="cpp" label="C++">
-    In C++, a callback is represented as a function:
-
-    ```cpp
-    void start(std::function<void(User)> onNewUserJoined) {
-      onNewUserJoined(user);
-    }
-    ```
-  </TabItem>
-</Tabs>
-
-## Events
-
-Since callbacks can be safely kept in memory for longer and called multiple times, Nitro does not have a special type for an "event".
-It is simply a function you store in memory and call later, just like in a normal JS class. ✨
-
-<Tabs>
-  <TabItem value="ts" label="TypeScript" default>
-    ```ts
-    type Orientation = "portrait" | "landscape"
-    interface DeviceInfo extends HybridObject<{ … }> {
-      listenToOrientation(onChanged: (o: Orientation) => void): void
-    }
-
-    const deviceInfo = // ...
-    deviceInfo.listenToOrientation((o) => {
-      console.log(`Orientation changed to ${o}!`)
-    })
-    ```
-  </TabItem>
-  <TabItem value="swift" label="Swift">
-    ```swift
-    func listenToOrientation(onChanged: (Orientation) -> Void) {
-      self.listeners.append(onChanged)
-    }
-
-    func onRotate() {
-      for listener in self.listeners {
-        listener(newOrientation)
-      }
-    }
-    ```
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    ```kotlin
-    fun listenToOrientation(onChanged: (Orientation) -> Unit) {
-      this.listeners.add(onChanged)
-    }
-
-    fun onRotate() {
-      for (listener in this.listeners) {
-        listener(newOrientation)
-      }
-    }
-    ```
-  </TabItem>
-  <TabItem value="cpp" label="C++">
-    ```cpp
-    void listenToOrientation(std::function<void(Orientation)> onChanged) {
-      this->listeners.push_back(onChanged);
-    }
-
-    void onRotate() {
-      for (const auto& listener: this->listeners) {
-        listener(newOrientation);
-      }
-    }
-    ```
-  </TabItem>
-</Tabs>
-
-## Callbacks that return a value (`(...) => T`)
-
-Since JS callbacks could theoretically be called from any native Thread,
-Nitro safely wraps the result types of callbacks that return a value in **Promises which need to be awaited**.
-
-<div className="side-by-side-container">
-<div className="side-by-side-block">
-
-```ts title="Math.nitro.ts"
-interface Math
-  extends HybridObject<{ ios: 'swift' }> {
-  some(getValue: () => number): void
+@iOS({ language: 'swift', implementation: { className: 'HybridDevice' } })
+export declare class Device extends HybridObject {
+  constructor()
+  listen(onValue: (value: number) => void): void
+  read(getValue: () => number): Promise<number>
+  transform(value: number, callback: Inline<(value: number) => number>): number
 }
 ```
 
-</div>
-<div className="side-by-side-block">
+An owning callback can be stored and invoked repeatedly. An event listener is just a stored callback; release it when the subscription ends. Callbacks can also appear in structs, arrays, properties, return values, and optionals.
 
-```swift title="HybridMath.swift"
-func some(getValue: () -> Promise<Double>) {
-  Task {
-    let promise = getValue()
-    let valueFromJs = try await promise.await()
-  }
+## Invocation
+
+| Native operation | Behavior |
+| --- | --- |
+| `callSync(...)` | Calls immediately and returns the declared result. JS callbacks must be invoked on their owning runtime's thread. Errors propagate to the caller. |
+| `callAsync(...)` | Schedules JS execution through the owning runtime's dispatcher and returns a `Promise` for the result. |
+| `callAndForget(...)` | Schedules execution without exposing a result. Use when you do not need to observe completion. |
+| `callback(...)` | Convenience syntax: calls `callAndForget` for a `void` result and `callAsync` otherwise. |
+
+The function signature keeps its declared return type. The native invocation method decides whether to call synchronously or return a promise. There is no `Sync<T>` marker in v1.
+
+### C++
+
+```cpp
+void listen(const Callback<void(double)>& onValue) override {
+  listeners.push_back(onValue);
+}
+
+Promise<double> read(const Callback<double()>& getValue) override {
+  return getValue.callAsync();
 }
 ```
 
-</div>
-</div>
+Copying a `Callback` retains its shared state. Include `<NitroModules/Callback.hpp>` when using it outside generated headers. Create a callback implemented in C++ with `Callback<double(double)>::make([](double value) { return value * 2; })`.
 
-## Synchronous Callbacks
+### Swift
 
-By default, callback functions in Nitro are _asynchronous_. Their execution is scheduled on the JS Thread, and if they return a value they always return a `Promise<T>` wrapping the value.
-This ensures that you can call the callback from any Thread, and it safely executes the actual JS function on the correct JS Thread.
+```swift
+private var listeners: [any Callback<Double, Void>] = []
 
-In addition to that, Nitro also supports fully _synchronous_ callbacks. They are considered dangerous, as the caller is responsible for ensuring Thread safety.
-To extend the previous example, we can make `getValue()` synchronous by wrapping it in the `Sync<T>` type provided by Nitro:
+func listen(onValue: any Callback<Double, Void>) {
+  listeners.append(onValue)
+}
 
-<div className="side-by-side-container">
-<div className="side-by-side-block">
-
-```ts title="Math.nitro.ts"
-interface Math
-  extends HybridObject<{ ios: 'swift' }> {
-  some(getValue: Sync<() => number>): void
+func read(getValue: any Callback<(), Double>) -> any Promise<Double> {
+  return getValue.callAsync()
 }
 ```
 
-</div>
-<div className="side-by-side-block">
+Multiple arguments form a tuple, for example `any Callback<(Double, String), Void>`. Use `try callback.callSync(...)` for synchronous invocation, or `try await callback.callAsync(...)` in async Swift code. To return a native closure for a signature used in your specs, use `let callback: any Callback<Double, Double> = .native { $0 * 2 }`.
 
-```swift title="HybridMath.swift"
-func some(getValue: () -> Double) {
-  let valueFromJs = getValue()
+### Kotlin
+
+Kotlin uses function types in generated signatures:
+
+```kotlin
+private val listeners = mutableListOf<(Double) -> Unit>()
+
+override fun listen(onValue: (Double) -> Unit) {
+  listeners.add(onValue)
 }
 ```
 
-</div>
-</div>
+Use the generated Kotlin signature for the callback's parameters and result. `Callback` and `InlineCallback` are the C++/Swift APIs described above.
 
-:::warning
-The `getValue()` callback can now only be called from the JS Thread.
-:::
+## Inline callbacks
 
-## How was it before Nitro?
+Wrap a required method, static method, or constructor parameter in `Inline<...>` when native code borrows the callback for the duration of the call. This avoids the owning callback's allocations for synchronous use:
 
-Conventionally (in legacy React Native Native Modules), a native method could only have a maximum of two callbacks, one "success" and one "failure" callback.
-Once one of these callbacks is called, both will be destroyed and can no longer be called later.
-This is why React Native introduced "Events" as a way to call into JS more than just once.
-This also meant that an asynchronous function could not have any callbacks, since a Promise's resolve and reject functions are already two callbacks.
-For example, this was **not possible**:
-
-```ts
-interface Camera {
-  startRecording(onStatusUpdate: () => void,
-  // code-error
-                 onRecordingFailed: () => void,
-  // code-error
-                 onRecordingFinished: () => void): Promise<void>
+```cpp
+// For a C++ implementation of Device:
+double transform(double value, const InlineCallback<double(double)>& callback) override {
+  return callback.call(value);
 }
 ```
 
-Thanks to Nitro's clever reference system, functions can be safely held in memory and called as many times as you like, just like in a normal JS class.
-This makes "Events" obsolete, and allows using as many callbacks per native method as required.
+```swift
+func transform(
+  value: Double,
+  callback: borrowing some InlineCallback<Double, Double> & ~Copyable & ~Escapable
+) throws -> Double {
+  return try callback(value)
+}
+```
+
+An inline callback must stay within the call and run on the JS runtime's thread. It cannot be stored as-is. Call `escape()` to create an owning `Callback` before storing it or calling it asynchronously. Swift enforces the borrowed lifetime with its noncopyable, nonescapable type.
+
+`Inline` is not accepted for optional parameters, return values, properties, or callbacks nested inside other types. Use an ordinary function type in those positions. Include `<NitroModules/InlineCallback.hpp>` for handwritten C++ code.
+
+## Threading and lifetime
+
+Asynchronous JS calls need a [dispatcher](../guides/worklets#dispatcher) installed on the originating runtime. A callback's JavaScript function remains tied to that runtime; retaining the native callback does not make a destroyed runtime usable. Never use `callSync` from a worker thread to call into JS.

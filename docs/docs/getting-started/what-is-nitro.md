@@ -11,14 +11,20 @@ While Nitro's primary environment is React Native, it also works in any other en
 
 - A [**Nitro Module**](../concepts/nitro-modules) is a library built with Nitro. It contains one or more **Hybrid Objects**.
 - A [**Hybrid Object**](../concepts/hybrid-objects) is a native object in Nitro, implemented in either C++, Swift or Kotlin.
-- [**Nitrogen**](../concepts/nitrogen) is an optional code-generator library authors can use to generate native bindings from a TypeScript interface.
+- [**Nitrogen**](../concepts/nitrogen) is an optional code-generator library authors can use to generate native bindings from TypeScript class declarations.
 
 <div className="side-by-side-container">
 <div className="side-by-side-block">
 
 ```ts title="Math.nitro.ts"
-interface Math
-  extends HybridObject<{ ios: 'swift' }> {
+import { iOS, Android, type HybridObject } from 'nitro-core'
+
+export * from '#nitro/Math'
+
+@iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
+@Android({ language: 'kotlin', implementation: { className: 'HybridMath' } })
+export declare class Math extends HybridObject {
+  constructor()
   readonly pi: number
   add(a: number, b: number): number
 }
@@ -44,9 +50,10 @@ class HybridMath : HybridMathSpec {
 This Hybrid Object can then be accessed directly from JS:
 
 ```ts
-import { NitroModules } from 'react-native-nitro-modules'
+import 'react-native-nitro-modules'
+import { Math } from './Math.nitro'
 
-const math = NitroModules.createHybridObject<Math>('Math')
+const math = new Math()
 const result = math.add(5, 7)
 ```
 
@@ -100,8 +107,7 @@ If a function declares a `number`, you can only implement it on the native side 
 <div className="side-by-side-block">
 
 ```ts title="Math.nitro.ts"
-interface Math
-  extends HybridObject<{ ios: 'swift' }> {
+export declare class Math extends HybridObject {
   add(a: number, b: number): number
 }
 ```
@@ -127,7 +133,7 @@ class HybridMath : HybridMathSpec {
 There is no way for a Nitro Module to return a type that is not expected in TypeScript, which also guarantees null-safety.
 
 ```ts
-interface Math extends HybridObject<{ … }> {
+export declare class Math extends HybridObject {
   getValue(): number
   getValueOrNull(): number | undefined
 }
@@ -138,13 +144,13 @@ interface Math extends HybridObject<{ … }> {
 Every Hybrid Object in Nitro is a native object, which can be created, passed around, and destroyed.
 
 ```ts
-interface Image extends HybridObject<{ … }> {
+export declare class Image extends HybridObject {
   readonly width: number
   readonly height: number
   saveToFile(path: string): Promise<void>
 }
 
-interface ImageEditor extends HybridObject<{ … }> {
+export declare class ImageEditor extends HybridObject {
   loadImage(path: string): Promise<Image>
   crop(image: Image, size: Size): Image
 }
@@ -164,14 +170,14 @@ Nitro bridges to Swift directly using the new highly efficient [Swift &lt;&gt; C
 
 * **Protocols**: Every Hybrid Object's generated specification is a [Swift protocol](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/protocols/).
 * **Properties**: A getter (and setter) property can be implemented using [Swift properties](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/properties/).
-* **Async**/**Await**: Asynchronous functions can use Swift's new [async/await syntax](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) using the `Promise.async` API.
+* **Async**/**Await**: Asynchronous functions can use Swift's new [async/await syntax](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) using the `.async` promise factory.
 * **No Objective-C**: Instead of bridging through Objective-C interfaces, Nitro bridges to Swift directly from C++.
 
 ### Kotlin
 
 Nitro bridges to Kotlin directly using [fbjni](https://github.com/facebookincubator/fbjni).
 
-* **Interfaces**: Every Hybrid Object's generated specification is a [Kotlin interface](https://kotlinlang.org/docs/interfaces.html).
+* **Classes**: Every Hybrid Object's generated Kotlin specification is an abstract class that the native implementation extends.
 * **Properties**: A getter (and setter) property can be implemented using [Kotlin properties](https://kotlinlang.org/docs/properties.html).
 * **Coroutines**: Asynchronous functions can use Kotlin's [coroutine syntax](https://kotlinlang.org/docs/coroutines-overview.html) using the `Promise.async` API.
 * **No Java**: Instead of requiring Java classes, Nitro bridges to Kotlin directly.
