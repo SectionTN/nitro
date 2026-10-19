@@ -10,8 +10,8 @@
 #ifdef RCT_NEW_ARCH_ENABLED
 
 #import "CallInvokerDispatcher.hpp"
-#import "InstallNitro.hpp"
-#import "NitroLogger.hpp"
+#import <NitroModules/InstallNitro.hpp>
+#import <NitroModules/NitroLogger.hpp>
 
 #import <ReactCommon/CallInvoker.h>
 #import <ReactCommon/RCTTurboModuleWithJSIBindings.h>

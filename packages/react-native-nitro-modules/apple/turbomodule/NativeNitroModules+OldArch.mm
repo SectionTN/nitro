@@ -10,7 +10,7 @@
 #ifndef RCT_NEW_ARCH_ENABLED
 
 #import "CallInvokerDispatcher.hpp"
-#import "InstallNitro.hpp"
+#import <NitroModules/InstallNitro.hpp>
 
 #import <React/RCTBridge+Private.h>
 #import <React/RCTBridge.h>
