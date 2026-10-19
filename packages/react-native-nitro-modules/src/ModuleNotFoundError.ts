@@ -42,7 +42,7 @@ export class ModuleNotFoundError extends Error {
       'Make sure react-native-nitro-modules/NitroModules is correctly autolinked (run `npx react-native config` to verify)'
     )
     suggestions.push(
-      'Make sure Codegen generated the "NativeNitroModules"/NitroModules specs.'
+      'Make sure React Native Codegen generated the "NativeNitroModules" specs.'
     )
     suggestions.push('Make sure you are using react-native 0.88.0 or higher.')
     suggestions.push('Make sure you rebuilt the app.')

@@ -7,7 +7,7 @@ import TabItem from '@theme/TabItem';
 
 # Minimum Requirements
 
-Nitro V1 requires React Native 0.88 or newer with the New Architecture.
+Nitro V1's React Native package requires React Native 0.88 or newer with the New Architecture.
 
 <Tabs groupId="platform">
   <TabItem value="ios" label="iOS" default>
@@ -21,3 +21,5 @@ Nitro V1 requires React Native 0.88 or newer with the New Architecture.
 </Tabs>
 
 For an existing CocoaPods project, run `npx react-native spm add --deintegrate` from the app directory to convert its iOS integration. This step requires CocoaPods to remove its existing integration. Nitro's podspec contains discovery metadata for the React Native CLI; native builds use SwiftPM.
+
+Standalone `nitro-core` projects do not depend on React Native.
