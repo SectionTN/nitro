@@ -49,15 +49,14 @@ using namespace facebook;
     {
       if (const TResult* result = promise.getResultOrNull()) {
         // It's already resolved!
-        jsi::Value jsResult;
         try {
-          jsResult = JSIConverter<std::remove_cvref_t<TResult>>::toJSI(runtime, *result);
+          jsi::Value jsResult = JSIConverter<std::remove_cvref_t<TResult>>::toJSI(runtime, *result);
+          return CommonGlobals::Promise::resolved(runtime, std::move(jsResult));
         } catch (...) {
           // Reject conversion errors even if the native Promise settled before bridging.
           jsi::Value jsError = JSIConverter<TError>::toJSI(runtime, std::current_exception());
           return CommonGlobals::Promise::rejected(runtime, std::move(jsError));
         }
-        return CommonGlobals::Promise::resolved(runtime, std::move(jsResult));
       } else if (const TError* error = promise.getErrorOrNull()) {
         // It's already rejected!
         jsi::Value jsError = JSIConverter<TError>::toJSI(runtime, *error);

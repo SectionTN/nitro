@@ -6,7 +6,7 @@
 //
 
 #include "HybridTestObjectCpp.hpp"
-#include "vendor/nlohmann/json.hpp"
+#include "vendor/json/json.hpp"
 #include <NitroModules/AnyJSON.hpp>
 #include <NitroModules/NitroLogger.hpp>
 #include <NitroModules/ThreadPool.hpp>
