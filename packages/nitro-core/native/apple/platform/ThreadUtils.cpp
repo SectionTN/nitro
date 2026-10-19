@@ -6,7 +6,7 @@
 //
 
 #include <NitroModules/ThreadUtils.hpp>
-#include <NitroModules/UIThreadDispatcher.hpp>
+#include "UIThreadDispatcher.hpp"
 #include <dispatch/dispatch.h>
 #include <pthread.h>
 #include <sstream>

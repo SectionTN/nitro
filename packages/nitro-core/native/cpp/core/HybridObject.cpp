@@ -4,7 +4,7 @@
 
 #include <NitroModules/HybridObject.hpp>
 #include <NitroModules/CommonGlobals.hpp>
-#include <NitroModules/HybridNitroModulesProxy.hpp>
+#include "HybridNitroModulesProxy.hpp"
 #include <NitroModules/JSIConverter.hpp>
 #include <NitroModules/NitroDefines.hpp>
 

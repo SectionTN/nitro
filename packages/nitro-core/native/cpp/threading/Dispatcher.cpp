@@ -9,7 +9,7 @@
 #include <NitroModules/JSIHelpers.hpp>
 #include <NitroModules/NitroDefines.hpp>
 #include <NitroModules/NitroLogger.hpp>
-#include <NitroModules/RuntimeData.hpp>
+#include "RuntimeData.hpp"
 
 namespace margelo::nitro {
 

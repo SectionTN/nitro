@@ -5,7 +5,7 @@
 //  Created by Marc Rousavy on 15.10.26.
 //
 
-#include <NitroModules/RuntimeData.hpp>
+#include "RuntimeData.hpp"
 
 namespace margelo::nitro {
 

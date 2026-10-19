@@ -7,7 +7,7 @@
 
 #include <NitroModules/HybridClassRegistry.hpp>
 #include <NitroModules/HybridObject.hpp>
-#include <NitroModules/HybridNitroModulesProxy.hpp>
+#include "HybridNitroModulesProxy.hpp"
 #include <NitroModules/NitroDefines.hpp>
 #include <cassert>
 #include <mutex>

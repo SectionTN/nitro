@@ -49,7 +49,7 @@ let package = Package(
       dependencies: reactHeaders,
       path: "cpp/core",
       publicHeadersPath: "include",
-      cxxSettings: cxxSettings
+      cxxSettings: cxxSettings + [.headerSearchPath("private")]
     ),
     .target(
       name: "NitroModulesAppleCxx",
@@ -57,7 +57,7 @@ let package = Package(
       path: "apple/core",
       sources: ["platform", "threading"],
       publicHeadersPath: "include",
-      cxxSettings: cxxSettings
+      cxxSettings: cxxSettings + [.headerSearchPath("private")]
     ),
     .target(
       name: "NitroModules",
@@ -100,7 +100,7 @@ let package = Package(
       publicHeadersPath: "include",
       cxxSettings: cxxSettings + [
         .define("RCT_NEW_ARCH_ENABLED", to: "1"),
-        .headerSearchPath("cpp/threading"),
+        .headerSearchPath("cpp/private"),
       ]
     ),
   ],

@@ -9,7 +9,7 @@
 
 #include <NitroModules/JSIConverter.hpp>
 
-#include <NitroModules/CountTrailingOptionals.hpp>
+#include <NitroModules/detail/CountTrailingOptionals.hpp>
 #include <NitroModules/JSIConverter+SwiftString.hpp>
 
 // Use the consuming module's Swift definitions, as with the Swift array converter.

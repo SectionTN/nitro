@@ -6,7 +6,7 @@
 
 #include <NitroModules/Callback.hpp>
 #include <NitroModules/JSIConverter.hpp>
-#include <NitroModules/PromiseType.hpp>
+#include <NitroModules/detail/PromiseType.hpp>
 #include <NitroModules/PropNameIDCache.hpp>
 #include <functional>
 #include <jsi/jsi.h>

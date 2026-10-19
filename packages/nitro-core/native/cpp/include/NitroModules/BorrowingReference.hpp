@@ -9,7 +9,7 @@
 
 #include <NitroModules/NitroDefines.hpp>
 #include <NitroModules/NitroTypeInfo.hpp>
-#include <NitroModules/ReferenceState.hpp>
+#include <NitroModules/detail/ReferenceState.hpp>
 #include <NitroModules/WeakReference.hpp>
 #include <atomic>
 #include <cstddef>
@@ -221,4 +221,4 @@ private:
 
 } // namespace margelo::nitro
 
-#include <NitroModules/WeakReference+Borrowing.hpp>
+#include <NitroModules/detail/WeakReference+Borrowing.hpp>

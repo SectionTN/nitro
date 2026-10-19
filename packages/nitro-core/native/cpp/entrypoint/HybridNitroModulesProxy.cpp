@@ -5,7 +5,7 @@
 //  Created by Marc Rousavy on 05.10.24
 //
 
-#include <NitroModules/HybridNitroModulesProxy.hpp>
+#include "HybridNitroModulesProxy.hpp"
 #include <NitroModules/HybridClassRegistry.hpp>
 #include <NitroModules/JSIConverter.hpp>
 #include <NitroModules/NitroDefines.hpp>

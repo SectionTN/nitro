@@ -6,7 +6,7 @@
 //
 
 #include <NitroModules/PropNameIDCache.hpp>
-#include <NitroModules/RuntimeData.hpp>
+#include "RuntimeData.hpp"
 
 namespace margelo::nitro {
 

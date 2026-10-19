@@ -7,7 +7,7 @@
 
 #include <NitroModules/InstallNitro.hpp>
 #include <NitroModules/CommonGlobals.hpp>
-#include <NitroModules/HybridNitroModulesProxy.hpp>
+#include "HybridNitroModulesProxy.hpp"
 
 namespace margelo::nitro {
 

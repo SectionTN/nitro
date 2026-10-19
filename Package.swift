@@ -50,7 +50,7 @@ let package = Package(
       dependencies: ["Hermes"],
       path: "packages/nitro-core/native/cpp",
       publicHeadersPath: "include",
-      cxxSettings: cxxSettings
+      cxxSettings: cxxSettings + [.headerSearchPath("private")]
     ),
     .target(
       name: "NitroModulesAppleCxx",
@@ -58,7 +58,7 @@ let package = Package(
       path: "packages/nitro-core/native/apple",
       sources: ["platform", "threading"],
       publicHeadersPath: "include",
-      cxxSettings: cxxSettings
+      cxxSettings: cxxSettings + [.headerSearchPath("private")]
     ),
     .target(
       name: "NitroModules",

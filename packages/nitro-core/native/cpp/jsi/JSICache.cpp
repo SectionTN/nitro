@@ -7,7 +7,7 @@
 
 #include <NitroModules/JSICache.hpp>
 #include <NitroModules/NitroDefines.hpp>
-#include <NitroModules/RuntimeData.hpp>
+#include "RuntimeData.hpp"
 
 namespace margelo::nitro {
 

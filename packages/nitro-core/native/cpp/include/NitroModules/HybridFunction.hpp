@@ -12,8 +12,8 @@ template <typename T>
 struct JSIConverter;
 } // namespace margelo::nitro
 
-#include <NitroModules/CountTrailingOptionals.hpp>
-#include <NitroModules/InstanceMethod.hpp>
+#include <NitroModules/detail/CountTrailingOptionals.hpp>
+#include <NitroModules/detail/InstanceMethod.hpp>
 #include <NitroModules/JSIConverter.hpp>
 #include <NitroModules/JSIString.hpp>
 #include <NitroModules/NitroDefines.hpp>
