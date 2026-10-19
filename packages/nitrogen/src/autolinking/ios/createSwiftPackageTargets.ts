@@ -146,7 +146,7 @@ func ${SWIFT_PACKAGE_FUNCTION_NAME}(
         dependencies: nitroModuleDependencies + reactNativeDependencies,
         path: ".",
         exclude: nitrogenExcludes(in: ".", keeping: cxxSourcesInTarget)
-            + ["${generatedDirectory}/shared/c++/include/module.modulemap"].filter(exists),
+            + ["${generatedDirectory}/shared/c++/include"],
         sources: cxxSourcesInTarget,
         publicHeadersPath: "${generatedDirectory}/shared/c++/include",
         cxxSettings: commonCxxSettings + cxxSettings
@@ -206,7 +206,7 @@ func ${SWIFT_PACKAGE_FUNCTION_NAME}(
         ] + nitroModuleDependencies + reactNativeDependencies,
         path: "${iosDirectory}",
         exclude: nitrogenExcludes(in: "${iosDirectory}", keeping: swiftBridgeSources)
-            + ["c++/include/module.modulemap"],
+            + ["c++/include"],
         sources: swiftBridgeSources,
         publicHeadersPath: "c++/include",
         cxxSettings: commonCxxSettings + swiftBridgeSettings + cxxSettings

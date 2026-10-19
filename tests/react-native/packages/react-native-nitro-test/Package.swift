@@ -87,7 +87,7 @@ func addNitrogenTargets(
         dependencies: nitroModuleDependencies + reactNativeDependencies,
         path: ".",
         exclude: nitrogenExcludes(in: ".", keeping: cxxSourcesInTarget)
-            + ["nitrogen/generated/shared/c++/include/module.modulemap"].filter(exists),
+            + ["nitrogen/generated/shared/c++/include"],
         sources: cxxSourcesInTarget,
         publicHeadersPath: "nitrogen/generated/shared/c++/include",
         cxxSettings: commonCxxSettings + cxxSettings
@@ -147,7 +147,7 @@ func addNitrogenTargets(
         ] + nitroModuleDependencies + reactNativeDependencies,
         path: "nitrogen/generated/ios",
         exclude: nitrogenExcludes(in: "nitrogen/generated/ios", keeping: swiftBridgeSources)
-            + ["c++/include/module.modulemap"],
+            + ["c++/include"],
         sources: swiftBridgeSources,
         publicHeadersPath: "c++/include",
         cxxSettings: commonCxxSettings + swiftBridgeSettings + cxxSettings
