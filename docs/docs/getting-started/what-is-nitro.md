@@ -32,7 +32,7 @@ export * from '#nitro/Math'
 
 ```swift title="HybridMath.swift"
 class HybridMath : HybridMathSpec {
-  func add(a: Double, b: Double) -> Double {
+  static func add(a: Double, b: Double) -> Double {
     return a + b
   }
 }
@@ -111,7 +111,7 @@ export * from '#nitro/Math'
 
 ```swift title="HybridMath.swift"
 class HybridMath : HybridMathSpec {
-  func add(a: Double, b: Double) -> String {
+  static func add(a: Double, b: Double) -> String {
 // code-error
 //  Compile-error: Expected Double! ^
     return a + b
@@ -178,7 +178,7 @@ Nitro bridges to Swift directly using the new highly efficient [Swift &lt;&gt; C
 
 * **Protocols**: Every Hybrid Object's generated specification is a [Swift protocol](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/protocols/).
 * **Properties**: A getter (and setter) property can be implemented using [Swift properties](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/properties/).
-* **Async**/**Await**: Asynchronous functions can use Swift's new [async/await syntax](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) using the `Promise.async` API.
+* **Async**/**Await**: Asynchronous functions can use Swift's new [async/await syntax](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/) using `.async { ... }` on an `any Promise<T>` return type.
 * **No Objective-C**: Instead of bridging through Objective-C interfaces, Nitro bridges to Swift directly from C++.
 
 ### Kotlin
