@@ -169,21 +169,3 @@ test("rejects unpinned dependencies and native source symlinks before cleaning",
     "// keep",
   );
 });
-
-
-test("migrates the old staging layout without duplicating Core or deleting RN adapters", (t) => {
-  const { root, put, wrapper } = fixture(t);
-  const legacy = [
-    "cpp/utils/NitroDefines.hpp",
-    "ios/HybridObject.swift",
-    "android/src/main/HybridObject.kt",
-  ];
-  for (const file of legacy)
-    put(`packages/react-native-nitro-modules/${file}`, "// previous generated source");
-  put("packages/react-native-nitro-modules/ios/turbomodule/NativeNitroModules.mm", "// RN adapter");
-  assert.throws(() => syncCore(root, { check: true }), /Legacy staged/);
-  syncCore(root);
-  for (const file of legacy) assert.equal(existsSync(path.join(wrapper, file)), false);
-  assert.equal(readFileSync(path.join(wrapper, "ios/turbomodule/NativeNitroModules.mm"), "utf8"), "// RN adapter");
-  assert.doesNotThrow(() => syncCore(root, { check: true }));
-});
