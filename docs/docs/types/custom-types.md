@@ -1,6 +1,9 @@
 ---
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Custom Types (manually written `T`)
 
 The `JSIConverter<T>` is Nitro's implementation for converting JS values to native values, and back.
@@ -86,10 +89,13 @@ Then just use the type in your methods:
       'std::shared_ptr<react::ShadowNodeWrapper>',
       { include: 'JSIConverter+ShadowNode.hpp' }
     >
-    interface MyHybrid
-      extends HybridObject<{ ios: 'c++' }> {
+
+    @iOS(...)
+    export declare class MyHybrid
+      extends HybridObject {
       doSomething(view: ShadowNode): void
     }
+    export * from '#nitro/MyHybrid'
     ```
 
     </div>
