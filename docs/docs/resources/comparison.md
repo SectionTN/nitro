@@ -52,7 +52,7 @@ They use a code-generator called "[codegen](https://github.com/reactwg/react-nat
 
 ```swift title="Nitro Module (Swift)"
 class HybridMath : HybridMathSpec {
-  func add(a: Double, b: Double) -> Double {
+  static func add(a: Double, b: Double) -> Double {
     return a + b
   }
 }
@@ -216,16 +216,16 @@ Instead, Turbo Modules has "Events". Events are essentially just native function
 <div className="side-by-side-container">
 <div className="side-by-side-block">
 
-```swift title="HybridMath.swift (Nitro)"
-class Math: MathSpec {
-  var listeners: [(String) -> Void] = []
-  func addListener(listener: (String) -> Void) {
-    listeners.add(listener)
+```swift title="HybridEvents.swift (Nitro)"
+class HybridEvents: HybridEventsSpec {
+  var listeners: [any Callback<String, Void>] = []
+  func addListener(listener: any Callback<String, Void>) {
+    listeners.append(listener)
   }
 
   func onSomethingChanged() {
     for listener in listeners {
-      listener("something changed!")
+      listener.callAndForget("something changed!")
     }
   }
 }
@@ -276,11 +276,11 @@ export * from '#nitro/Math'
 
 @iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
 export declare class Math extends HybridObject {
-  constructor()
-  add(a: number, b: number): Promise<number>
+  private constructor()
+  public static add(a: number, b: number): Promise<number>
 }
 
-export const math = new Math()
+// Call Math.add(a, b) without creating an instance.
 ```
 
 </div>
@@ -324,7 +324,7 @@ Because Turbo Modules are just an evolution of Native Modules, their API is almo
 
 ```swift title="Nitro Module (Swift)"
 class HybridMath : HybridMathSpec {
-  func add(a: Double, b: Double) -> Double {
+  static func add(a: Double, b: Double) -> Double {
     return a + b
   }
 }
@@ -363,7 +363,7 @@ An Expo Module can be written using a declarative syntax (_DSL_) where each func
 
 ```swift title="Nitro Module (Swift)"
 class HybridMath : HybridMathSpec {
-  func add(a: Double, b: Double) -> Double {
+  static func add(a: Double, b: Double) -> Double {
     return a + b
   }
 }
@@ -429,7 +429,7 @@ Asynchronous functions can be implemented using Kotlin coroutines, which is a co
 <div className="side-by-side-block">
 
 ```kotlin title="HybridMath.kt (Nitro)"
-class HybridMath: HybridMathSpec {
+class HybridMath: HybridMathSpec() {
   override fun doSomeWork(): Promise<String> {
     return Promise.async {
       delay(5000)
@@ -469,16 +469,16 @@ Similar to Turbo Modules, Expo Modules also uses Events to notify JS about any c
 <div className="side-by-side-container">
 <div className="side-by-side-block">
 
-```swift title="HybridMath.swift (Nitro)"
-class Math: MathSpec {
-  var listeners: [(String) -> Void] = []
-  func addListener(listener: (String) -> Void) {
-    listeners.add(listener)
+```swift title="HybridEvents.swift (Nitro)"
+class HybridEvents: HybridEventsSpec {
+  var listeners: [any Callback<String, Void>] = []
+  func addListener(listener: any Callback<String, Void>) {
+    listeners.append(listener)
   }
 
   func onSomethingChanged() {
     for listener in listeners {
-      listener("something changed!")
+      listener.callAndForget("something changed!")
     }
   }
 }

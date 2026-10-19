@@ -7,8 +7,19 @@ import TabItem from '@theme/TabItem';
 
 # Performance Tips
 
-While Nitro is already insanely fast, there are some things you can do that affect the performance of your library.
-Here are some tips to make your library even faster.
+API design affects how much work Nitro performs for each call.
+
+## Use static methods for stateless operations
+
+If a method does not need instance state, declare it `static` and call it on the class, such as `Math.add(a, b)`. Static bindings skip extracting and checking a receiver's native state, so they have less overhead than instance bindings. You also avoid allocating an object solely to call that method. See [static methods](../concepts/constructors-and-static-methods#static-methods).
+
+Keep instance methods for stateful objects such as images, database connections, or decoders. Static calls still convert arguments and return values; the total performance difference depends on the native work.
+
+## Choose concrete implementations when possible
+
+Set `implementation` and leave `allowInheritance: false` when your spec has one native implementation and no derived specs. The Swift bridge can then store the concrete class instead of a protocol existential, and generated wrappers can be final. This reduces dispatch overhead and lets the compiler optimize calls more effectively. Mark your own native class `final` when appropriate too.
+
+Use `allowMultipleImplementations: true` and `allowInheritance: true` when the API needs them. Supplying an `implementation` alongside `allowMultipleImplementations: true` only chooses the constructor/static target; instance bindings still accept multiple implementations. See [platform decorators](../concepts/platform-decorators).
 
 ## Avoid dynamic types
 
@@ -219,13 +230,13 @@ The **Good** example is significantly faster than **Bad** because the result of 
 ## Properly use `memorySize`
 
 Since Hybrid Objects are implemented in native code, the JS runtime does not know the memory size of such objects.
-To let the JavaScript runtime know about a Hybrid Object's actual size in memory, Nitro exposes a `memorySize` (or `getExternalMemoryPressure()`) API which you can use to give a rough estimation on the native object's memory size (including any heap allocations you perform):
+To let the JavaScript runtime know about a Hybrid Object's actual size in memory, Nitro exposes a `memorySize` (or C++ `getExternalMemorySize()` in bytes) API which you can use to give a rough estimation on the native object's memory size (including any heap allocations you perform):
 
 ```swift
 class HybridImage : HybridImageSpec {
   private var cgImage: CGImage
   var memorySize: Int {
-    let imageSize = cgImage.width * cgImage.height * cgImage.bytesPerPixel
+    let imageSize = cgImage.bytesPerRow * cgImage.height
     return imageSize
   }
 }

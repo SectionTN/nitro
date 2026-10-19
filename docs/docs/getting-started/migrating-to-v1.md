@@ -10,16 +10,17 @@ Keep `nitro-core`, `react-native-nitro-modules`, and `nitrogen` on the same vers
 
 Replace Hybrid Object interfaces and their platform type arguments with decorated declared classes:
 
-```ts title="Math.nitro.ts"
+```ts title="Image.nitro.ts"
 import { iOS, Android, type HybridObject } from 'nitro-core'
 
-export * from '#nitro/Math'
+export * from '#nitro/Image'
 
-@iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
-@Android({ language: 'kotlin', implementation: { className: 'HybridMath' } })
-export declare class Math extends HybridObject {
-  constructor()
-  add(a: number, b: number): number
+@iOS({ language: 'swift', implementation: { className: 'HybridImage' } })
+@Android({ language: 'kotlin', implementation: { className: 'HybridImage' } })
+export declare class Image extends HybridObject {
+  public constructor(path: string)
+  readonly width: number
+  readonly height: number
 }
 ```
 
@@ -40,10 +41,14 @@ Each spec needs an `export * from '#nitro/ClassName'` for each declared class. N
 ```ts
 import 'react-native-nitro-modules'
 
-export { Math } from './specs/Math.nitro'
+export { Image } from './specs/Image.nitro'
 ```
 
-Use `new Math()` after importing `Math`, replacing `NitroModules.createHybridObject<Math>('Math')`. `instanceof Math` works directly. Generated registry keys now include the module's `cxxNamespace`; applications normally use imports rather than looking them up manually.
+Use `new Image(path)` after importing `Image`, replacing `NitroModules.createHybridObject<Image>('Image')`. `instanceof Image` works directly. Generated registry keys now include the module's `cxxNamespace`; applications normally use imports rather than looking them up manually.
+
+Use `protected constructor()` for a native-created base that other specs can extend, or `private constructor()` to also prevent TypeScript subclasses. Neither restricts construction in native code. An `abstract` spec cannot declare a public constructor. See [constructors and static methods](../concepts/constructors-and-static-methods).
+
+Stateless operations can now be static: declare `public static add(a: number, b: number): number` and call `Math.add(a, b)` without creating an instance. Implement it as a native static method (a companion object method in Kotlin).
 
 ## TypeScript and Babel
 
@@ -77,7 +82,7 @@ Regenerate first, then follow the generated signatures:
 | C++ `std::shared_ptr<ArrayBuffer>` | `ArrayBuffer` |
 | `AnyMap` | `AnyJSON`, a serialized JSON value |
 
-Normal C++ implementations inherit the generated descriptor. Only handwritten bindings need to define their own `Class`. Use module-qualified generated headers such as `<NitroMath/HybridMathSpec.hpp>`.
+Normal C++ implementations inherit the generated descriptor. Only handwritten bindings need to define their own `Class`. Use module-qualified generated headers such as `<NitroImage/HybridImageSpec.hpp>`.
 
 For callbacks, choose `callSync`, `callAsync`, or `callAndForget` in native code. Use `Inline<Fn>` for a required parameter borrowed only for the call. See [callbacks](../types/callbacks).
 

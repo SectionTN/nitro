@@ -29,6 +29,8 @@ const sidebars: SidebarsConfig = {
       items: [
         'concepts/nitro-modules',
         'concepts/hybrid-objects',
+        'concepts/constructors-and-static-methods',
+        'concepts/platform-decorators',
         'concepts/hybrid-views',
         'concepts/nitrogen',
       ]

@@ -14,33 +14,33 @@ You can use a Nitro [Hybrid Object](../concepts/hybrid-objects) on the default R
 <Tabs groupId="worklet-library">
   <TabItem value="rnw" label="react-native-worklets (Reanimated)" default>
   ```ts
-  import { Math } from './Math.nitro'
+  import { Image } from './Image.nitro'
 
-  const math = new Math()
+  const image = new Image('/path/to/photo.png')
   runOnUI(() => {
     'worklet'
-    const result = math.add(5, 3)
-    console.log(result) // --> 8
+    console.log(image.width, image.height)
   })()
   ```
   </TabItem>
   <TabItem value="rnwc" label="react-native-worklets-core (Margelo)">
   ```ts
-  import { Math } from './Math.nitro'
+  import { Image } from './Image.nitro'
 
-  const math = new Math()
-  const boxed = NitroModules.box(math)
+  const image = new Image('/path/to/photo.png')
+  const boxed = NitroModules.box(image)
 
   const context = Worklets.createContext('DummyContext')
   context.runAsync(() => {
     'worklet'
     const unboxed = boxed.unbox()
-    const result = unboxed.add(5, 3)
-    console.log(result) // --> 8
+    console.log(unboxed.width, unboxed.height)
   })
   ```
   </TabItem>
 </Tabs>
+
+These examples use the [Image spec](../concepts/hybrid-objects), whose constructor accepts a file path. Both runtimes refer to the same native image.
 
 ## Dispatcher
 
@@ -78,15 +78,15 @@ A [Hybrid Object](../concepts/hybrid-objects) is a JS object with `jsi::NativeSt
 If you need to interop with legacy APIs or APIs that can't deal with `jsi::NativeState` yet, you can _box_ the Hybrid Object into a `jsi::HostObject`:
 
 ```ts
-const math = new Math()
-const boxed = NitroModules.box(math) // <-- jsi::HostObject
+const image = new Image('/path/to/photo.png')
+const boxed = NitroModules.box(image) // <-- jsi::HostObject
 ```
 
 The `boxed` object is a simple `jsi::HostObject` (see [`BoxedHybridObject.hpp`](https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/include/NitroModules/BoxedHybridObject.hpp)), which can later be _unboxed_ again:
 
 ```ts
-const unboxed = boxed.unbox()    // <-- Math
-const result = unboxed.add(5, 3) // <-- 8
+const unboxed = boxed.unbox() // The same native Image
+console.log(unboxed.width, unboxed.height)
 ```
 
 :::info

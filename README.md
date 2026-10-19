@@ -26,8 +26,8 @@ export * from '#nitro/Math'
 @iOS({ language: 'c++', implementation: { className: 'HybridMath', include: '"HybridMath.hpp"' } })
 @Android({ language: 'c++', implementation: { className: 'HybridMath', include: '"HybridMath.hpp"' } })
 export declare class Math extends HybridObject {
-  constructor()
-  add(a: number, b: number): number
+  private constructor()
+  public static add(a: number, b: number): number
 }
 ```
 
@@ -35,8 +35,7 @@ Implementation (C++):
 ```cpp
 class HybridMath: public HybridMathSpec {
 public:
-  HybridMath() = default;
-  double add(double a, double b) override {
+  static double add(double a, double b) {
     return a + b;
   }
 };
@@ -47,9 +46,10 @@ Usage (TypeScript):
 import 'react-native-nitro-modules'
 import { Math } from './Math.nitro'
 
-const math = new Math()
-const result = math.add(5, 3)
+const result = Math.add(5, 3)
 ```
+
+`Math.add` is static because it needs no instance state. For an object that owns native data, see the [Image example](https://nitro.margelo.com/docs/concepts/hybrid-objects) and [constructors guide](https://nitro.margelo.com/docs/concepts/constructors-and-static-methods).
 
 Map `#nitro/*` to `./nitrogen/generated/shared/javascript/*.cjs` in your library's `package.json` `imports` field. Run Nitrogen before compiling TypeScript, and use named re-exports for classes in your package entry point. The [setup guide](https://nitro.margelo.com/docs/getting-started/how-to-build-a-nitro-module) covers TypeScript resolution, Babel decorator parsing, and native build integration.
 

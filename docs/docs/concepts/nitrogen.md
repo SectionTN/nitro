@@ -13,9 +13,8 @@ export * from '#nitro/Math'
 
 @iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
 export declare class Math extends HybridObject {
-  constructor()
-  readonly pi: number
-  add(a: number, b: number): number
+  private constructor()
+  public static add(a: number, b: number): number
 }
 ```
 
@@ -35,7 +34,7 @@ Nitrogen fails when no specs are found or a `.nitro.ts` file contains no Hybrid 
 
 ## Constructors and registration
 
-A declared public constructor enables `new`; it can have parameters, but constructor overloads are unsupported. Static methods and public constructors require a concrete `implementation` in every platform decorator. Objects without public constructors can be returned by other native APIs and still support `instanceof`.
+A declared public constructor enables `new`; it can have parameters, but constructor overloads are unsupported. Static methods and public constructors require a concrete `implementation` in every platform decorator. Objects without public constructors can be returned by other native APIs and still support `instanceof`. See [constructors and static methods](constructors-and-static-methods) for visibility rules and examples, and [platform decorators](platform-decorators) for implementation and inheritance options.
 
 Nitrogen registers class descriptors using a key built from `cxxNamespace` and the class name, such as `math.Math`. The generated runtime export looks up that key. Consumers import the class and do not need to know its registry key.
 

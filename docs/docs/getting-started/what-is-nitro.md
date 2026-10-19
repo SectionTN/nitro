@@ -17,28 +17,22 @@ While Nitro's primary environment is React Native, it also works in any other en
 <div className="side-by-side-block">
 
 ```ts title="Math.nitro.ts"
-import { iOS, Android, type HybridObject } from 'nitro-core'
-
-export * from '#nitro/Math'
-
-@iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
-@Android({ language: 'kotlin', implementation: { className: 'HybridMath' } })
+@iOS({
+  language: 'swift',
+  implementation: { className: 'HybridMath' }
+})
 export declare class Math extends HybridObject {
-  constructor()
-  readonly pi: number
-  add(a: number, b: number): number
+  public static add(a: number, b: number): number
 }
+export * from '#nitro/Math'
 ```
 
 </div>
 <div className="side-by-side-block">
 
 ```swift title="HybridMath.swift"
-class HybridMath : HybridMathSpec {
-  var pi: Double {
-    return Double.pi
-  }
-  func add(a: Double, b: Double) -> Double {
+final class HybridMath: HybridMathSpec {
+  static func add(a: Double, b: Double) -> Double {
     return a + b
   }
 }
@@ -47,14 +41,12 @@ class HybridMath : HybridMathSpec {
 </div>
 </div>
 
-This Hybrid Object can then be accessed directly from JS:
+Call the static method directly from JavaScript:
 
 ```ts
-import 'react-native-nitro-modules'
 import { Math } from './Math.nitro'
 
-const math = new Math()
-const result = math.add(5, 7)
+const result = Math.add(5, 7)
 ```
 
 ## Performance
@@ -107,8 +99,9 @@ If a function declares a `number`, you can only implement it on the native side 
 <div className="side-by-side-block">
 
 ```ts title="Math.nitro.ts"
+@iOS(...)
 export declare class Math extends HybridObject {
-  add(a: number, b: number): number
+  public static add(a: number, b: number): number
 }
 ```
 
@@ -117,7 +110,7 @@ export declare class Math extends HybridObject {
 
 ```swift title="HybridMath.swift"
 class HybridMath : HybridMathSpec {
-  func add(a: Double, b: Double) -> String {
+  static func add(a: Double, b: Double) -> String {
 // code-error
 //  Compile-error: Expected Double! ^
     return a + b

@@ -141,14 +141,14 @@ export * from '#nitro/Math'
 })
 @Android({ language: 'kotlin', implementation: { className: 'HybridMath' } })
 export declare class Math extends HybridObject {
-  constructor()
-  add(a: number, b: number): number
+  private constructor()
+  public static add(a: number, b: number): number
 }
 ```
 
 The declared class supplies the TypeScript type. `export * from '#nitro/Math'` supplies its generated runtime value. Nitrogen adds missing runtime re-exports, but keep them in the committed spec. A file with multiple classes needs one re-export per class.
 
-Declare a public constructor to enable `new Math()`. Constructors can take arguments. Omit the constructor, or make it protected/private, for objects that native APIs create and return. A concrete `implementation` alone does not expose a constructor.
+`Math.add` is static: callers do not need an instance, and the binding skips instance lookup. The private constructor prevents `new Math()`. Both static methods and public constructors require a concrete `implementation` on each platform. See [constructors and static methods](../concepts/constructors-and-static-methods) and [platform decorators](../concepts/platform-decorators) for the available options.
 
 For C++, use `language: 'c++'` and the C++ implementation in each platform decorator, for example:
 
@@ -176,8 +176,8 @@ Implement the generated Swift protocol:
 ```swift title="ios/HybridMath.swift"
 import NitroModules
 
-class HybridMath: HybridMathSpec {
-  func add(a: Double, b: Double) throws -> Double {
+final class HybridMath: HybridMathSpec {
+  static func add(a: Double, b: Double) throws -> Double {
     return a + b
   }
 }
@@ -191,9 +191,12 @@ package com.margelo.nitro.math
 import com.facebook.proguard.annotations.DoNotStrip
 
 @DoNotStrip
-class HybridMath @DoNotStrip constructor(): HybridMathSpec() {
-  override fun add(a: Double, b: Double): Double {
-    return a + b
+class HybridMath private constructor(): HybridMathSpec() {
+  companion object {
+    @DoNotStrip
+    fun add(a: Double, b: Double): Double {
+      return a + b
+    }
   }
 }
 ```
@@ -207,9 +210,7 @@ Preserve classes and constructors called from JNI when shrinking release builds.
 namespace margelo::nitro::math {
 class HybridMath: public HybridMathSpec {
 public:
-  HybridMath() = default;
-
-  double add(double a, double b) override {
+  static double add(double a, double b) {
     return a + b;
   }
 };
@@ -232,15 +233,15 @@ The side-effect import initializes Nitro in React Native before the core spec mo
 
 Use `export *` for the generated `#nitro/Math` module inside the spec, and named exports for classes in your public entry point. Star re-exports of specs can lose the class value in some bundlers.
 
-Consumers can then construct the native class:
+Consumers can then call the native static method:
 
 ```ts
 import { Math } from 'my-nitro-module'
 
-const math = new Math()
-console.log(math.add(5, 7)) // 12
-console.log(math instanceof Math) // true
+console.log(Math.add(5, 7)) // 12
 ```
+
+For an instance that holds native state, declare a public constructor and use `new`. The [Image example](../concepts/hybrid-objects) loads an image with `new Image(path)` and exposes its dimensions. The [constructors guide](../concepts/constructors-and-static-methods) also covers no-argument constructors, native-only construction, and static factories.
 
 ## 5. Build the app and publish
 

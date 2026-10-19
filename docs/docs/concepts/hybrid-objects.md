@@ -6,67 +6,83 @@ description: Declare and construct native classes with Nitro v1, including inher
 
 A Hybrid Object is a native instance exposed to JavaScript. Its properties and methods live on a shared JavaScript prototype, while the instance holds native state.
 
-```ts title="Math.nitro.ts"
+An image is a useful example: native code owns the image data, and JavaScript can read its dimensions without copying the pixels across the boundary.
+
+```ts title="Image.nitro.ts"
 import { iOS, type HybridObject } from 'nitro-core'
 
-export * from '#nitro/Math'
+export * from '#nitro/Image'
 
-@iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
-export declare class Math extends HybridObject {
-  constructor()
-  readonly pi: number
-  add(a: number, b: number): number
+@iOS({ language: 'swift', implementation: { className: 'HybridImage' } })
+export declare class Image extends HybridObject {
+  public constructor(path: string)
+  readonly width: number
+  readonly height: number
 }
 ```
 
 In React Native, initialize the host with `import 'react-native-nitro-modules'` in your entry point before importing specs from `nitro-core`.
 
-The declared class supplies types, and the generated `#nitro/Math` module supplies its runtime value. See [setup](../getting-started/how-to-build-a-nitro-module) for the required package import mapping.
+The declared class supplies types, and the generated `#nitro/Image` module supplies its runtime value. See [setup](../getting-started/how-to-build-a-nitro-module) for the required package import mapping.
 
-```swift title="HybridMath.swift"
+```swift title="HybridImage.swift"
 import NitroModules
+import UIKit
 
-class HybridMath: HybridMathSpec {
-  var pi: Double { Double.pi }
+final class HybridImage: HybridImageSpec {
+  private let image: CGImage
 
-  func add(a: Double, b: Double) throws -> Double {
-    return a + b
+  init(path: String) throws {
+    guard let image = UIImage(contentsOfFile: path)?.cgImage else {
+      throw NSError(domain: "HybridImage", code: 1,
+                    userInfo: [NSLocalizedDescriptionKey: "Cannot load image: \(path)"])
+    }
+    self.image = image
   }
+
+  var width: Double { Double(image.width) }
+  var height: Double { Double(image.height) }
+  var memorySize: Int { image.bytesPerRow * image.height }
 }
 ```
+
+This constructor loads synchronously. For expensive decoding, expose a [static factory returning a promise](constructors-and-static-methods#static-factories) and perform the work on a native background thread.
 
 ## Working with Hybrid Objects
 
 Import the class from its spec or your library's public entry point:
 
 ```ts
-import { Math } from './Math.nitro'
+import { Image } from './Image.nitro'
 
-const math = new Math()
-console.log(math.add(5, 7)) // 12
-console.log(math instanceof Math) // true
+const image = new Image('/path/to/photo.png')
+console.log(image.width, image.height)
+console.log(image instanceof Image) // true
 ```
 
-A spec needs an explicitly declared public constructor to support `new`. Constructors may take arguments. Without one, native code creates the object and returns it from another Hybrid Object's method or property. Declared static methods call the selected native implementation and do not require creating an instance first.
+A spec needs an explicitly declared public constructor to support `new`. Constructors may take arguments. Without one, native code creates the object and returns it from a method or property. Use `protected constructor()` for a native-created base, or `private constructor()` to also prevent TypeScript subclasses. See [constructors and static methods](constructors-and-static-methods) for no-argument constructors, abstract bases, and factories.
 
 Every Hybrid Object inherits `toString()`, `equals(other)`, and `dispose()`. `equals` compares the underlying native object. `toString()` defaults to a representation containing its class name. Native implementations can override `toString()` and `dispose()`.
 
 ## Native implementation and inheritance
 
-For C++, implement the generated `HybridMathSpec` and use a default constructor:
+For C++, implement the generated spec and initialize the base with its default constructor. A constructor with arguments follows the same pattern; there is no `TAG` argument. For the `Image` declaration above, the native header would declare:
 
 ```cpp
-#include <NitroMath/HybridMathSpec.hpp>
+#include <NitroImage/HybridImageSpec.hpp>
 
-namespace margelo::nitro::math {
-class HybridMath: public HybridMathSpec {
+namespace margelo::nitro::image {
+class HybridImage: public HybridImageSpec {
 public:
-  HybridMath() = default;
-  double getPi() override { return 3.141592653589793; }
-  double add(double a, double b) override { return a + b; }
+  explicit HybridImage(const std::string& path);
+  double getWidth() override;
+  double getHeight() override;
+  // Store the image data and implement these members in your native code.
 };
 }
 ```
+
+Select this class with `language: 'c++'` and an `implementation` containing its `className` and `include`. See [platform decorators](platform-decorators).
 
 The generated spec provides a nested `Class` descriptor and overrides `getHybridClass()`. It registers methods, properties, constructors, and static methods without constructing an instance. Normal native implementations inherit this descriptor and do not write their own registration code.
 
@@ -85,14 +101,15 @@ export * from '#nitro/Image'
   allowMultipleImplementations: true,
   allowInheritance: true,
 })
-export declare class Media extends HybridObject {
+export declare abstract class Media extends HybridObject {
+  protected constructor()
   readonly width: number
   readonly height: number
 }
 
 @iOS({ language: 'swift', implementation: { className: 'HybridImage' } })
 export declare class Image extends Media {
-  constructor(path: string)
+  public constructor(path: string)
   saveToFile(path: string): Promise<void>
 }
 ```
@@ -125,8 +142,7 @@ using namespace margelo::nitro;
 
 class HybridMath: public HybridObject {
 public:
-  HybridMath() = default;
-  double add(double a, double b) { return a + b; }
+  static double add(double a, double b) { return a + b; }
 
   struct Class {
     using Base = HybridObject::Class;
@@ -142,10 +158,7 @@ protected:
 
 inline const std::shared_ptr<const HybridClass>& HybridMath::Class::get() {
   static const auto descriptor = HybridClass::create<Class>([](HybridClass& cls) {
-    cls.registerHybridMethod("add", &HybridMath::add);
-    cls.registerHybridConstructor(+[]() -> std::shared_ptr<HybridMath> {
-      return std::make_shared<HybridMath>();
-    });
+    cls.registerHybridStaticMethod("add", &HybridMath::add);
   });
   return descriptor;
 }
@@ -162,11 +175,12 @@ Without generated exports, provide its JavaScript type and retrieve the register
 ```ts
 import { NitroModules, type HybridObject } from 'nitro-core'
 
-interface MathInstance extends HybridObject {
-  add(a: number, b: number): number
+declare class MathType extends HybridObject {
+  private constructor()
+  static add(a: number, b: number): number
 }
-const Math = NitroModules.getHybridClass<{ new(): MathInstance; readonly prototype: MathInstance }>('math.Math')
-const math = new Math()
+const Math = NitroModules.getHybridClass<typeof MathType>('math.Math')
+const result = Math.add(5, 7)
 ```
 
 Handwritten descriptors can also use `registerHybridGetter`, `registerHybridSetter`, `registerHybridStaticMethod`, and [raw JSI methods](../types/raw-jsi-value). For a derived native class, set `Class::Base` to its base class's descriptor. Keep these manual bindings and their TypeScript declarations in sync.

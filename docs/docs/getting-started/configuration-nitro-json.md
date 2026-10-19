@@ -144,14 +144,14 @@ Choose implementations in `.nitro.ts` decorators:
   },
 })
 export declare class Math extends HybridObject {
-  constructor()
-  add(a: number, b: number): number
+  private constructor()
+  public static add(a: number, b: number): number
 }
 ```
 
 For Swift, use `language: 'swift'` and `implementation: { className: 'HybridMath' }`. The class must be in the generated spec's Swift module. C++ `include` must contain quotes or angle brackets; its filename does not have to match the class name. Optional C++ `namespace` and Kotlin `package` arrays select sub-namespaces within the module's configured namespace.
 
-Every platform must specify an `implementation` or `allowMultipleImplementations: true`. Public constructors and static methods require an implementation. See [Hybrid Objects](../concepts/hybrid-objects) for inheritance and multiple implementations.
+Every platform must specify an `implementation` or `allowMultipleImplementations: true`. Public constructors and static methods require an implementation. See [platform decorators](../concepts/platform-decorators) for all options, inheritance, multiple implementations, and their effect on dispatch performance.
 
 The old `autolinking` property is rejected, including an empty object. Remove it when migrating to v1. Native registration comes from decorators and public constructor declarations.
 

@@ -44,7 +44,7 @@ export * from '#nitro/Image'
 })
 export declare class Image extends HybridObject {
   public constructor(width: number, height: number)
-  static square(size: number): Image
+  public static square(size: number): Image
   readonly width: number
   readonly height: number
 }
@@ -88,6 +88,10 @@ Public constructors and static methods require `implementation` on every declare
 
 The `HybridObject` base constructor is protected. Omit the constructor, or declare it protected or private, for objects created by native APIs. `implementation` alone does not enable JavaScript construction: Nitrogen only generates and registers a native constructor adapter for an explicitly declared public constructor. Otherwise, native code must create instances and return them through another HybridObject API, such as a method or a property. The class and prototype are still registered, so imports, `instanceof`, and declared static methods work. TypeScript rejects `new` for these classes, and calling their constructor from JavaScript throws that the class has no public constructor.
 
+Use `protected constructor()` for a base that other specs may extend, or `private constructor()` to also prevent TypeScript subclasses. Neither restricts construction of the native implementation. An `export declare abstract class` must have a non-public constructor; Nitrogen rejects abstract specs with public constructors. Declare a public constructor explicitly on every constructible derived spec instead of relying on TypeScript's inherited constructor signature. See [constructors and static methods](https://nitro.margelo.com/docs/concepts/constructors-and-static-methods) for examples, including static factories.
+
+Static methods have lower binding overhead than instance methods because they skip receiver native-state lookup. Implement them with `static func` in Swift, a companion object method in Kotlin, or `static` in C++; they are not instance overrides.
+
 Every platform decorator must choose `implementation` or `allowMultipleImplementations: true`. `implementation` selects the concrete Swift type stored by the bridge. Every Swift instance of that spec must be an instance of the selected class. Use `allowMultipleImplementations: true` for a spec with several native implementations, such as an image backed by either UIImage or CGImage; the Swift bridge stores the spec protocol existential.
 
 A spec with `allowMultipleImplementations: true` can also set `implementation` to give it a public constructor or static methods. `new` then creates that class, and static methods call it, but other native classes can still implement the spec and the Swift bridge keeps storing the protocol existential. Nitrogen rejects `implementation` on such a spec if it declares neither.
@@ -105,6 +109,8 @@ export declare class View extends HybridObject {
 ```
 
 `allowInheritance` defaults to `false`. Set it to `true` to let another Nitrogen spec extend this spec on that platform. Specs with a concrete `implementation` cannot enable inheritance; an inheritable base spec must use `allowMultipleImplementations: true`. Swift specs with inheritance disabled get a final generated C++ wrapper. The abstract C++ spec remains inheritable by native implementations; mark native implementation classes final in their own language when appropriate.
+
+For a single native implementation with no derived specs, prefer `implementation` with `allowInheritance: false` (the default). Concrete Swift storage avoids protocol existential dispatch, and final generated wrappers allow more compiler optimizations. Enabling multiple implementations retains existential storage even if you select a constructor/static implementation. See [platform decorators](https://nitro.margelo.com/docs/concepts/platform-decorators) for all options, native protocol/interface additions, and performance tradeoffs.
 
 ## Importing classes
 

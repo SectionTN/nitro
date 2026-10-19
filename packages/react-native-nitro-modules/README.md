@@ -44,8 +44,8 @@ export * from '#nitro/Math'
 @iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
 @Android({ language: 'kotlin', implementation: { className: 'HybridMath' } })
 export declare class Math extends HybridObject {
-  constructor()
-  add(a: number, b: number): number
+  private constructor()
+  public static add(a: number, b: number): number
 }
 ```
 
@@ -79,13 +79,15 @@ Implement the generated native spec, then import the class from its `.nitro` fil
 ```ts
 import { Math } from './Math.nitro'
 
-const math = new Math()
-console.log(math.add(2, 3))
+console.log(Math.add(2, 3))
 ```
 
 Re-export it by name from your package entry point: `export { Math } from './Math.nitro'`.
 
 - [Build a Nitro Module](https://nitro.margelo.com/docs/getting-started/how-to-build-a-nitro-module)
+- [Image instances and native state](https://nitro.margelo.com/docs/concepts/hybrid-objects)
+- [Constructors and static methods](https://nitro.margelo.com/docs/concepts/constructors-and-static-methods)
+- [Platform decorators](https://nitro.margelo.com/docs/concepts/platform-decorators)
 - [Supported types](https://nitro.margelo.com/docs/types/typing-system)
 - [View components](https://nitro.margelo.com/docs/guides/view-components)
 - [Handwritten C++ bindings without Nitrogen](https://nitro.margelo.com/docs/concepts/hybrid-objects#handwritten-c-bindings)
