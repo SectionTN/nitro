@@ -22,21 +22,7 @@
         "default": "./js/lib/commonjs/index.js"
       }
     },
-    "./package.json": "./package.json",
-    "./host": {
-      "react-native": {
-        "types": "./js/lib/typescript/module/host.d.ts",
-        "default": "./js/lib/module/host.js"
-      },
-      "import": {
-        "types": "./js/lib/typescript/module/host.d.ts",
-        "default": "./js/lib/module/host.js"
-      },
-      "require": {
-        "types": "./js/lib/typescript/commonjs/host.d.ts",
-        "default": "./js/lib/commonjs/host.js"
-      }
-    }
+    "./package.json": "./package.json"
   },
   "files": [
     "native/cpp",
