@@ -6,12 +6,12 @@ import TabItem from '@theme/TabItem';
 
 # JSON values (`AnyJSON`)
 
-`AnyJSON` represents a JSON value: a string, number, boolean, `null`, array, or object. Arrays and objects can contain nested JSON values. Import it from `react-native-nitro-modules` or `nitro-core`.
+`AnyJSON` represents a JSON value: a string, number, boolean, `null`, array, or object. Arrays and objects can contain nested JSON values.
 
 <Tabs>
   <TabItem value="ts" label="TypeScript" default>
     ```ts
-    import { type AnyJSON, type HybridObject, iOS } from 'react-native-nitro-modules'
+    import { type AnyJSON, type HybridObject, iOS } from 'nitro-core'
 
     @iOS(...)
     export declare class Fetch extends HybridObject {
@@ -43,8 +43,10 @@ import TabItem from '@theme/TabItem';
   </TabItem>
 </Tabs>
 
-Nitro serializes JavaScript values to JSON when passing them to native, and parses the encoded JSON when returning them to JavaScript. `AnyJSON` replaces the old `AnyMap` API. Native initializers that accept encoded data do not validate it, so provide valid JSON.
+When JS values or objects are passed to native, `AnyJSON` serializes them via `JSON.stringify(...)`. You can decode JSON using platform decoders, or separate JSON libraries.
 
-`bigint`, `undefined`, functions, and Hybrid Objects are not JSON values. Use a [typed struct](custom-structs) or a dedicated method parameter for these types. Kotlin support for `AnyJSON` is not implemented in the current v1 generator.
+When `AnyJSON` values are returned to JS, they are parsed via `JSON.parse(...)` to construct JS values or objects.
 
-Prefer [typed structs](custom-structs) when the fields are known. They provide compile-time checks and avoid JSON serialization.
+## Use custom structs instead
+
+Prefer [typed structs](custom-structs) when the fields are known. They provide compile-time checks, support every type (`bigint`, functions, other Hybrid Objects, ...) and are faster because they avoid JSON serialization.
