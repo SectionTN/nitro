@@ -24,6 +24,9 @@ let bridgeSettings: [CXXSetting] = [
 let package = Package(
   name: "NitroRuntimeTests",
   platforms: [.iOS(.v16)],
+  products: [
+    .library(name: "NitroTestRunnerBridge", targets: ["NitroTestRunnerBridge"])
+  ],
   dependencies: [
     .package(
       url: "https://github.com/margelo/simdutf-swift.git",

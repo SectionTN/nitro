@@ -1,9 +1,6 @@
 import Foundation
+import NitroTestRunnerBridge
 import Testing
-
-#if SWIFT_PACKAGE
-  import NitroTestRunnerBridge
-#endif
 
 private final class TestBundle: NSObject {}
 

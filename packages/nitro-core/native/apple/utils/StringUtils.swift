@@ -3,9 +3,7 @@
 //  NitroModules
 //
 
-#if SWIFT_PACKAGE
 public import NitroModulesAppleCxx
-#endif
 
 internal import Foundation
 internal import SimdUTF

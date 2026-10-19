@@ -8,11 +8,8 @@
 import Dispatch
 import Foundation
 import NitroModules
+import NitroModulesCxx
 import NitroTestExternal
-
-#if SWIFT_PACKAGE
-  import NitroModulesCxx
-#endif
 
 class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   private var pendingPromise: (any Promise<Double>)?

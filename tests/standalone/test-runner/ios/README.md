@@ -2,13 +2,23 @@
 
 Run `bun test:ios` from the repository root with Xcode, an iOS simulator, CMake and Ninja installed. The command prepares the TypeScript tests and Nitrogen bindings, builds the pinned Hermes sources, and runs Swift Testing through `xcodebuild`.
 
-The root `Package.swift` defines the runtime, both fixture modules and the Swift Testing bundle. It compiles canonical sources directly from `packages/nitro-core/native`, with separate C++, Apple C++, Swift and Swift-to-C++ bridge targets. The fixture modules use the same target split as Nitrogen's generated React Native packages. Xcode supplies the simulator test runner; there is no application target or React Native dependency.
+The root `Package.swift` defines the runtime, both fixture modules, the native test runner and a SwiftPM test target. It compiles canonical sources directly from `packages/nitro-core/native`, with separate C++, Apple C++, Swift and Swift-to-C++ bridge targets. The fixture modules use the same target split as Nitrogen's generated React Native packages. Xcode supplies the simulator test runner; there is no application target or React Native dependency.
 
-The V1 runtime requires Swift 6.4. Its Swift target links [SimdUTF](https://github.com/margelo/simdutf-swift) 1.0.1 or newer with the `UTF8`, `UTF16`, and `ASCII` traits. Canonical header facades expose the existing `<NitroModules/Header.hpp>` imports. The private bridge targets compile after Swift and include its generated headers.
+The V1 runtime requires Swift 6.4. Its Swift target links [SimdUTF](https://github.com/margelo/simdutf-swift) 1.0.1 or newer with the `UTF8`, `UTF16`, and `ASCII` traits. Public include directories expose the existing `<NitroModules/Header.hpp>` imports. The private bridge targets compile after Swift and include its generated headers.
 
 Hermes is a local XCFramework built from the pinned upstream CMake sources. Its binary target lives in the root manifest so the framework and all canonical runtime sources stay inside the Swift package boundary. Run the existing Hermes build helper before opening the package in Xcode. The command-line test runner builds Hermes automatically unless `--skip-hermes-build` is passed.
 
-`RuntimeTests.swift` loads the bundled JavaScript and case manifests from SwiftPM's resource bundle. `NitroTestRunnerBridge` exports the Objective-C++ test entry point to Swift.
+For Xcode debugging, prepare the tests and Hermes, then open the existing project:
+
+```sh
+bun test:prepare
+bun tests/standalone/hermes/build.mjs ios --arch arm64 --jobs 4
+open tests/standalone/test-runner/ios/NitroRuntimeTests.xcodeproj
+```
+
+Select the `NitroRuntimeTests` scheme and an iOS simulator, then run Product > Test. The project links the root package's `NitroTestRunnerBridge` product, which builds the runtime, fixtures and Hermes dependencies through SwiftPM. The project only compiles `RuntimeTests.swift` and copies the generated test resources. `bun test:ios` and CI use this same project and scheme. Native breakpoints resolve to the same package sources used by the command-line runner.
+
+`RuntimeTests.swift` loads the JavaScript and case manifests from the test bundle in the Xcode project, or from `Bundle.module` when running the package tests directly. `NitroTestRunnerBridge` exports the Objective-C++ test entry point to Swift.
 
 Simulator OS, device, architecture, build jobs and deployment target defaults live in [`config.json`](config.json). By default, the runner selects the newest installed iOS 26 simulator and the host architecture. Override them on the command line:
 
@@ -27,7 +37,7 @@ bun tests/standalone/test-runner/ios/run.mjs --help
 
 `RuntimeTests.swift` reads the generated `runtime-tests.json` manifest and runs each JavaScript test as a Swift Testing parameterized case. New exported tests in `js/**/*.test.ts` need no Swift changes. Each case keeps its file-qualified name in the test results and can be rerun individually in Xcode. Missing, invalid, empty or duplicate manifest entries fail discovery.
 
-The Swift tests await a dedicated serial queue that owns the blocking native runner. This keeps Swift's cooperative executor available for `Promise.async` completions. The command-line runner sets `LIBDISPATCH_COOPERATIVE_POOL_STRICT=1` in the test process so the concurrent native Promise case runs with one cooperative worker.
+The Swift tests await a dedicated serial queue that owns the blocking native runner. This keeps Swift's cooperative executor available for `Promise.async` completions. The shared Xcode scheme and command-line runner set `LIBDISPATCH_COOPERATIVE_POOL_STRICT=1` in the test process so the concurrent native Promise case runs with one cooperative worker.
 
 The Objective-C++ bridge converts a failed assertion or native exception into a Swift error. Handwritten tests check error propagation, cached bytecode with fresh runtime state, per-case timeout overrides, independent setup and execution budgets, and timeouts for unresolved promises, synchronous loops, and endless microtask chains. The automatically discovered TypeScript cases check HybridObject behavior.
 

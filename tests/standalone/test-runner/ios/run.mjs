@@ -158,8 +158,10 @@ if (values.sanitizer !== "none") {
 }
 const argumentsForTests = [
   "test",
+  "-project",
+  "tests/standalone/test-runner/ios/NitroRuntimeTests.xcodeproj",
   "-scheme",
-  "NitroRuntimeTests-Package",
+  "NitroRuntimeTests",
   "-destination",
   destination,
   "-derivedDataPath",

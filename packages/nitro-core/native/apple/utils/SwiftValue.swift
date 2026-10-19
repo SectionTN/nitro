@@ -1,8 +1,6 @@
 
 /// Copies a value from borrowed Swift storage. The source must contain an initialized T.
-#if SWIFT_PACKAGE
 public import NitroModulesAppleCxx
-#endif
 
 @_expose(Cxx)
 public func copySwiftValue<T>(_ source: UnsafeRawPointer) -> T {

@@ -5,9 +5,7 @@
 //  Created by Marc Rousavy on 17.07.24.
 //
 
-#if SWIFT_PACKAGE
 internal import NitroModulesAppleCxx
-#endif
 
 public import CxxStdlib
 public import Foundation

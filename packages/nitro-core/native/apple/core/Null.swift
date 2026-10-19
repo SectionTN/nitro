@@ -6,9 +6,7 @@
 //
 
 
-#if SWIFT_PACKAGE
 public import NitroModulesAppleCxx
-#endif
 
 /**
  * Represents an explicit `null` from JS.
