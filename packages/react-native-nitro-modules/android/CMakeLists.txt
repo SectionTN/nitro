@@ -23,9 +23,7 @@ add_library(NitroModules SHARED
 include_directories(
   # Shared Nitro Core public headers
   ../cpp/core/include
-  ../cpp/core/private
   # React Native C++ includes
-  ../cpp/private
   ../include
   src/main/cpp/turbomodule
   src/main/cpp/views

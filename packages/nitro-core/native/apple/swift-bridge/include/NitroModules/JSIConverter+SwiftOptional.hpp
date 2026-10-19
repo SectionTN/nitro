@@ -23,7 +23,7 @@ using namespace facebook;
 
 // Allow trailing Swift optional parameters to be omitted when calling Hybrid methods.
 template <typename TInner>
-struct is_optional<swift::Optional<TInner>> : std::true_type {};
+struct detail::is_optional<swift::Optional<TInner>> : std::true_type {};
 
 // swift::Optional<T> <> T | undefined
 template <typename TInner>

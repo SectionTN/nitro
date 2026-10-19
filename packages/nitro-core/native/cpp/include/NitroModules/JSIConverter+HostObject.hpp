@@ -16,7 +16,7 @@ using namespace facebook;
 
 // jsi::HostObject <> {}
 template <typename T>
-  requires is_shared_ptr_to_v<T, jsi::HostObject>
+  requires detail::is_shared_ptr_to_v<T, jsi::HostObject>
 struct JSIConverter<T> final {
   using TPointee = typename T::element_type;
 

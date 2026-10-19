@@ -116,7 +116,7 @@ private:
 
 private:
   T* NULLABLE _value;
-  ReferenceState* NULLABLE _state;
+  detail::ReferenceState* NULLABLE _state;
 };
 
 } // namespace margelo::nitro

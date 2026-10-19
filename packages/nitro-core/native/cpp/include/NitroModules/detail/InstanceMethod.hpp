@@ -9,7 +9,7 @@
 
 #include <NitroModules/NitroDefines.hpp>
 
-namespace margelo::nitro {
+namespace margelo::nitro::detail {
 
 /**
  * Represents a Function pointer to an instance method of the given class.
@@ -20,4 +20,4 @@ namespace margelo::nitro {
 template <typename T, typename ReturnType, typename... Args>
 using InstanceMethod = ReturnType (T::*NON_NULL)(Args...);
 
-} // namespace margelo::nitro
+} // namespace margelo::nitro::detail

@@ -39,6 +39,8 @@ using namespace facebook;
  */
 enum class FunctionKind { METHOD, GETTER, SETTER };
 
+namespace detail {
+
 /**
  * A helper for an `InstanceMethod` that doesn't have a typed return value or arguments, but instead uses raw JSI values.
  */
@@ -47,6 +49,8 @@ using RawInstanceMethod = InstanceMethod<
     /* instance type */ T,
     /* return value */ jsi::Value,
     /* jsi::HostFunction arguments */ jsi::Runtime&, const jsi::Value&, const jsi::Value*, size_t>;
+
+} // namespace detail
 
 /**
  * Represents a Hybrid Function.
@@ -98,7 +102,7 @@ public:
   template <typename THybrid, typename ReturnType, typename... Args>
     requires((JSIDecodable<std::decay_t<Args>> && ...) && (std::is_void_v<ReturnType> || JSIEncodable<ReturnType>))
   static inline HybridFunction createHybridFunction(/* The name of the method */ const std::string& name,
-                                                    /* The method on THybrid */ InstanceMethod<THybrid, ReturnType, Args...> method,
+                                                    /* The method on THybrid */ detail::InstanceMethod<THybrid, ReturnType, Args...> method,
                                                     /* The type of the method */ FunctionKind kind) {
     jsi::HostFunctionType hostFunction = [name, method, kind](/* JS Runtime */ jsi::Runtime& runtime,
                                                               /* HybridObject */ const jsi::Value& thisValue,
@@ -108,7 +112,7 @@ public:
       std::shared_ptr<THybrid> hybridInstance = getHybridObjectNativeState<THybrid>(runtime, thisValue, kind, name);
 
       // 2. Make sure the given arguments match, either with a static size, or with potentially optional arguments size.
-      constexpr size_t optionalArgsCount = trailing_optionals_count_v<Args...>;
+      constexpr size_t optionalArgsCount = detail::trailing_optionals_count_v<Args...>;
       constexpr size_t maxArgsCount = sizeof...(Args);
       constexpr size_t minArgsCount = maxArgsCount - optionalArgsCount;
       bool isWithinArgsRange = (count >= minArgsCount && count <= maxArgsCount);
@@ -153,7 +157,7 @@ public:
     jsi::HostFunctionType hostFunction = [name, function](jsi::Runtime& runtime, const jsi::Value&,
                                                          const jsi::Value* args, size_t count) -> jsi::Value {
       constexpr size_t maximum = sizeof...(Args);
-      constexpr size_t minimum = maximum - trailing_optionals_count_v<Args...>;
+      constexpr size_t minimum = maximum - detail::trailing_optionals_count_v<Args...>;
       if (count < minimum || count > maximum) [[unlikely]] {
         throw jsi::JSError(runtime, "`" + name + "` expected " + std::to_string(minimum) + " to " +
                                        std::to_string(maximum) + " arguments, but received " + std::to_string(count) + "!");
@@ -177,7 +181,7 @@ public:
   template <typename Derived>
   static inline HybridFunction createRawHybridFunction(/* The name of the raw method */ const std::string& name,
                                                        /* The number of expected arguments */ size_t expectedArgumentsCount,
-                                                       /* The raw JSI method on the instance */ RawInstanceMethod<Derived> method) {
+                                                       /* The raw JSI method on the instance */ detail::RawInstanceMethod<Derived> method) {
     jsi::HostFunctionType hostFunction = [name, method](/* JS Runtime */ jsi::Runtime& runtime,
                                                         /* HybridObject */ const jsi::Value& thisValue,
                                                         /* JS arguments */ const jsi::Value* args,
@@ -222,7 +226,7 @@ private:
    */
   template <typename Derived, typename ReturnType, typename... Args, size_t... Is>
   static inline jsi::Value callMethod(/* The instance to call the method on */ Derived* NON_NULL obj,
-                                      /* The method to call */ InstanceMethod<Derived, ReturnType, Args...> method,
+                                      /* The method to call */ detail::InstanceMethod<Derived, ReturnType, Args...> method,
                                       /* JS Runtime */ jsi::Runtime& runtime,
                                       /* JS Arguments */ const jsi::Value* NON_NULL args,
                                       /* JS Arguments count */ size_t argsSize, std::index_sequence<Is...>) {
