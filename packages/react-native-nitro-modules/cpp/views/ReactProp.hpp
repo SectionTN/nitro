@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
+#include <NitroModules/BorrowingReference.hpp>
 #include "IsFunctionProp.hpp"
-#include "JSIConverter.hpp"
-#include "NitroDefines.hpp"
-#include "PropNameIDCache.hpp"
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/NitroDefines.hpp>
+#include <NitroModules/PropNameIDCache.hpp>
 #include "RawPropsCompat.hpp"
 #include <jsi/jsi.h>
 
