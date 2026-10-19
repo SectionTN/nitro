@@ -14,37 +14,26 @@ Once the callback is no longer used, it will be safely deleted from memory.
 
 <Tabs>
   <TabItem value="ts" label="TypeScript" default>
-    In TypeScript, a callback is represented as an anonymous function:
-
     ```ts
-    interface Server extends HybridObject<{ … }> {
+    import { type HybridObject, iOS } from 'nitro-core'
+
+    @iOS(...)
+    export declare class Server extends HybridObject {
       start(onNewUserJoined: (user: User) => void): void
     }
     ```
   </TabItem>
   <TabItem value="swift" label="Swift">
-    In Swift, a callback is represented as a closure:
-
     ```swift
-    func start(onNewUserJoined: (User) -> Void) {
+    func start(onNewUserJoined: any Callback<User, Void>) {
       onNewUserJoined(user)
     }
     ```
-  </TabItem>
-  <TabItem value="kotlin" label="Kotlin">
-    In Kotlin, a callback is represented as a lambda:
 
-    ```kotlin
-    fun start(onNewUserJoined: (User) -> Unit) {
-      onNewUserJoined(user)
-    }
-    ```
   </TabItem>
   <TabItem value="cpp" label="C++">
-    In C++, a callback is represented as a function:
-
     ```cpp
-    void start(std::function<void(User)> onNewUserJoined) {
+    void start(const Callback<void(const User&)>& onNewUserJoined) {
       onNewUserJoined(user);
     }
     ```
