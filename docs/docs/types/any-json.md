@@ -24,7 +24,7 @@ import TabItem from '@theme/TabItem';
     import NitroModules
 
     func get(url: String) throws -> AnyJSON {
-      return try AnyJSON(encoding: ["url": url])
+      return try AnyJSON(encoding: ["status": "ok"])
     }
     ```
 
