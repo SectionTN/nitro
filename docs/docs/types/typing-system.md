@@ -163,12 +163,6 @@ These are all the types Nitro supports out of the box:
     <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/android/src/main/java/com/margelo/nitro/core/ArrayBuffer.kt">ArrayBuffer</a></code></td>
   </tr>
   <tr>
-    <td><code>Date</code></td>
-    <td><code>std::chrono::system_clock::time_point</code></td>
-    <td><code>Date</code></td>
-    <td><code>java.time.Instant</code></td>
-  </tr>
-  <tr>
     <td>..any <code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/js/src/HybridObject.ts">HybridObject</a></code></td>
     <td><code>std::shared_ptr&lt;<a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/core/HybridObject.hpp">HybridObject</a>&gt;</code></td>
     <td><code><a href="https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/apple/core/HybridObject.swift">HybridObject</a></code></td>
