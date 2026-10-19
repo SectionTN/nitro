@@ -49,7 +49,10 @@ prepare_apple_module() {
   mv "$staging" "$headers"
 }
 
-prepare_headers NitroModules "${NITRO_NATIVE:?}/cpp" "${NITRO_NATIVE}/apple"
+prepare_headers NitroModules \
+  "${NITRO_NATIVE:?}/cpp/include/NitroModules" \
+  "${NITRO_NATIVE}/apple/include/NitroModules" \
+  "${NITRO_NATIVE}/apple/swift-bridge/include/NitroModules"
 prepare_headers NitroTestExternal \
   "${NITRO_EXTERNAL_GENERATED:?}/shared" "${NITRO_EXTERNAL_GENERATED}/ios"
 prepare_apple_module NitroTestAppleCxx "${NITRO_GENERATED:?}"

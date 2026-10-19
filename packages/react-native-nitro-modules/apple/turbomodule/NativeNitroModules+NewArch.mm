@@ -5,7 +5,7 @@
 //  Created by Marc Rousavy on 21.06.24.
 //
 
-#import "NativeNitroModules.h"
+#import <NitroModulesReactNative/NativeNitroModules.h>
 
 #ifdef RCT_NEW_ARCH_ENABLED
 
