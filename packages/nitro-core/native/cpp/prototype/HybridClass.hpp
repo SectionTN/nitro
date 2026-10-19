@@ -126,7 +126,7 @@ public:
    * ```
    */
   template <typename Derived, typename ReturnType>
-    requires(std::is_void_v<ReturnType> || JSIEncodable<ReturnType>)
+    requires JSIEncodable<ReturnType>
   inline void registerHybridGetter(std::string name, InstanceMethod<Derived, ReturnType> method) {
     if (_getters.contains(name)) [[unlikely]] {
       throw std::runtime_error("Cannot add Hybrid Property Getter \"" + name + "\" - a getter with that name already exists!");
