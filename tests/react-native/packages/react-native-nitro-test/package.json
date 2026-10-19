@@ -1,6 +1,6 @@
 {
   "name": "react-native-nitro-test",
-  "version": "0.37.1",
+  "version": "0.37.2-nightly.22.gb330f7cd071e",
   "description": "A testing playground library for Nitro Modules.",
   "main": "lib/index",
   "module": "lib/index",
@@ -60,11 +60,11 @@
     "@types/jest": "*",
     "@types/react": "^19.2.15",
     "jest": "*",
-    "nitrogen": "0.37.1",
+    "nitrogen": "0.37.2-nightly.22.gb330f7cd071e",
     "@react-native/jest-preset": "0.85.3",
     "react": "19.3.0",
     "react-native": "0.85.3",
-    "react-native-nitro-modules": "0.37.1",
+    "react-native-nitro-modules": "0.37.2-nightly.22.gb330f7cd071e",
     "react-native-nitro-test-external": "workspace:*"
   },
   "peerDependencies": {

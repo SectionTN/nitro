@@ -9,7 +9,7 @@
 #define NitroDefines_h
 
 // Sets the version of the native Nitro core library
-#define NITRO_VERSION "0.37.1"
+#define NITRO_VERSION "0.37.2-nightly.22.gb330f7cd071e"
 
 // Sets whether to use debug or optimized production build flags
 #ifdef DEBUG
