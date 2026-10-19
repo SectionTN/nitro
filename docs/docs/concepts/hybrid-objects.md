@@ -15,7 +15,7 @@ export * from '#nitro/Image'
 
 @iOS({ language: 'swift', implementation: { className: 'HybridImage' } })
 export declare class Image extends HybridObject {
-  public constructor(path: string)
+  constructor(path: string)
   readonly width: number
   readonly height: number
 }
@@ -109,7 +109,7 @@ export declare abstract class Media extends HybridObject {
 
 @iOS({ language: 'swift', implementation: { className: 'HybridImage' } })
 export declare class Image extends Media {
-  public constructor(path: string)
+  constructor(path: string)
   saveToFile(path: string): Promise<void>
 }
 ```

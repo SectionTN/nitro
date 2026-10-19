@@ -145,7 +145,7 @@ Choose implementations in `.nitro.ts` decorators:
 })
 export declare class Math extends HybridObject {
   private constructor()
-  public static add(a: number, b: number): number
+  static add(a: number, b: number): number
 }
 ```
 

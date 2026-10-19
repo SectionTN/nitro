@@ -61,7 +61,7 @@ Errors will be propagated upwards to JS and can be caught just like any other ki
 
 ### Promise rejections
 
-For a spec declaring `public static add(a: number, b: number): Promise<number>`, reject the promise by throwing inside the asynchronous operation:
+For a spec declaring `static add(a: number, b: number): Promise<number>`, reject the promise by throwing inside the asynchronous operation:
 
 <Tabs groupId="native-language">
   <TabItem value="swift" label="Swift" default>

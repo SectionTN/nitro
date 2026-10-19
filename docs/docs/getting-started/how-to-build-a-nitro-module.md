@@ -15,8 +15,6 @@ Use the v1 template:
 npx nitrogen@alpha init my-nitro-module
 ```
 
-For an existing library, install matching versions of `nitro-core`, `react-native-nitro-modules`, and `nitrogen` as development dependencies. Declare the runtime packages as peer dependencies, and install them in the consuming app. Keep all three on the same exact v1 version, including the prerelease suffix.
-
 The template includes native build files, `nitro.json`, and a working Swift example. For manual setup, use the following configuration.
 
 ### Native names
@@ -142,7 +140,7 @@ export * from '#nitro/Math'
 @Android({ language: 'kotlin', implementation: { className: 'HybridMath' } })
 export declare class Math extends HybridObject {
   private constructor()
-  public static add(a: number, b: number): number
+  static add(a: number, b: number): number
 }
 ```
 

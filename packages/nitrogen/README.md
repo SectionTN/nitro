@@ -43,8 +43,8 @@ export * from '#nitro/Image'
   },
 })
 export declare class Image extends HybridObject {
-  public constructor(width: number, height: number)
-  public static square(size: number): Image
+  constructor(width: number, height: number)
+  static square(size: number): Image
   readonly width: number
   readonly height: number
 }
@@ -104,7 +104,7 @@ A spec with `allowMultipleImplementations: true` can also set `implementation` t
   implementation: { className: 'HybridView' },
 })
 export declare class View extends HybridObject {
-  public constructor()
+  constructor()
 }
 ```
 
@@ -278,7 +278,7 @@ export declare class Resource extends HybridObject {}
   },
 })
 export declare class File extends Resource {
-  public constructor(path: string)
+  constructor(path: string)
 }
 ```
 

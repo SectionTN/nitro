@@ -18,7 +18,7 @@ export * from '#nitro/Image'
 @iOS({ language: 'swift', implementation: { className: 'HybridImage' } })
 @Android({ language: 'kotlin', implementation: { className: 'HybridImage' } })
 export declare class Image extends HybridObject {
-  public constructor(path: string)
+  constructor(path: string)
   readonly width: number
   readonly height: number
 }
@@ -48,7 +48,7 @@ Use `new Image(path)` after importing `Image`, replacing `NitroModules.createHyb
 
 Use `protected constructor()` for a native-created base that other specs can extend, or `private constructor()` to also prevent TypeScript subclasses. Neither restricts construction in native code. An `abstract` spec cannot declare a public constructor. See [constructors and static methods](../concepts/constructors-and-static-methods).
 
-Stateless operations can now be static: declare `public static add(a: number, b: number): number` and call `Math.add(a, b)` without creating an instance. Implement it as a native static method (a companion object method in Kotlin).
+Stateless operations can now be static: declare `static add(a: number, b: number): number` and call `Math.add(a, b)` without creating an instance. Implement it as a native static method (a companion object method in Kotlin).
 
 ## TypeScript and Babel
 

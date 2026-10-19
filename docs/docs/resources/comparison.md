@@ -277,7 +277,7 @@ export * from '#nitro/Math'
 @iOS({ language: 'swift', implementation: { className: 'HybridMath' } })
 export declare class Math extends HybridObject {
   private constructor()
-  public static add(a: number, b: number): Promise<number>
+  static add(a: number, b: number): Promise<number>
 }
 
 // Call Math.add(a, b) without creating an instance.

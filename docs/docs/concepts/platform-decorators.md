@@ -18,7 +18,7 @@ export * from '#nitro/Image'
 })
 @Android({ language: 'kotlin', implementation: { className: 'HybridImage' }, allowInheritance: false })
 export declare class Image extends HybridObject {
-  public constructor(path: string)
+  constructor(path: string)
   readonly width: number
   readonly height: number
 }

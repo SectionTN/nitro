@@ -8,12 +8,12 @@ A Hybrid Object's declared class describes both its instances and its JavaScript
 
 ## Constructor visibility
 
-Nitrogen only exposes a native constructor when the spec explicitly declares a public constructor. `constructor()` and `public constructor()` mean the same thing.
+Nitrogen only exposes a native constructor when the spec explicitly declares a public constructor. Constructors and methods are public by default, so the `public` modifier is unnecessary.
 
 | Declaration | JavaScript construction | Use case |
 | --- | --- | --- |
-| `public constructor()` | `new Example()` | Create an object without arguments |
-| `public constructor(path: string)` | `new Example(path)` | Initialize native state from arguments |
+| `constructor()` | `new Example()` | Create an object without arguments |
+| `constructor(path: string)` | `new Example(path)` | Initialize native state from arguments |
 | `protected constructor()` | Not allowed | Objects created by native APIs; other specs may extend this class |
 | `private constructor()` | Not allowed | Objects created by native APIs, or a class used only for static methods; TypeScript also rejects subclasses |
 | No constructor | No native constructor is exposed | A direct subclass of `HybridObject` inherits its protected constructor in TypeScript |
@@ -36,7 +36,7 @@ export * from '#nitro/Image'
 @iOS({ language: 'swift', implementation: { className: 'HybridImage' } })
 @Android({ language: 'kotlin', implementation: { className: 'HybridImage' } })
 export declare class Image extends HybridObject {
-  public constructor(path: string)
+  constructor(path: string)
   readonly width: number
   readonly height: number
 }
@@ -52,7 +52,7 @@ console.log(image instanceof Image) // true
 
 Nitrogen forwards the arguments to the selected `implementation`. For the example above, implement `init(path: String)` in Swift, `constructor(path: String)` in Kotlin, or `HybridImage(const std::string& path)` in C++. The [Hybrid Objects guide](hybrid-objects) shows the Swift implementation.
 
-Constructors use the same [supported parameter types](../types/typing-system) as methods. For example, an image API that allocates an empty bitmap could instead declare `public constructor(width: number, height: number)` and be called as `new Image(640, 480)`. The native initializer then takes two `Double` arguments in Swift/Kotlin or two `double` arguments in C++.
+Constructors use the same [supported parameter types](../types/typing-system) as methods. For example, an image API that allocates an empty bitmap could instead declare `constructor(width: number, height: number)` and be called as `new Image(640, 480)`. The native initializer then takes two `Double` arguments in Swift/Kotlin or two `double` arguments in C++.
 
 Only one constructor declaration is supported. Use named static factories for alternative creation paths. Constructors are synchronous; for file decoding or other expensive work, prefer a static factory returning `Promise<Image>` and perform the work on a native background thread.
 
@@ -67,7 +67,7 @@ export * from '#nitro/ImageDecoder'
 
 @iOS({ language: 'swift', implementation: { className: 'HybridImageDecoder' } })
 export declare class ImageDecoder extends HybridObject {
-  public constructor()
+  constructor()
 }
 ```
 
@@ -113,7 +113,7 @@ export * from '#nitro/Math'
 @Android({ language: 'kotlin', implementation: { className: 'HybridMath' } })
 export declare class Math extends HybridObject {
   private constructor()
-  public static add(a: number, b: number): number
+  static add(a: number, b: number): number
 }
 ```
 
@@ -185,7 +185,7 @@ export * from '#nitro/Image'
 @iOS({ language: 'swift', implementation: { className: 'HybridImage' } })
 export declare class Image extends HybridObject {
   private constructor()
-  public static load(path: string): Promise<Image>
+  static load(path: string): Promise<Image>
   readonly width: number
   readonly height: number
 }

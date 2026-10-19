@@ -22,7 +22,7 @@ While Nitro's primary environment is React Native, it also works in any other en
   implementation: { className: 'HybridMath' }
 })
 export declare class Math extends HybridObject {
-  public static add(a: number, b: number): number
+  static add(a: number, b: number): number
 }
 export * from '#nitro/Math'
 ```
@@ -101,7 +101,7 @@ If a function declares a `number`, you can only implement it on the native side 
 ```ts title="Math.nitro.ts"
 @iOS(...)
 export declare class Math extends HybridObject {
-  public static add(a: number, b: number): number
+  static add(a: number, b: number): number
 }
 ```
 
@@ -126,6 +126,7 @@ class HybridMath : HybridMathSpec {
 There is no way for a Nitro Module to return a type that is not expected in TypeScript, which also guarantees null-safety.
 
 ```ts
+@iOS(...)
 export declare class Math extends HybridObject {
   getValue(): number
   getValueOrNull(): number | undefined
@@ -137,14 +138,16 @@ export declare class Math extends HybridObject {
 Every Hybrid Object in Nitro is a native object, which can be created, passed around, and destroyed.
 
 ```ts
+@iOS(...)
 export declare class Image extends HybridObject {
+  constructor(bytes: ArrayBuffer)
   readonly width: number
   readonly height: number
   saveToFile(path: string): Promise<void>
 }
 
+@iOS(...)
 export declare class ImageEditor extends HybridObject {
-  loadImage(path: string): Promise<Image>
   crop(image: Image, size: Size): Image
 }
 ```

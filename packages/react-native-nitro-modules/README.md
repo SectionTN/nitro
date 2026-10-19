@@ -45,7 +45,7 @@ export * from '#nitro/Math'
 @Android({ language: 'kotlin', implementation: { className: 'HybridMath' } })
 export declare class Math extends HybridObject {
   private constructor()
-  public static add(a: number, b: number): number
+  static add(a: number, b: number): number
 }
 ```
 

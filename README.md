@@ -27,7 +27,7 @@ export * from '#nitro/Math'
 @Android({ language: 'c++', implementation: { className: 'HybridMath', include: '"HybridMath.hpp"' } })
 export declare class Math extends HybridObject {
   private constructor()
-  public static add(a: number, b: number): number
+  static add(a: number, b: number): number
 }
 ```
 
