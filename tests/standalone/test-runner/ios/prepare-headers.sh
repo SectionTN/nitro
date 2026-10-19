@@ -10,8 +10,8 @@ prepare_headers() {
   staging=$(mktemp -d "${BUILT_PRODUCTS_DIR}/$module-headers.XXXXXX")
   trap 'rm -rf "$staging"' EXIT HUP INT TERM
 
-  find "$@" -type f \
-    \( -name '*.hpp' -o -name '*.h' \) | sort | while IFS= read -r header; do
+  find "$@" -type d -name '*AppleCxx' -prune -o -type f \
+    \( -name '*.hpp' -o -name '*.h' \) -print | sort | while IFS= read -r header; do
     destination="$staging/$(basename "$header")"
     if [ -L "$destination" ]; then
       echo "error: Duplicate $module header name: $(basename "$header")" >&2
@@ -25,6 +25,32 @@ prepare_headers() {
   mv "$staging" "$headers"
 }
 
+prepare_apple_module() {
+  module="$1"
+  generated="$2"
+  source="$generated/ios/$module/include/$module"
+  headers="${BUILT_PRODUCTS_DIR:?}/include/$module"
+  if [ ! -d "$source" ]; then
+    rm -rf "$headers"
+    return
+  fi
+
+  # SwiftPM normally supplies this Clang module. The mixed Xcode fixture targets
+  # expose the same generated declarations through a build-directory module map.
+  staging=$(mktemp -d "${BUILT_PRODUCTS_DIR}/$module-headers.XXXXXX")
+  trap 'rm -rf "$staging"' EXIT HUP INT TERM
+  find "$source" -type f \( -name '*.hpp' -o -name '*.h' \) | sort | while IFS= read -r header; do
+    # Forward to the source path so relative includes keep their original base.
+    printf '#include "%s"\n' "$header" > "$staging/$(basename "$header")"
+  done
+  printf 'module %s {\n  requires cplusplus\n  header "%s.h"\n  export *\n}\n' \
+    "$module" "$module" > "$staging/module.modulemap"
+  rm -rf "$headers"
+  mv "$staging" "$headers"
+}
+
 prepare_headers NitroModules "${NITRO_NATIVE:?}/cpp" "${NITRO_NATIVE}/apple"
 prepare_headers NitroTestExternal \
   "${NITRO_EXTERNAL_GENERATED:?}/shared" "${NITRO_EXTERNAL_GENERATED}/ios"
+prepare_apple_module NitroTestAppleCxx "${NITRO_GENERATED:?}"
+prepare_apple_module NitroTestExternalAppleCxx "$NITRO_EXTERNAL_GENERATED"
