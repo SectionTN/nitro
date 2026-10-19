@@ -14,6 +14,7 @@
 #include <NitroModules/HybridObject.hpp>
 #include <NitroModules/InlineCallback.hpp>
 #include <NitroModules/InstallNitro.hpp>
+#include <NitroModules/InstanceMethod.hpp>
 #include <NitroModules/JSClass.hpp>
 #include <NitroModules/JSICache.hpp>
 #include <NitroModules/JSIConverter+AnyJSON.hpp>

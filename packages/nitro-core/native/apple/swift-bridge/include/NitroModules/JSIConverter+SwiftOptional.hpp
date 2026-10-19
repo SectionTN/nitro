@@ -21,9 +21,13 @@ namespace margelo::nitro {
 
 using namespace facebook;
 
+namespace detail {
+
 // Allow trailing Swift optional parameters to be omitted when calling Hybrid methods.
 template <typename TInner>
-struct detail::is_optional<swift::Optional<TInner>> : std::true_type {};
+struct is_optional<swift::Optional<TInner>> : std::true_type {};
+
+} // namespace detail
 
 // swift::Optional<T> <> T | undefined
 template <typename TInner>

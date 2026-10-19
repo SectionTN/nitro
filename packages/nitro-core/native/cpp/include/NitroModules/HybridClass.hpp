@@ -127,7 +127,7 @@ public:
    */
   template <typename Derived, typename ReturnType>
     requires JSIEncodable<ReturnType>
-  inline void registerHybridGetter(std::string name, detail::InstanceMethod<Derived, ReturnType> method) {
+  inline void registerHybridGetter(std::string name, InstanceMethod<Derived, ReturnType> method) {
     if (_getters.contains(name)) [[unlikely]] {
       throw std::runtime_error("Cannot add Hybrid Property Getter \"" + name + "\" - a getter with that name already exists!");
     }
@@ -147,7 +147,7 @@ public:
    */
   template <typename Derived, typename ValueType>
     requires JSIDecodable<std::decay_t<ValueType>>
-  inline void registerHybridSetter(std::string name, detail::InstanceMethod<Derived, void, ValueType> method) {
+  inline void registerHybridSetter(std::string name, InstanceMethod<Derived, void, ValueType> method) {
     if (_setters.contains(name)) [[unlikely]] {
       throw std::runtime_error("Cannot add Hybrid Property Setter \"" + name + "\" - a setter with that name already exists!");
     }
@@ -167,7 +167,7 @@ public:
    */
   template <typename Derived, typename ReturnType, typename... Args>
     requires((JSIDecodable<std::decay_t<Args>> && ...) && (std::is_void_v<ReturnType> || JSIEncodable<ReturnType>))
-  inline void registerHybridMethod(std::string name, detail::InstanceMethod<Derived, ReturnType, Args...> method) {
+  inline void registerHybridMethod(std::string name, InstanceMethod<Derived, ReturnType, Args...> method) {
     if (_getters.contains(name) || _setters.contains(name)) [[unlikely]] {
       throw std::runtime_error("Cannot add Hybrid Method \"" + name + "\" - a property with that name already exists!");
     }
@@ -186,7 +186,7 @@ public:
    * ```
    */
   template <typename Derived>
-  inline void registerRawHybridMethod(std::string name, size_t expectedArgumentsCount, detail::RawInstanceMethod<Derived> method) {
+  inline void registerRawHybridMethod(std::string name, size_t expectedArgumentsCount, RawInstanceMethod<Derived> method) {
     if (_getters.contains(name) || _setters.contains(name)) [[unlikely]] {
       throw std::runtime_error("Cannot add Hybrid Method \"" + name + "\" - a property with that name already exists!");
     }
