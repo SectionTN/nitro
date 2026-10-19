@@ -207,8 +207,10 @@ if (!manifest) {
     git([
       'add',
       ...versionedFiles,
-      'tests/react-native/apps/example/ios/Podfile.lock',
-      'tests/react-native/apps/benchmark/ios/Podfile.lock',
+      'Package.resolved',
+      'tests/react-native/apps/example/ios/NitroExample.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved',
+      'tests/react-native/apps/benchmark/ios/NitroBenchmark.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved',
+      'tests/react-native/packages/react-native-nitro-test/Package.swift',
       'tests/react-native/packages/react-native-nitro-test/nitrogen/generated',
     ])
     git(['diff', '--exit-code'])
