@@ -10,7 +10,7 @@ prepare_headers() {
   staging=$(mktemp -d "${BUILT_PRODUCTS_DIR}/$module-headers.XXXXXX")
   trap 'rm -rf "$staging"' EXIT HUP INT TERM
 
-  find "$@" -type d -name '*AppleCxx' -prune -o -type f \
+  find "$@" -type d \( -name '*AppleCxx' -o -name include \) -prune -o -type f \
     \( -name '*.hpp' -o -name '*.h' \) -print | sort | while IFS= read -r header; do
     destination="$staging/$(basename "$header")"
     if [ -L "$destination" ]; then

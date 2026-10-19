@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SwiftConverter.hpp"
+#include <NitroModules/SwiftConverter.hpp>
 
 namespace margelo::nitro {
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Callback.hpp"
-#include "InlineCallback.hpp"
-#include "SwiftConverter.hpp"
+#include <NitroModules/Callback.hpp>
+#include <NitroModules/InlineCallback.hpp>
+#include <NitroModules/SwiftConverter.hpp>
 
 namespace margelo::nitro {
 

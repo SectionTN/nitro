@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "HybridClass.hpp"
+#include <NitroModules/HybridClass.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>

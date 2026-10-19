@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
-#include "NitroTypeInfo.hpp"
-#include "ReferenceState.hpp"
-#include "WeakReference.hpp"
+#include <NitroModules/NitroDefines.hpp>
+#include <NitroModules/NitroTypeInfo.hpp>
+#include <NitroModules/ReferenceState.hpp>
+#include <NitroModules/WeakReference.hpp>
 #include <atomic>
 #include <cstddef>
 #include <mutex>
@@ -221,4 +221,4 @@ private:
 
 } // namespace margelo::nitro
 
-#include "WeakReference+Borrowing.hpp"
+#include <NitroModules/WeakReference+Borrowing.hpp>

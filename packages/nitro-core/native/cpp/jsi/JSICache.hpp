@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
-#include "JSClass.hpp"
-#include "NitroLogger.hpp"
-#include "WeakReference.hpp"
+#include <NitroModules/BorrowingReference.hpp>
+#include <NitroModules/JSClass.hpp>
+#include <NitroModules/NitroLogger.hpp>
+#include <NitroModules/WeakReference.hpp>
 #include <jsi/jsi.h>
 #include <memory>
 #include <unordered_map>

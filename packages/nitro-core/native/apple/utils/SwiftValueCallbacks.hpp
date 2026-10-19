@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NitroDefines.hpp"
+#include <NitroModules/NitroDefines.hpp>
 #include <functional>
 
 namespace margelo::nitro {

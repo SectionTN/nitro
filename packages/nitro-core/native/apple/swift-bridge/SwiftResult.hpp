@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Result.hpp"
+#include <NitroModules/Result.hpp>
 #include <optional>
 #include <type_traits>
 

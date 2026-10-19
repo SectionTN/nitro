@@ -171,17 +171,17 @@ struct JSIConverter<std::monostate> final {
 } // namespace margelo::nitro
 
 // Extension headers include this header before their declarations so their constraints can use these concepts.
-#include "JSIConverter+AnyJSON.hpp"
-#include "JSIConverter+ArrayBuffer.hpp"
-#include "JSIConverter+Callback.hpp"
-#include "JSIConverter+Exception.hpp"
-#include "JSIConverter+Function.hpp"
-#include "JSIConverter+HostObject.hpp"
-#include "JSIConverter+NativeState.hpp"
-#include "JSIConverter+Null.hpp"
-#include "JSIConverter+Optional.hpp"
-#include "JSIConverter+Promise.hpp"
-#include "JSIConverter+Tuple.hpp"
-#include "JSIConverter+UnorderedMap.hpp"
-#include "JSIConverter+Variant.hpp"
-#include "JSIConverter+Vector.hpp"
+#include <NitroModules/JSIConverter+AnyJSON.hpp>
+#include <NitroModules/JSIConverter+ArrayBuffer.hpp>
+#include <NitroModules/JSIConverter+Callback.hpp>
+#include <NitroModules/JSIConverter+Exception.hpp>
+#include <NitroModules/JSIConverter+Function.hpp>
+#include <NitroModules/JSIConverter+HostObject.hpp>
+#include <NitroModules/JSIConverter+NativeState.hpp>
+#include <NitroModules/JSIConverter+Null.hpp>
+#include <NitroModules/JSIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+Promise.hpp>
+#include <NitroModules/JSIConverter+Tuple.hpp>
+#include <NitroModules/JSIConverter+UnorderedMap.hpp>
+#include <NitroModules/JSIConverter+Variant.hpp>
+#include <NitroModules/JSIConverter+Vector.hpp>

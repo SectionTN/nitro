@@ -7,10 +7,10 @@
 
 #pragma once
 
-#include "JSIConverter.hpp"
+#include <NitroModules/JSIConverter.hpp>
 
-#include "CountTrailingOptionals.hpp"
-#include "JSIConverter+SwiftString.hpp"
+#include <NitroModules/CountTrailingOptionals.hpp>
+#include <NitroModules/JSIConverter+SwiftString.hpp>
 
 // Use the consuming module's Swift definitions, as with the Swift array converter.
 #ifndef SWIFT_SWIFT_H

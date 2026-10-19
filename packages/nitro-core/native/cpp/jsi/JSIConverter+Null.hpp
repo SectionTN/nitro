@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "JSIConverter.hpp"
-#include "Null.hpp"
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/Null.hpp>
 #include <jsi/jsi.h>
 
 namespace margelo::nitro {

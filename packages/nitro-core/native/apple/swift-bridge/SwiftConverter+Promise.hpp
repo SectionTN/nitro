@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Promise.hpp"
-#include "SwiftConverter.hpp"
+#include <NitroModules/Promise.hpp>
+#include <NitroModules/SwiftConverter.hpp>
 
 namespace margelo::nitro {
 

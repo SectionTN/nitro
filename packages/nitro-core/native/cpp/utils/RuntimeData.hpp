@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
+#include <NitroModules/NitroDefines.hpp>
 #include <jsi/jsi.h>
 #include <memory>
 #include <stdexcept>

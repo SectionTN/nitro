@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Dispatcher.hpp"
+#include <NitroModules/Dispatcher.hpp>
 #include <dispatch/dispatch.h>
 
 namespace margelo::nitro {

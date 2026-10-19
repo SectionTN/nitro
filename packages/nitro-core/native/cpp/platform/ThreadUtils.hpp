@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Dispatcher.hpp"
+#include <NitroModules/Dispatcher.hpp>
 #include <memory>
 #include <string>
 

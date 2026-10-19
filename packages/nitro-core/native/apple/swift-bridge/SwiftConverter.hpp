@@ -79,9 +79,9 @@ concept SwiftConvertible = requires(const T& cppValue, const typename SwiftConve
 
 } // namespace margelo::nitro
 
-#include "SwiftConverter+AnyJSON.hpp"
-#include "SwiftConverter+Array.hpp"
-#include "SwiftConverter+Optional.hpp"
-#include "SwiftConverter+Promise.hpp"
-#include "SwiftConverter+String.hpp"
-#include "SwiftConverter+Callback.hpp"
+#include <NitroModules/SwiftConverter+AnyJSON.hpp>
+#include <NitroModules/SwiftConverter+Array.hpp>
+#include <NitroModules/SwiftConverter+Optional.hpp>
+#include <NitroModules/SwiftConverter+Promise.hpp>
+#include <NitroModules/SwiftConverter+String.hpp>
+#include <NitroModules/SwiftConverter+Callback.hpp>

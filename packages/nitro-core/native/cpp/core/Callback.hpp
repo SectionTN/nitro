@@ -7,14 +7,14 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
-#include "Dispatcher.hpp"
-#include "GlobalErrorHandler.hpp"
-#include "JSIConverter.hpp"
-#include "NitroDefines.hpp"
-#include "NitroLogger.hpp"
-#include "NitroTypeInfo.hpp"
-#include "Promise.hpp"
+#include <NitroModules/BorrowingReference.hpp>
+#include <NitroModules/Dispatcher.hpp>
+#include <NitroModules/GlobalErrorHandler.hpp>
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/NitroDefines.hpp>
+#include <NitroModules/NitroLogger.hpp>
+#include <NitroModules/NitroTypeInfo.hpp>
+#include <NitroModules/Promise.hpp>
 #include <cassert>
 #include <exception>
 #include <functional>

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
+#include <NitroModules/BorrowingReference.hpp>
 
 namespace margelo::nitro {
 

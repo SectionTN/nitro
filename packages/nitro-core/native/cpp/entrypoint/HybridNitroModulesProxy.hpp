@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "BoxedHybridObject.hpp"
-#include "HybridObject.hpp"
-#include "HybridClass.hpp"
+#include <NitroModules/BoxedHybridObject.hpp>
+#include <NitroModules/HybridObject.hpp>
+#include <NitroModules/HybridClass.hpp>
 #include <memory>
 #include <string>
 

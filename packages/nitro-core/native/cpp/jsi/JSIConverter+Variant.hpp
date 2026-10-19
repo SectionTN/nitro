@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "JSIConverter.hpp"
-#include "NitroTypeInfo.hpp"
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/NitroTypeInfo.hpp>
 #include <jsi/jsi.h>
 #include <memory>
 #include <variant>

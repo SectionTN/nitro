@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Promise.hpp"
+#include <NitroModules/Promise.hpp>
 #include <type_traits>
 
 namespace margelo::nitro {

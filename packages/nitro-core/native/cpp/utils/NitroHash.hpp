@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
+#include <NitroModules/NitroDefines.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <string>

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include "JSIConverter.hpp"
-#include "JSIHelpers.hpp"
-#include "PropNameIDCache.hpp"
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/JSIHelpers.hpp>
+#include <NitroModules/PropNameIDCache.hpp>
 #include <jsi/jsi.h>
 #include <unordered_map>
 

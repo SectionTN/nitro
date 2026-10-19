@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
-#include "HybridClass.hpp"
+#include <NitroModules/BorrowingReference.hpp>
+#include <NitroModules/HybridClass.hpp>
 
-#include "NitroDefines.hpp"
+#include <NitroModules/NitroDefines.hpp>
 #include <jsi/jsi.h>
 #include <memory>
 #include <type_traits>

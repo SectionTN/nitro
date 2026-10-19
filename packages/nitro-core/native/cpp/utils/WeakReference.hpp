@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
-#include "ReferenceState.hpp"
+#include <NitroModules/NitroDefines.hpp>
+#include <NitroModules/ReferenceState.hpp>
 #include <atomic>
 #include <cstddef>
 #include <mutex>

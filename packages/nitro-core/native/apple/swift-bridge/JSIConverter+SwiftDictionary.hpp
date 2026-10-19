@@ -1,7 +1,7 @@
 #pragma once
 
-#include "JSIConverter.hpp"
-#include "JSIHelpers.hpp"
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/JSIHelpers.hpp>
 #include <concepts>
 
 namespace margelo::nitro {

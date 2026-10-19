@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "JSIConverter.hpp"
-#include "ArrayBuffer.hpp"
-#include "JSICache.hpp"
-#include "NitroDefines.hpp"
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/ArrayBuffer.hpp>
+#include <NitroModules/JSICache.hpp>
+#include <NitroModules/NitroDefines.hpp>
 #include <cassert>
 #include <jsi/jsi.h>
 #include <memory>

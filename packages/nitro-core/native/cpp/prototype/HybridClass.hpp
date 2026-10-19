@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "HybridFunction.hpp"
-#include "JSClass.hpp"
+#include <NitroModules/HybridFunction.hpp>
+#include <NitroModules/JSClass.hpp>
 #include <memory>
 #include <optional>
 #include <string>

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "JSIConverter.hpp"
+#include <NitroModules/JSIConverter.hpp>
 
 namespace swift {
 class String;

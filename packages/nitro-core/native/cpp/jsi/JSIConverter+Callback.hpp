@@ -12,10 +12,10 @@ template <typename Signature>
 class Callback;
 } // namespace margelo::nitro
 
-#include "Callback.hpp"
-#include "InlineCallback.hpp"
-#include "JSIConverter.hpp"
-#include "PropNameIDCache.hpp"
+#include <NitroModules/Callback.hpp>
+#include <NitroModules/InlineCallback.hpp>
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/PropNameIDCache.hpp>
 #include <cassert>
 #include <jsi/jsi.h>
 #include <type_traits>

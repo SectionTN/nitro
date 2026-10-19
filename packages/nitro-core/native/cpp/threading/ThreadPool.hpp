@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
+#include <NitroModules/NitroDefines.hpp>
 #include <atomic>
 #include <condition_variable>
 #include <functional>

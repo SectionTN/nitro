@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "Callback.hpp"
-#include "JSIConverter.hpp"
-#include "PromiseType.hpp"
-#include "PropNameIDCache.hpp"
+#include <NitroModules/Callback.hpp>
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/PromiseType.hpp>
+#include <NitroModules/PropNameIDCache.hpp>
 #include <functional>
 #include <jsi/jsi.h>
 #include <string>

@@ -3,6 +3,10 @@
 //  NitroModules
 //
 
+#if canImport(NitroModulesAppleCxx)
+public import NitroModulesAppleCxx
+#endif
+
 internal import Foundation
 internal import SimdUTF
 

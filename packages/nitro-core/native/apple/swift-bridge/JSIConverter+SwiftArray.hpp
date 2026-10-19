@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "JSIConverter.hpp"
+#include <NitroModules/JSIConverter.hpp>
 
-#include "JSIConverter+SwiftString.hpp"
+#include <NitroModules/JSIConverter+SwiftString.hpp>
 
 // Use the consuming module's Swift definitions. Including another module's -Swift.h
 // here can redefine metadata for C++ types exported by both modules.

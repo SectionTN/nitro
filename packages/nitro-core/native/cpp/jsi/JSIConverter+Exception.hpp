@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "CommonGlobals.hpp"
-#include "JSIConverter.hpp"
-#include "NitroTypeInfo.hpp"
-#include "PropNameIDCache.hpp"
+#include <NitroModules/CommonGlobals.hpp>
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/NitroTypeInfo.hpp>
+#include <NitroModules/PropNameIDCache.hpp>
 #include <exception>
 #include <jsi/jsi.h>
 

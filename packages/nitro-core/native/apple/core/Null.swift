@@ -6,6 +6,10 @@
 //
 
 
+#if canImport(NitroModulesAppleCxx)
+public import NitroModulesAppleCxx
+#endif
+
 /**
  * Represents an explicit `null` from JS.
  */

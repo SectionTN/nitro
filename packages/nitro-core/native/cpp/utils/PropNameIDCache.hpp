@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
+#include <NitroModules/BorrowingReference.hpp>
 #include <jsi/jsi.h>
 #include <unordered_map>
 

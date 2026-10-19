@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "AnyJSON.hpp"
-#include "SwiftConverter.hpp"
+#include <NitroModules/AnyJSON.hpp>
+#include <NitroModules/SwiftConverter.hpp>
 
 namespace NitroModules {
 class AnyJSON;

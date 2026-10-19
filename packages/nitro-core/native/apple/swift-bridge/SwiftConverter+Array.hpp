@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "SwiftConverter.hpp"
+#include <NitroModules/SwiftConverter.hpp>
 #include <vector>
 
 namespace margelo::nitro {

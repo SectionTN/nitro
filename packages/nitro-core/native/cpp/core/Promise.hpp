@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
-#include "NitroLogger.hpp"
-#include "NitroTypeInfo.hpp"
-#include "ThreadPool.hpp"
+#include <NitroModules/NitroDefines.hpp>
+#include <NitroModules/NitroLogger.hpp>
+#include <NitroModules/NitroTypeInfo.hpp>
+#include <NitroModules/ThreadPool.hpp>
 #include <exception>
 #include <future>
 #include <jsi/jsi.h>

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "NitroDefines.hpp"
-#include "Promise.hpp"
+#include <NitroModules/NitroDefines.hpp>
+#include <NitroModules/Promise.hpp>
 #include <concepts>
 #include <functional>
 #include <jsi/jsi.h>

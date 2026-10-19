@@ -5,6 +5,10 @@
 //  Created by Marc Rousavy on 17.07.24.
 //
 
+#if canImport(NitroModulesAppleCxx)
+internal import NitroModulesAppleCxx
+#endif
+
 public import CxxStdlib
 public import Foundation
 

@@ -12,9 +12,9 @@ template <typename T>
 struct JSIConverter;
 } // namespace margelo::nitro
 
-#include "BorrowingReference.hpp"
-#include "Dispatcher.hpp"
-#include "NitroDefines.hpp"
+#include <NitroModules/BorrowingReference.hpp>
+#include <NitroModules/Dispatcher.hpp>
+#include <NitroModules/NitroDefines.hpp>
 #include <functional>
 #include <jsi/jsi.h>
 #include <memory>
@@ -147,4 +147,4 @@ private:
 
 } // namespace margelo::nitro
 
-#include "JSIConverter+ArrayBuffer.hpp"
+#include <NitroModules/JSIConverter+ArrayBuffer.hpp>

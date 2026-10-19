@@ -7,12 +7,12 @@
 
 #pragma once
 
-#include "BorrowingReference.hpp"
-#include "Callback.hpp"
-#include "Dispatcher.hpp"
-#include "JSICache.hpp"
-#include "JSIConverter.hpp"
-#include "NitroDefines.hpp"
+#include <NitroModules/BorrowingReference.hpp>
+#include <NitroModules/Callback.hpp>
+#include <NitroModules/Dispatcher.hpp>
+#include <NitroModules/JSICache.hpp>
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/NitroDefines.hpp>
 #include <cassert>
 #include <cstdlib>
 #include <functional>

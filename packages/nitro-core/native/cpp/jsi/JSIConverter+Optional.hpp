@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "JSIConverter.hpp"
+#include <NitroModules/JSIConverter.hpp>
 #include <jsi/jsi.h>
 #include <optional>
 

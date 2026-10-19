@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "AnyJSON.hpp"
-#include "CommonGlobals.hpp"
-#include "JSIConverter.hpp"
-#include "JSIHelpers.hpp"
-#include "PropNameIDCache.hpp"
+#include <NitroModules/AnyJSON.hpp>
+#include <NitroModules/CommonGlobals.hpp>
+#include <NitroModules/JSIConverter.hpp>
+#include <NitroModules/JSIHelpers.hpp>
+#include <NitroModules/PropNameIDCache.hpp>
 #include <jsi/jsi.h>
 #include <memory>
 
