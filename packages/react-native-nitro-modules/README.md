@@ -93,14 +93,14 @@ private:
 };
 ```
 
-The `MyHybridObject` can then be registered in the [`HybridObjectRegistry`](https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/registry/HybridObjectRegistry.hpp) at app startup:
+The `MyHybridObject` can then be registered in the [`HybridClassRegistry`](https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/registry/HybridClassRegistry.hpp) at app startup:
 
 ```cpp
-#include <NitroModules/HybridObjectRegistry.hpp>
+#include <NitroModules/HybridClassRegistry.hpp>
 
 // Call this at app startup to register the HybridObjects
 void load() {
-  HybridObjectRegistry::registerHybridObjectConstructor(
+  HybridClassRegistry::registerHybridObjectConstructor(
     "MyHybrid",
     []() -> std::shared_ptr<HybridObject> {
       return std::make_shared<MyHybridObject>();
