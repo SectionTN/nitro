@@ -14,9 +14,9 @@ Here are some tips to make your library even faster.
 
 Any dynamic types require runtime type checking, and cannot be optimized as good as statically known types (compile-time).
 
-### Untyped Maps
+### JSON values (`AnyJSON`)
 
-An [AnyJSON value](../types/untyped-maps) is serialized as JSON when crossing the JS/native boundary. Use a typed struct when you know its fields:
+An [AnyJSON value](../types/any-json) is serialized as JSON when crossing the JS/native boundary. Use a typed struct when you know its fields:
 
 <div className="side-by-side-container">
 <div className="side-by-side-block">

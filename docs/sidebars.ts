@@ -63,7 +63,7 @@ const sidebars: SidebarsConfig = {
         'types/tuples',
         'types/variants',
         'types/typed-maps',
-        'types/untyped-maps',
+        'types/any-json',
         'types/hybrid-objects',
         'types/custom-structs',
         'types/custom-enums',
