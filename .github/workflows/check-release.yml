@@ -2,7 +2,7 @@ name: Check release tooling
 
 on:
   push:
-    branches: [main]
+    branches: [main, v1]
     paths:
       [
         'scripts/releases/**',
