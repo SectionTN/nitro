@@ -151,31 +151,85 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
 
     ### 2.1. Write the HybridObject specs
 
-    A spec is just a `*.nitro.ts` file that exports an interface, which extends `HybridObject`:
+    A spec is just a `*.nitro.ts` file that exports two things:
+    1. A **class declaration** which extends `HybridObject` and describes its implementation via `@iOS` or `@Android`
+    2. The generated JS class bindings via `#nitro/...`
 
     <Tabs groupId="native-language">
       <TabItem value="swift-kotlin" label="Swift/Kotlin" default>
       ```ts title="Math.nitro.ts"
       import { type HybridObject } from 'react-native-nitro-modules'
 
-      export interface Math extends HybridObject<{
-        ios: 'swift',
-        android: 'kotlin'
-      }> {
-        add(a: number, b: number): number
+      @iOS({ language: 'swift' })
+      @Android({ language: 'kotlin' })
+      export declare class Math extends HybridObject {
+        // ...
       }
+      export * from '#nitro/Math'
       ```
       </TabItem>
       <TabItem value="cpp" label="C++">
       ```ts title="Math.nitro.ts"
       import { type HybridObject } from 'react-native-nitro-modules'
 
-      export interface Math extends HybridObject<{
-        ios: 'c++',
-        android: 'c++'
-      }> {
-        add(a: number, b: number): number
+      @iOS({ language: 'c++' })
+      @Android({ language: 'c++' })
+      export declare class Math extends HybridObject {
+        // ...
       }
+      export * from '#nitro/Math'
+      ```
+      </TabItem>
+    </Tabs>
+
+    Right now `Math` is a class that doesn't have a native implementation yet.
+    It cannot be constructed (`new Math(..)`), nor are there any static methods that are accessible on it.
+
+    For `Math` it makes sense to have an `add(...)` method that can add two numbers together - it won't make sense to create instances of `Math` via `new Math(...)`, so we make `add(...)` a **static method**.
+
+    For this, we need to connect an `implementation` via the `@iOS`/`@Android` decorators - this connects the JS class with the native implementation in Swift/Kotlin or C++:
+
+    <Tabs groupId="native-language">
+      <TabItem value="swift-kotlin" label="Swift/Kotlin" default>
+      ```ts title="Math.nitro.ts"
+      import { type HybridObject } from 'react-native-nitro-modules'
+
+      @iOS({
+        language: 'swift',
+        // diff-add
+        implementation: { className: 'HybridMath' }
+      })
+      @Android({
+        language: 'kotlin',
+        // diff-add
+        implementation: { className: 'HybridMath' }
+      })
+      export declare class Math extends HybridObject {
+        // diff-add
+        static add(a: number, b: number): number
+      }
+      export * from '#nitro/Math'
+      ```
+      </TabItem>
+      <TabItem value="cpp" label="C++">
+      ```ts title="Math.nitro.ts"
+      import { type HybridObject } from 'react-native-nitro-modules'
+
+      @iOS({
+        language: 'c++',
+        // diff-add
+        implementation: { className: 'HybridMath', include: '"HybridMath.hpp"' }
+      })
+      @Android({
+        language: 'c++',
+        // diff-add
+        implementation: { className: 'HybridMath', include: '"HybridMath.hpp"' }
+      })
+      export declare class Math extends HybridObject {
+        // diff-add
+        static add(a: number, b: number): number
+      }
+      export * from '#nitro/Math'
       ```
       </TabItem>
     </Tabs>
@@ -204,8 +258,8 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
             import NitroModules
 
             class HybridMath : HybridMathSpec {
-              func add(a: Double,
-                       b: Double) throws -> Double {
+              static func add(a: Double,
+                              b: Double) -> Double {
                 return a + b
               }
             }
@@ -216,12 +270,12 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
 
             ```kotlin title="HybridMath.kt"
             package com.margelo.nitro.math
-            import com.margelo.nitro.core.*
 
             class HybridMath : HybridMathSpec() {
-              override fun add(a: Double,
-                               b: Double): Double {
-                return a + b
+              companion object {
+                fun add(a: Double, b: Double): Double {
+                  return a + b
+                }
               }
             }
             ```
@@ -240,8 +294,7 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
             namespace margelo::nitro::math {
               class HybridMath: public HybridMathSpec {
               public:
-                HybridMath(): HybridObject(TAG) {}
-                double add(double a, double b) override;
+                static double add(double a, double b);
               };
             }
             ```
@@ -251,7 +304,8 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
             #include "HybridMath.hpp"
 
             namespace margelo::nitro::math {
-              double HybridMath::add(double a, double b) {
+              double HybridMath::add(double a,
+                                     double b) {
                 return a + b;
               }
             }
@@ -261,14 +315,15 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
 
       </TabItem>
     </Tabs>
+
+    Your class' name has to match the string passed to `implementation: ...` - here; `HybridMath`.
   </TabItem>
   <TabItem value="manually" label="Manually">
 
     To create new [Hybrid Objects](../concepts/hybrid-objects) manually, you simply create a new C++ class that meets the following requirements:
 
     1. It **public**-inherits from `HybridObject`
-    2. It calls the `HybridObject` constructor with its name
-    3. It overrides `loadHybridMethods()` and registers its JS-callable methods & properties
+    2. It has a nested `Class` struct describing its JS prototype
 
     ```cpp title="HybridMath.hpp"
     #pragma once
@@ -280,22 +335,22 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
       class HybridMath : public HybridObject {
       public:
         // diff-add
-        // 2. Call the HybridObject constructor with the name "Math"
-        HybridMath(): HybridObject("Math") { }
-
-        double add(double a, double b) {
-          return a + b;
-        }
+        // 2. Register the `Class`
+        struct Class {
+          using Base = HybridObject::Class;
+          static constexpr const char* name = "Math";
+          static const std::shared_ptr<const HybridClass>& get() {
+            static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
+              clazz.registerHybridStaticMethod("add", &HybridMath::add);
+            });
+            return hybridClass;
+          }
+        };
 
         // diff-add
-        // 3. Override loadHybridMethods()
-        void loadHybridMethods() override {
-          // register base methods (toString, ...)
-          HybridObject::loadHybridMethods();
-          // register custom methods (add)
-          registerHybrids(this, [](Prototype& proto) {
-            proto.registerHybridMethod("add", &HybridMath::add);
-          });
+        // 3. Implement your method (`add(...)`)
+        static double add(double a, double b) {
+          return a + b;
         }
       };
     }
@@ -304,111 +359,17 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
   </TabItem>
 </Tabs>
 
-## 3. (Optional) Register Hybrid Objects
+## 3. Use your Hybrid Objects in JS
 
-Each Hybrid Object you want to be able to construct from JS has to be registered in Nitro's [`HybridObjectRegistry`](https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/registry/HybridObjectRegistry.hpp).
-If you don't want to register this Hybrid Object, you can skip this part - you will still be able to create it from another Hybrid Object's function (e.g. using the Factory-pattern).
-
-You can either use [Nitrogen](../concepts/nitrogen) to automatically generate bindings for your [Hybrid Object](../concepts/hybrid-objects)'s constructor, or manually register them using the C++ API for `HybridObjectRegistry`:
-
-<Tabs groupId="nitrogen-or-not">
-  <TabItem value="nitrogen" label="With Nitrogen ✨" default>
-
-  In your [`nitro.json` config](configuration-nitro-json), you can connect the name of the [Hybrid Object](../concepts/hybrid-objects) (`"Math"`) with the name of the native C++/Swift/Kotlin class that you used to implement the spec (`HybridMath`) using the `autolinking` section:
-
-    <Tabs groupId="native-language">
-      <TabItem value="swift-kotlin" label="Swift/Kotlin" default>
-        ```json title="nitro.json"
-        {
-          ...
-          "autolinking": {
-            // diff-add
-            "Math": {
-              // diff-add
-              "ios": {
-                // diff-add
-                "language": "swift",
-                // diff-add
-                "implementationClassName": "HybridMath"
-                // diff-add
-              },
-              // diff-add
-              "android": {
-                // diff-add
-                "language": "kotlin",
-                // diff-add
-                "implementationClassName": "HybridMath"
-                // diff-add
-              }
-            // diff-add
-            }
-          }
-        }
-        ```
-
-      </TabItem>
-      <TabItem value="cpp" label="C++">
-        ```json title="nitro.json"
-        {
-          ...
-          "autolinking": {
-            // diff-add
-            "Math": {
-              // diff-add
-              "all": {
-                // diff-add
-                "language": "c++",
-                // diff-add
-                "implementationClassName": "HybridMath"
-                // diff-add
-              }
-              // diff-add
-            }
-          }
-        }
-        ```
-      </TabItem>
-    </Tabs>
-
-    Now, just run [Nitrogen](../concepts/nitrogen) again to generate the native bindings:
-
-    ```sh
-    npx nitrogen
-    ```
-
-  </TabItem>
-  <TabItem value="manually" label="Manually">
-
-    To manually register a C++ class inside the `HybridObjectRegistry`, you need to call `HybridObjectRegistry::registerHybridObjectConstructor(...)` at some point before your JS code runs - e.g. at app startup:
-
-    ```cpp
-    HybridObjectRegistry::registerHybridObjectConstructor(
-      "Math",
-      []() -> std::shared_ptr<HybridObject> {
-        return std::make_shared<HybridMath>();
-      }
-    );
-    ```
-
-  </TabItem>
-</Tabs>
-
-## 4. Use your Hybrid Objects in JS
-
-Lastly, you can initialize and use the registered Hybrid Objects from JS. This is what this will ultimately look like:
+Finally, you can use the your Hybrid Object from JS. To call our static `add(...)` method, simply use `Math.add(...)`:
 
 ```ts
-import { type HybridObject, NitroModules } from 'react-native-nitro-modules'
+import { Math } from './Math'
 
-interface Math extends HybridObject<{ … }> {
-  add(a: number, b: number): number
-}
-
-const math = NitroModules.createHybridObject<Math>("Math")
-const result = math.add(5, 7) // --> 12
+const result = Math.add(5, 7) // --> 12
 ```
 
-## 5. Run it
+## 4. Run it
 
 To test the library you just created, you now need to set up an example app for it.
 
@@ -438,3 +399,39 @@ To test the library you just created, you now need to set up an example app for 
     Simply run the react-native app inside the `example/` folder.
   </TabItem>
 </Tabs>
+
+## 5. Dive deeper
+
+Hybrid Objects can be instances with constructors, properties and instance methods - add a `constructor()` to be able to create instances of `Math`:
+
+```ts title="Math.nitro.ts"
+import { type HybridObject } from 'react-native-nitro-modules'
+
+// diff-add-start
+export interface MathOptions {
+  decimalPlaces: number
+}
+// diff-add-end
+
+@iOS(...)
+@Android(...)
+export declare class Math extends HybridObject {
+  // diff-add
+  constructor(options: MathOptions)
+  // diff-add
+  add(a: number, b: number): number
+}
+export * from '#nitro/Math'
+```
+
+Then, simply create instances via `new Math(...)`:
+
+```ts
+import { Math } from './Math.nitro'
+
+const math = new Math({ decimalPlaces: 2 })
+math.add(1.234, 2.345)        // --> 3.58
+
+const preciseMath = new Math({ decimalPlaces: 4 })
+preciseMath.add(1.234, 2.345) // --> 3.579
+```
