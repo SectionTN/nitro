@@ -22,6 +22,10 @@ namespace {
   // tick() runs them on that same caller thread between microtask drains.
   class TestDispatcher final : public Dispatcher {
   public:
+    bool isOnDispatcher() override {
+      return std::this_thread::get_id() == owner;
+    }
+
     void runSync(std::function<void()>&& function) override {
       if (std::this_thread::get_id() == owner) {
         function();
