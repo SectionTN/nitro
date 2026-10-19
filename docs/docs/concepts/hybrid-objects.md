@@ -7,8 +7,8 @@ import TabItem from '@theme/TabItem';
 
 # Hybrid Objects
 
-A **Hybrid Object** is a native object that can be used from JS.
-Similar to a `class` in JS, **Hybrid Objects** can have instance methods, properties (get + set), static methods, constructors (`new`) and inheritance chains via prototypes.
+A **Hybrid Object** is a native object that can also be used from JS.
+Similar to a JavaScript `class`, **Hybrid Objects** can have instance methods, properties (get + set), static methods, constructors (`new`) and inheritance chains via prototypes.
 
 <div className="side-by-side-container">
 <div className="side-by-side-block">
@@ -46,7 +46,7 @@ import { Math } from './Math.nitro'
 const result = Math.add(5, 7)
 ```
 
-Similarly, if a Hybrid Object has a `constructor(..)`, instances of the Hybrid Object can be created via `new`:
+Similarly, if a Hybrid Object has a `constructor(...)`, instances of the Hybrid Object can be created via `new`:
 
 ```ts
 import { Math } from './Math.nitro'
@@ -126,7 +126,7 @@ In your implementation, you can override `HybridObject`'s base methods like `toS
 
 Additionally, every Hybrid Object has a `dispose()` method.
 Usually, you should not need to manually dispose Hybrid Objects as the JS garbage collector will delete any unused objects anyways.
-Also, most Hybrid Objects in Nitro are just statically exported singletons, in which case they should never be deleted throughout the app's lifetime.
+Keep shared instances alive while other code still uses them. Static methods belong to the class and do not require an instance to dispose.
 
 In some rare, often performance-critical- cases it is beneficial to eagerly destroy any Hybrid Objects, which is why `dispose()` exists.
 For example, [VisionCamera](https://github.com/margelo/react-native-vision-camera) uses `dispose()` to clean up already processed Frames to make room for new incoming Frames:
@@ -161,7 +161,7 @@ Hybrid Objects can be implemented in C++, Swift or Kotlin:
   }
   ```
 
-  Running [nitrogen](nitrogen) will generate the native Swift and Kotlin protocol "`HybridMathSpec`", that now just needs to be implemented in a class:
+  Running [nitrogen](nitrogen) generates `HybridMathSpec`, a protocol/base-class composition in Swift and an abstract class in Kotlin. Extend it in your implementation:
 
   <Tabs groupId="native-language">
     <TabItem value="swift" label="Swift" default>
@@ -191,7 +191,7 @@ Hybrid Objects can be implemented in C++, Swift or Kotlin:
   </TabItem>
   <TabItem value="manually" label="Manually">
 
-  To implement a Hybrid Object without nitrogen, you just need to create a C++ class that inherits from the [`HybridObject`](https://github.com/margelo/nitro/blob/main/packages/nitro-core/native/cpp/include/NitroModules/HybridObject.hpp) base class, and implements its `Class`:
+  To implement a Hybrid Object without nitrogen, you just need to create a C++ class that inherits from the [`HybridObject`](https://github.com/margelo/nitro/blob/v1/packages/nitro-core/native/cpp/include/NitroModules/HybridObject.hpp) base class, and implements its `Class`:
 
   <div className="side-by-side-container">
     <div className="side-by-side-block">
@@ -203,6 +203,10 @@ Hybrid Objects can be implemented in C++, Swift or Kotlin:
           static constexpr const char* name = "Math";
           static const std::shared_ptr<const HybridClass>& get();
         };
+
+        const std::shared_ptr<const HybridClass>& getHybridClass() override {
+          return Class::get();
+        }
 
         static double add(double a, double b);
       };
@@ -223,6 +227,8 @@ Hybrid Objects can be implemented in C++, Swift or Kotlin:
       ```
     </div>
   </div>
+
+  Register the descriptor and expose it to JavaScript as shown in the [manual setup guide](../getting-started/how-to-build-a-nitro-module#2-create-hybrid-object-specs).
   </TabItem>
 </Tabs>
 
@@ -237,14 +243,19 @@ A Hybrid Object can either inherit from other Hybrid Objects, or satisfy a commo
   ### Inherit from other Hybrid Objects
 
   Each Hybrid Object has a proper JavaScript prototype chain, created automatically and lazily.
-  When a Hybrid Object inherits from another Hybrid Object, it extends the prototype chain:
+  When a Hybrid Object inherits from another Hybrid Object, it extends the prototype chain. Set `allowInheritance: true` and `allowMultipleImplementations: true` on the base spec's platform decorators:
 
   <div className="side-by-side-container">
     <div className="side-by-side-block" style={{ flex: 2 }}>
     <div>
     ```ts
-    @iOS(...)
-    @Android(...)
+    @iOS({
+      // ...
+      // highlight-next-line
+      allowInheritance: true,
+      // highlight-next-line
+      allowMultipleImplementations: true
+    })
     export declare class Media extends HybridObject {
       readonly width: number
       readonly height: number
@@ -255,7 +266,7 @@ A Hybrid Object can either inherit from other Hybrid Objects, or satisfy a commo
     type ImageFormat = 'jpg' | 'png'
     @iOS(...)
     @Android(...)
-    // diff-add
+    // highlight-next-line
     export declare class Image extends Media {
       constructor(bytes: ArrayBuffer)
       readonly format: ImageFormat
@@ -282,8 +293,7 @@ A Hybrid Object can either inherit from other Hybrid Objects, or satisfy a commo
 
   ### Inherit from a common interface
 
-  With Nitrogen, you can define a common TypeScript interface that multiple Hybrid Objects inherit from.
-  This non-HybridObject interface (`Media`) will not be a separate type on the native side, but all Hybrid Objects that extend from it will satisfy the TypeScript type:
+  Hybrid Objects can implement a common TypeScript interface. Declare the members on each class too, so Nitrogen generates their native bindings. The `implements` clause checks the TypeScript shape without adding a native base class:
 
   ```ts
   interface Media {
@@ -293,14 +303,20 @@ A Hybrid Object can either inherit from other Hybrid Objects, or satisfy a commo
 
   @iOS(...)
   @Android(...)
-  // diff-add
-  export declare class Image extends HybridObject, Media {}
+  // highlight-next-line
+  export declare class Image extends HybridObject implements Media {
+    readonly width: number
+    readonly height: number
+  }
   export * from '#nitro/Image'
 
   @iOS(...)
   @Android(...)
-  // diff-add
-  export declare class Video extends HybridObject, Media {}
+  // highlight-next-line
+  export declare class Video extends HybridObject implements Media {
+    readonly width: number
+    readonly height: number
+  }
   export * from '#nitro/Video'
   ```
 
@@ -315,11 +331,15 @@ A Hybrid Object can either inherit from other Hybrid Objects, or satisfy a commo
   class HybridImage: public HybridMedia {
   public:
     struct Class {
-      // diff-add
+      // highlight-next-line
       using Base = HybridMedia::Class;
-      static constexpr const char* name = "Math";
+      static constexpr const char* name = "Image";
       static const std::shared_ptr<const HybridClass>& get();
     };
+
+    const std::shared_ptr<const HybridClass>& getHybridClass() override {
+      return Class::get();
+    }
 
     // Image specific methods
     ImageFormat getFormat();
@@ -361,10 +381,15 @@ Nitro allows Hybrid Objects to declare their memory size by overriding the `memo
 
 ```swift
 class HybridImage : HybridImageSpec {
-  private var cgImage: CGImage
+  private let cgImage: CGImage
+
+  init(cgImage: CGImage) {
+    self.cgImage = cgImage
+    super.init()
+  }
+
   var memorySize: Int {
-    let imageSize = cgImage.width * cgImage.height * cgImage.bytesPerPixel
-    return imageSize
+    return cgImage.bytesPerRow * cgImage.height
   }
 }
 ```
@@ -385,21 +410,22 @@ public:
   struct Class {
     using Base = HybridObject::Class;
     static constexpr const char* name = "Math";
-    static const std::shared_ptr<const HybridClass>& get();
+    static const std::shared_ptr<const HybridClass>& get() {
+      static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
+        // highlight-next-line
+        clazz.registerRawHybridMethod("sayHello", 2, &HybridMath::sayHello);
+      });
+      return hybridClass;
+    }
   };
+
+  const std::shared_ptr<const HybridClass>& getHybridClass() override {
+    return Class::get();
+  }
 
   jsi::Value sayHello(jsi::Runtime& runtime,
                       const jsi::Value& thisValue,
                       const jsi::Value* args,
                       size_t count);
-}
-```
-
-```cpp title="HybridMath.cpp"
-const std::shared_ptr<const HybridClass>& HybridMath::Class::get() {
-  static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
-    clazz.registerRawHybridMethod("sayHello", 2, &HybridMath::sayHello);
-  });
-  return hybridClass;
-}
+};
 ```

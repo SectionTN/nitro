@@ -22,7 +22,7 @@ description: Configure nitro.json for a React Native Nitro Module, including C++
 }
 ```
 
-Nitrogen parses this file with Zod, see [`NitroUserConfig.ts`](https://github.com/margelo/nitro/blob/main/packages/nitrogen/src/config/NitroUserConfig.ts) for more information.
+Nitrogen parses this file with Zod, see [`NitroUserConfig.ts`](https://github.com/margelo/nitro/blob/v1/packages/nitrogen/src/config/NitroUserConfig.ts) for more information.
 
 ## `cxxNamespace`
 
@@ -51,8 +51,7 @@ Settings specifically for the iOS platform.
 
 ### `iosModuleName`
 
-The `iosModuleName` represents the name of the [clang module](https://clang.llvm.org/docs/Modules.html) that will be emitted by the Swift compiler.
-When this Nitro Module is a CocoaPod, this is the same thing as the `$$iosModuleName$$.podspec`'s name:
+The `iosModuleName` names the generated Swift module and SwiftPM library product. Use the same name in your library's `swiftpmConfig`:
 
 <div className="side-by-side-container">
   <div className="side-by-side-block">
@@ -65,13 +64,18 @@ When this Nitro Module is a CocoaPod, this is the same thing as the `$$iosModule
   ```
   </div>
   <div className="side-by-side-block">
-  ```ruby title="NitroMath.podspec"
-  Pod::Spec.new do |s|
-    s.name         = "NitroMath"
-    # ...
+  ```json title="package.json"
+  {
+    "swiftpmConfig": {
+      "name": "NitroMath",
+      "dependencies": ["react-native-nitro-modules"]
+    }
+  }
   ```
   </div>
 </div>
+
+See [Nitrogen's build setup](../concepts/nitrogen#3-add-generated-sources-to-your-library) for `Package.swift` and generated source configuration.
 
 ## `android`
 
@@ -80,7 +84,7 @@ Settings specifically for the Android platform.
 ### `androidNamespace`
 
 The `androidNamespace` represents the package namespace in which all Java/Kotlin files are generated and written in.
-Similar to the `cxxNamespace`, this is always relative to `margelo.nitro`, and can also have multiple sub-namespaces.
+Similar to the `cxxNamespace`, this is always relative to `com.margelo.nitro`, and can also have multiple sub-namespaces.
 
 In most cases, you should keep this in sync with the `namespace` specified in your `build.gradle`.
 
@@ -96,7 +100,7 @@ In most cases, you should keep this in sync with the `namespace` specified in yo
   </div>
   <div className="side-by-side-block">
   ```kotlin
-  package com.margelo.nitro.test
+  package com.margelo.nitro.math.extra
 
   // ...
   ```

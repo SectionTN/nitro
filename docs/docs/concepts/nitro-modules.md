@@ -32,7 +32,7 @@ Once you set up the library, you can start implementing your Hybrid Objects!
   <TabItem value="nitrogen" label="With Nitrogen ✨" default>
 
   With [Nitrogen](nitrogen) you can ✨ automagically ✨ generate all native interfaces from your TypeScript definitions.
-  After implementing the generated specs, register them using the `HybridClassRegistry`.
+  The generated iOS initialization code registers the classes with `HybridClassRegistry` when the library loads. Include it through the [SwiftPM setup](nitrogen#3-add-generated-sources-to-your-library).
 
   See [Hybrid Objects (Implementation)](hybrid-objects#implementation) for more information.
 

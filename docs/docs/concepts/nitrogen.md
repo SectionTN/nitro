@@ -26,10 +26,10 @@ export * from '#nitro/Math'
 </div>
 <div className="side-by-side-block">
 
-```swift title="HybridMathSpec.swift (generated)"
-protocol HybridMathSpec: HybridObject {
+```swift title="HybridMathSpec.swift (generated excerpt)"
+public protocol HybridMathSpec_protocol: HybridObject {
   var pi: Double { get }
-  func add(a: Double, b: Double) -> Double
+  func add(a: Double, b: Double) throws -> Double
 }
 ```
 
@@ -276,8 +276,6 @@ To implement `Math` now, you just need to implement the spec:
     import NitroModules
 
     final class HybridMath : HybridMathSpec {
-      init() {}
-
       static func add(a: Double, b: Double) throws -> Double {
         return a + b
       }
@@ -293,8 +291,6 @@ To implement `Math` now, you just need to implement the spec:
   <TabItem value="kotlin" label="Kotlin">
     ```kotlin title="HybridMath.kt"
     class HybridMath : HybridMathSpec() {
-      constructor() {}
-
       companion object {
         fun add(a: Double, b: Double): Double {
           return a + b
@@ -311,7 +307,7 @@ To implement `Math` now, you just need to implement the spec:
   </TabItem>
   <TabItem value="cpp" label="C++">
     ```cpp title="HybridMath.hpp"
-    #include "HybridMathSpec.hpp"
+    #include <NitroMath/HybridMathSpec.hpp>
     class HybridMath: public HybridMathSpec {
     public:
       HybridMath() = default;

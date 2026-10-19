@@ -10,12 +10,12 @@ It has one additional class-member, `view`:
 <div className="side-by-side-container">
 <div className="side-by-side-block">
 
-```ts title="Camera.nitro.ts"
+```ts title="CameraView.nitro.ts"
 @iOS(...)
 @Android(...)
 export declare class CameraView extends HybridView {
-  constructor()
   enableFlash: boolean
+  takePhoto(): Promise<Image>
 }
 export * from '#nitro/CameraView'
 ```
@@ -24,13 +24,11 @@ export * from '#nitro/CameraView'
 <div className="side-by-side-block">
 
 ```swift title="HybridCameraView.swift"
-class HybridCameraView : HybridCameraSpec {
+class HybridCameraView : HybridCameraViewSpec {
+  let view = CameraPreviewView()
   var enableFlash: Bool = false
-
-  var view: UIView {
-    get {
-      return CameraPreviewView()
-    }
+  func takePhoto() -> any Promise<HybridImageSpec> {
+    ...
   }
 }
 ```
@@ -40,9 +38,9 @@ class HybridCameraView : HybridCameraSpec {
 
 ## Rendering Hybrid Views
 
-In addition to the normal Hybrid Object constructor, a Hybrid View also creates a react-native Fabric component:
+Nitrogen generates a React Native Fabric component for each Hybrid View. Fabric creates its native instance; the spec does not expose a public JavaScript constructor:
 
-```ts
+```tsx
 import { CameraViewComponent } from './CameraView.nitro'
 
 function App() {
@@ -61,8 +59,8 @@ function App() {
   return (
     <CameraViewComponent
       hybridRef={(ref) => {
-        console.log(ref.toString()) // <-- [HybridObject HybridCameraView]
-        const image = ref.takePhoto()
+        console.log(ref.toString()) // <-- [HybridObject CameraView]
+        ref.takePhoto()
       }}
     />
   )
