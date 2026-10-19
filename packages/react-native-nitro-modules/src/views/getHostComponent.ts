@@ -3,35 +3,26 @@ import {
   type HostComponent,
   type ViewProps,
 } from 'react-native'
-import type {
-  HybridView,
-  HybridViewMethods,
-  HybridViewProps,
-} from './HybridView'
+import type { HybridView } from './HybridView'
 
 type AttributeValue<T, V = T> =
-  | boolean
+  | true
   | {
       diff?: (arg1: T, arg2: T) => boolean
       process?: (arg1: V) => T
     }
 
-export interface ViewConfig<Props> {
-  uiViewClassName: string
-  supportsRawText?: boolean
-  bubblingEventTypes: Record<string, unknown>
-  directEventTypes: Record<string, unknown>
-  validAttributes: {
-    [K in keyof Props]: AttributeValue<Props[K]>
-  }
-}
 type ReactNativeViewConfig = ReturnType<
   Parameters<typeof NativeComponentRegistry.get>[1]
 >
 
-function typesafe<Props>(config: ViewConfig<Props>): ReactNativeViewConfig {
-  // TODO: Remove this unsafe cast and make it safe
-  return config as ReactNativeViewConfig
+export type ViewConfig<Props> = Omit<
+  ReactNativeViewConfig,
+  'validAttributes'
+> & {
+  validAttributes: {
+    [K in keyof Props]: AttributeValue<Props[K]>
+  }
 }
 
 /**
@@ -59,17 +50,14 @@ interface DefaultHybridViewProps<RefType> {
 }
 
 /**
- * Represents a React Native view, implemented as a Nitro View, with the given props and methods.
+ * A renderable native view with React props and a Nitro instance available through hybridRef.
  *
  * @note Every React Native view has a {@linkcode DefaultHybridViewProps.hybridRef hybridRef} which can be used to gain access
  *       to the underlying Nitro {@linkcode HybridView}.
  * @note Every method can be called on the Ref. Including setting properties directly.
  */
-export type ReactNativeView<
-  Props extends HybridViewProps,
-  Methods extends HybridViewMethods,
-> = HostComponent<
-  DefaultHybridViewProps<HybridView<Props, Methods>> & Props & ViewProps
+export type ReactNativeView<Props, Ref extends HybridView> = HostComponent<
+  DefaultHybridViewProps<Ref> & Props & ViewProps
 >
 
 type ValidAttributes<Props> = ViewConfig<Props>['validAttributes']
@@ -81,8 +69,7 @@ type ValidAttributes<Props> = ViewConfig<Props>['validAttributes']
 function wrapValidAttributes<TProps>(
   attributes: ValidAttributes<TProps>
 ): ValidAttributes<TProps> {
-  const keys = Object.keys(attributes) as (keyof ValidAttributes<TProps>)[]
-  for (const key of keys) {
+  for (const key in attributes) {
     attributes[key] = {
       diff: (a, b) => a !== b,
       process: (i) => i,
@@ -96,16 +83,13 @@ function wrapValidAttributes<TProps>(
  *
  * The view is bridged to a native Hybrid Object using Nitro Views.
  */
-export function getHostComponent<
-  Props extends HybridViewProps,
-  Methods extends HybridViewMethods,
->(
+export function getHostComponent<Props, Ref extends HybridView>(
   name: string,
   getViewConfig: () => ViewConfig<Props>
-): ReactNativeView<Props, Methods> {
+): ReactNativeView<Props, Ref> {
   return NativeComponentRegistry.get(name, () => {
     const config = getViewConfig()
     config.validAttributes = wrapValidAttributes(config.validAttributes)
-    return typesafe(config)
+    return config
   })
 }
