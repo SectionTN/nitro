@@ -90,11 +90,9 @@ Create a `nitro.json` file in the root directory of your Nitro Module (next to `
   "android": {
     "androidNamespace": ["math"],
     "androidCxxLibName": "NitroMath"
-  },
+  }
 }
 ```
-
-Tweak your module name and namespaces as needed.
 
 ## Usage
 
@@ -102,22 +100,28 @@ Nitrogen parses all TypeScript files that end in `.nitro.ts`.
 
 ### 1. Write TypeScript specs
 
-For example, let's create `Math.nitro.ts`:
+A Nitro spec file consists of one or more `declare class` statements and combined `export`s.
+- `declare class` describes your native class via instance methods, properties (get + set), `constructor(...)`, or static methods.
+- The `@iOS` and `@Android` decorators on `declare class` describe the connection between the JS types and the native implementation - for example, `language: 'swift'` means that `Math` is implemented in Swift on iOS. `implementation: ...` defines the actual Swift class that implements the spec natively, which is required for it to have a `constructor()` or static methods.
+- Since `declare class` is type-only, no JS runtime code exists. Nitrogen generates this, which must be re-exported via `export * from '#nitro/Math'`.
 
 ```ts title="Math.nitro.ts"
-import { type HybridObject } from 'react-native-nitro-modules'
+import { iOS, type HybridObject } from 'react-native-nitro-modules'
 
 @iOS({
   language: 'swift',
   implementation: { className: 'HybridMath' }
 })
-@Android({
-  language: 'kotlin',
-  implementation: { className: 'HybridMath' }
-})
 export declare class Math extends HybridObject {
+  // Public constructor: new Math()
+  constructor()
+  // Static method: Math.add(5, 3)
+  static add(a: number, b: number): number
+
+  // Get-only instance property: math.pi
   readonly pi: number
-  add(a: number, b: number): number
+  // Instance method: math.multiply(5, 3)
+  multiply(a: number, b: number): number
 }
 export * from '#nitro/Math'
 ```
@@ -149,7 +153,7 @@ Now run nitrogen:
   </TabItem>
 </Tabs>
 
-This will always generate a shared C++ interface, and then optionall also Swift and Kotlin sub-classes. The specs go into `./nitrogen/generated/`:
+This generates the shared C++ specs, platform bindings, and JavaScript class exports in `./nitrogen/generated/`. Run Nitrogen before compiling TypeScript so the generated modules and their declarations exist:
 
 ```
 🔧  Loading nitro.json config...
@@ -164,8 +168,7 @@ This will always generate a shared C++ interface, and then optionall also Swift 
 ```
 
 :::important
-You should push the files in `./nitrogen/generated/` to git, and make sure those files are part of your npm package.
-This way your library will always ship a working package as a whole (including generated interfaces), and the user does not need to do anything else than to install your package.
+Commit `./nitrogen/generated/` and include it in your npm package, including the `.cjs` runtime modules and `.d.cts` declarations in `shared/javascript/`. If you use a `files` list in `package.json`, add `nitrogen/generated` to it. Consumers use these files without running Nitrogen themselves.
 :::
 
 ### 3. Add generated sources to your library
@@ -175,38 +178,90 @@ All the generated sources (`./nitrogen/generated/`) need to be part of your libr
 <Tabs>
   <TabItem value="template" label="With the Nitro template">
 
-  If you created a library using the [Nitro Module template](https://github.com/margelo/nitro/tree/main/packages/template), your library already includes nitrogen's generated sources.
+  If you created a library using the [Nitro Module template](https://github.com/margelo/nitro/tree/v1/packages/template), your library already includes nitrogen's generated sources.
 
   </TabItem>
   <TabItem value="manually" label="Manually">
 
+  #### JS imports/exports
+
+  To resolve the `#nitro/*` alias, add an `imports` mapping to your library's `package.json`:
+
+  ```json title="package.json"
+  {
+    "imports": {
+      "#nitro/*": "./nitrogen/generated/shared/javascript/*.cjs"
+    }
+  }
+  ```
+
+  React Native's default `typescript-config` does not allow overridden `imports` in `package.json`, so enable it in your `tsconfig.json`:
+
+  ```json title="tsconfig.json"
+  {
+    "extends": "@react-native/typescript-config",
+    "compilerOptions": {
+      "resolvePackageJsonImports": true
+    }
+  }
+  ```
+
   #### iOS
 
-  On iOS, you need to call `add_nitrogen_files(...)` from your library's `.podspec`. Put this at the very end of your spec declaration:
-  ```ruby
-  Pod::Spec.new do |s|
-    # ...
-    load 'nitrogen/generated/ios/NitroExample+autolinking.rb'
-    add_nitrogen_files(s)
-  end
+  iOS builds use Swift Package Manager. Create a `Package.swift` next to your library's `nitro.json`:
+
+  ```swift title="Package.swift"
+  // swift-tools-version: 6.4
+
+  import PackageDescription
+
+  let package = Package(
+    name: "NitroMath",
+    platforms: [.iOS(.v16)]
+  )
+
+  addNitrogenTargets(to: package)
   ```
+
+  Run `nitrogen` again after adding this file. Nitrogen appends the `addNitrogenTargets` helper between `// nitrogen:begin` and `// nitrogen:end`, and updates that section on subsequent runs. Keep your package declaration and helper call outside the generated section.
+
+  The helper adds your Swift sources from `ios/`, C++ sources from `cpp/`, and the generated specs and bridges. It also configures Swift/C++ interoperability, C++20, and native dependencies. To use different source directories, pass paths relative to the package root:
+
+  ```swift
+  addNitrogenTargets(
+    to: package,
+    swiftSources: ["Sources/NitroMath"],
+    cxxSources: ["native/cpp"]
+  )
+  ```
+
+  Add `swiftpmConfig` to your library's `package.json` so React Native links the generated library product and its dependencies:
+
+  ```json title="package.json"
+  {
+    "swiftpmConfig": {
+      "name": "NitroMath",
+      "dependencies": ["react-native-nitro-modules"]
+    }
+  }
+  ```
+
+  `name` must match `ios.iosModuleName` in `nitro.json`. Add the npm names of any other Nitro modules your library depends on to `dependencies`.
+
+  Keep a `.podspec` with your library's metadata so React Native CLI can discover the iOS dependency, as in the [template podspec](https://github.com/margelo/nitro/blob/v1/packages/template/%24%24iosModuleName%24%24.podspec). Native sources and dependencies belong in `Package.swift`; remove the old `add_nitrogen_files(...)` call. Commit the updated manifest and include both `Package.swift` and the `.podspec` in your npm package.
+
+  In the consuming React Native app, refresh SwiftPM after installing the library or changing its native sources:
+
+  ```sh
+  npx react-native spm
+  ```
+
+  For an existing CocoaPods app, first run `npx react-native spm add --deintegrate` from the app directory. See [Minimum Requirements](../getting-started/minimum-requirements) for the required React Native and Swift versions.
 
   #### Android
 
-  On Android, you first need to add the autogenerated Java/Kotlin sources to your `build.gradle`. Put this at the top of your `build.gradle`, right after any other `apply` calls:
-
-  ```groovy
-  apply from: '../nitrogen/generated/android/NitroExample+autolinking.gradle'
-  ```
-
-  Then, add the autogenerated C++ sources to your `CMakeLists.txt`. Put this somewhere **after** `add_library(...)`:
-
-  ```cmake
-  include(${CMAKE_SOURCE_DIR}/../nitrogen/generated/android/NitroExample+autolinking.cmake)
-  ```
-
-  :::tip
-  Replace `NitroExample` with your Nitro Module's name as defined in your `nitro.json`.
+  :::warning
+  Android autolinking is not implemented in the current v1 generator. Nitrogen stops with an error when a spec declares `@Android(...)`, so the old `+autolinking.gradle`, `+autolinking.cmake`, and `OnLoad` setup cannot be generated yet. Omit `@Android(...)` while generating iOS bindings.
   :::
   </TabItem>
 </Tabs>
@@ -218,9 +273,19 @@ To implement `Math` now, you just need to implement the spec:
 <Tabs groupId="native-language">
   <TabItem value="swift" label="Swift" default>
     ```swift title="HybridMath.swift"
-    class HybridMath : HybridMathSpec {
-      func add(a: Double, b: Double) throws -> Double {
+    import NitroModules
+
+    final class HybridMath : HybridMathSpec {
+      init() {}
+
+      static func add(a: Double, b: Double) throws -> Double {
         return a + b
+      }
+
+      var pi: Double { Double.pi }
+
+      func multiply(a: Double, b: Double) throws -> Double {
+        return a * b
       }
     }
     ```
@@ -228,127 +293,65 @@ To implement `Math` now, you just need to implement the spec:
   <TabItem value="kotlin" label="Kotlin">
     ```kotlin title="HybridMath.kt"
     class HybridMath : HybridMathSpec() {
-      override fun add(a: Double, b: Double): Double {
-        return a + b
+      constructor() {}
+
+      companion object {
+        fun add(a: Double, b: Double): Double {
+          return a + b
+        }
+      }
+
+      override val pi: Double = kotlin.math.PI
+
+      override fun multiply(a: Double, b: Double): Double {
+        return a * b
       }
     }
     ```
   </TabItem>
   <TabItem value="cpp" label="C++">
-    <div className="side-by-side-container">
-      <div className="side-by-side-block">
-        ```cpp title="HybridMath.hpp"
-        class HybridMath: public HybridMathSpec {
-        public:
-          HybridMath(): HybridObject(TAG) {}
-        public:
-          double add(double a, double b) override;
-        };
-        ```
-      </div>
-      <div className="side-by-side-block">
-        ```cpp title="HybridMath.cpp"
-        double HybridMath::add(double a, double b) {
-          return a + b;
-        }
-        ```
-      </div>
-    </div>
-  </TabItem>
-</Tabs>
+    ```cpp title="HybridMath.hpp"
+    #include "HybridMathSpec.hpp"
+    class HybridMath: public HybridMathSpec {
+    public:
+      HybridMath() = default;
 
-### 5. Register the Hybrid Objects
+      static double add(double a, double b) {
+        return a + b;
+      }
 
-Nitro needs to be able to initialize an instance of your Hybrid Object - so we need to tell it how to do that.
-In your `nitro.json`, register `HybridMath` in the `"autolinking"` section:
-<Tabs>
-  <TabItem value="swift-kotlin" label="Swift/Kotlin" default>
-    ```json
-    {
-      ...
-      "autolinking": {
-        "Math": {
-          "ios": {
-            "language": "swift",
-            "implementationClassName": "HybridMath"
-          },
-          "android": {
-            "language": "kotlin",
-            "implementationClassName": "HybridMath"
-          }
-        }
+      double getPi() override { return 3.141592653589793; }
+
+      double multiply(double a, double b) override {
+        return a * b;
       }
-    }
-    ```
-  </TabItem>
-  <TabItem value="cpp" label="C++">
-    ```json
-    {
-      ...
-      "autolinking": {
-        "Math": {
-          "all": {
-            "language": "c++",
-            "implementationClassName": "HybridMath"
-          }
-        }
-      }
-    }
+    };
     ```
   </TabItem>
 </Tabs>
 
-Make sure `HybridMath` is default-constructible and scoped inside the correct namespace/package/file, **then run Nitrogen**.
+### 5. Use the Hybrid Objects
 
-#### 5.1. Initialize Android (C++)
-
-<Tabs>
-  <TabItem value="template" label="With the Nitro template">
-
-  If you created a library using the [Nitro Module template](https://github.com/margelo/nitro/tree/main/packages/template), your library already initializes the C++ autolinking process from your `*Package.kt` and `OnLoad.cpp` files.
-
-  </TabItem>
-  <TabItem value="manually" label="Manually">
-
-  In your JNI OnLoad function (`OnLoad.cpp` or `cpp-adapter.cpp`), initialize your module:
-
-  ```cpp title="cpp-adapter.cpp"
-  #include <jni.h>
-  #include <fbjni/fbjni.h>
-  #include "NitroMathOnLoad.hpp"
-
-  JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
-    return facebook::jni::initialize(vm, []() {
-      margelo::nitro::math::registerAllNatives();
-    });
-  }
-  ```
-
-  Then, to actually load and initialize the C++ part of your library (which calls `JNI_OnLoad` from above), call `initializeNative()` from your library's entry point (`*Package.kt`):
-
-  ```kotlin title="NitroMathPackage.kt"
-  public class NitroMathPackage: BaseReactPackage() {
-    // ...
-    companion object {
-      init {
-        NitroMathOnLoad.initializeNative();
-      }
-    }
-  }
-  ```
-
-  </TabItem>
-</Tabs>
-
-#### 5.2. (Optional) ProGuard
-
-If you are using ProGuard on Android, make sure to add a `@DoNotStrip` annotation above your `HybridMath` class (and constructor) so Nitro can construct it from C++ in release builds.
-
-### 6. Initialize the Hybrid Objects
-
-And finally, to initialize `HybridMath` from JS you just need to call `createHybridObject`:
+Static methods are directly callable on the `Math` type:
 
 ```ts
-export const MathModule = NitroModules.createHybridObject<Math>("Math")
-const result = MathModule.add(5, 7)
+import { Math } from './Math.nitro'
+
+const result = Math.add(5, 7) // 12
+```
+
+Since `Math` has a `constructor()`, we can create instances of it with `new`:
+
+```ts
+import { Math } from './Math.nitro'
+
+const math = new Math()
+math.pi                       // 3.1415
+math.multiply(5, 3)           // 15
+```
+
+Lastly, expose the class to consumers through your library's entry point:
+
+```ts title="src/index.ts"
+export { Math } from './specs/Math.nitro'
 ```
