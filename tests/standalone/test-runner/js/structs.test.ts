@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { casesForTestObjects, recordCallback, waitFor } from "./utils/cases";
 
 import { type Car, type OptionalWrapper } from "nitro-test";
+import { isSwift } from "./utils/testObjects";
 
 import {
   sumUpAllPassengers,
@@ -502,7 +503,9 @@ export const cases = {
         // @ts-expect-error passing an unknown Powertrain
         testObject.bounceCar({ ...TEST_CAR, powertrain: "diesel" }),
       ).to.throw(
-        `${testObject.constructor.name}.bounceCar(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.bounceCar(...): Invalid value for Powertrain`
+          : `${testObject.constructor.name}.bounceCar(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
       );
     },
 
@@ -560,7 +563,9 @@ export const cases = {
       const wrapper = { tier: "diesel" };
       // @ts-expect-error passing an unknown Powertrain
       expect(() => testObject.bounceOptionalEnumStruct(wrapper)).to.throw(
-        `${testObject.constructor.name}.bounceOptionalEnumStruct(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.bounceOptionalEnumStruct(...): Invalid value for Powertrain`
+          : `${testObject.constructor.name}.bounceOptionalEnumStruct(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
       );
     },
 

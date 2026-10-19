@@ -3,6 +3,7 @@ import { casesForTestObjects, recordCallback, waitFor } from "./utils/cases";
 
 import { OldEnum } from "nitro-test";
 import { debugOnly } from "./utils/helpers";
+import { isSwift } from "./utils/testObjects";
 
 const TRUCK_POWERTRAINS = ["electric", "gas", "hybrid", "diesel"] as const;
 export const cases = {
@@ -220,7 +221,9 @@ export const cases = {
     "tryOptionalEnum(...) throws for an invalid enum value": (testObject) => {
       // @ts-expect-error
       expect(() => testObject.tryOptionalEnum("diesel")).to.throw(
-        `${testObject.constructor.name}.tryOptionalEnum(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.tryOptionalEnum(...): Invalid value for Powertrain`
+          : `${testObject.constructor.name}.tryOptionalEnum(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
       );
     },
 
@@ -288,7 +291,9 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnumPlusOne = "petrol";
       }).to.throw(
-        `${testObject.constructor.name}.optionalEnumPlusOne: Cannot convert "petrol" to enum TruckPowertrain - invalid value!`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.optionalEnumPlusOne: Invalid value for TruckPowertrain`
+          : `${testObject.constructor.name}.optionalEnumPlusOne: Cannot convert "petrol" to enum TruckPowertrain - invalid value!`,
       );
     },
 
@@ -297,7 +302,9 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnumPlusOne = "Diesel";
       }).to.throw(
-        `${testObject.constructor.name}.optionalEnumPlusOne: Cannot convert "Diesel" to enum TruckPowertrain - invalid value!`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.optionalEnumPlusOne: Invalid value for TruckPowertrain`
+          : `${testObject.constructor.name}.optionalEnumPlusOne: Cannot convert "Diesel" to enum TruckPowertrain - invalid value!`,
       );
     },
 
@@ -308,7 +315,9 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnum = "diesel";
       }).to.throw(
-        `${testObject.constructor.name}.optionalEnum: Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.optionalEnum: Invalid value for Powertrain`
+          : `${testObject.constructor.name}.optionalEnum: Cannot convert "diesel" to enum Powertrain - invalid value!`,
       );
     },
   }),
@@ -345,7 +354,9 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnum = null;
       }).to.throw(
-        `${testObject.constructor.name}.optionalEnum: Value is null, expected a String`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.optionalEnum: Invalid value for Powertrain`
+          : `${testObject.constructor.name}.optionalEnum: Value is null, expected a String`,
       );
     },
 
@@ -354,7 +365,9 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnumPlusOne = null;
       }).to.throw(
-        `${testObject.constructor.name}.optionalEnumPlusOne: Value is null, expected a String`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.optionalEnumPlusOne: Invalid value for TruckPowertrain`
+          : `${testObject.constructor.name}.optionalEnumPlusOne: Value is null, expected a String`,
       );
     },
 
@@ -363,7 +376,9 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalOldEnum = null;
       }).to.throw(
-        `${testObject.constructor.name}.optionalOldEnum: Value is null, expected a number`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.optionalOldEnum: Invalid value for OldEnum`
+          : `${testObject.constructor.name}.optionalOldEnum: Value is null, expected a number`,
       );
     },
 
@@ -439,16 +454,19 @@ export const cases = {
         }
       },
 
-    "optionalCallback getter returns a function that checks its argument count":
+    "optionalCallback getter preserves the original JS function":
       (testObject) => {
+        const callback = recordCallback<(value: number) => void>();
         try {
-          testObject.optionalCallback = () => {};
+          testObject.optionalCallback = callback;
           const forward = testObject.optionalCallback;
-          expect(forward).to.be.a("function");
-          // @ts-expect-error
-          expect(() => forward?.()).to.throw(
-            "Function expected 1 arguments, but received 0!",
-          );
+          expect(forward).to.equal(callback);
+          // Returning a JS callback preserves its identity and JS call semantics.
+          // @ts-expect-error intentionally omit the callback argument
+          forward?.();
+          // @ts-expect-error intentionally pass an extra callback argument
+          forward?.(55, 89);
+          expect(callback.calls).to.deep.equal([[], [55, 89]]);
         } finally {
           testObject.optionalCallback = undefined;
         }

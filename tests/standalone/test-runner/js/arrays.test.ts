@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { casesForTestObjects, recordCallback, waitFor } from "./utils/cases";
 
 import { type Powertrain } from "nitro-test";
-import { HybridChild } from "./utils/testObjects";
+import { HybridChild, isSwift } from "./utils/testObjects";
 
 import { TEST_MAP, TEST_MAP_2 } from "./utils/fixtures";
 
@@ -461,7 +461,9 @@ export const cases = {
     "bounceEnums(...) rejects an unknown enum value": (testObject) => {
       // @ts-expect-error passing an unknown Powertrain
       expect(() => testObject.bounceEnums(["gas", "diesel"])).to.throw(
-        `${testObject.constructor.name}.bounceEnums(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        isSwift(testObject)
+          ? `${testObject.constructor.name}.bounceEnums(...): Invalid value for Powertrain`
+          : `${testObject.constructor.name}.bounceEnums(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
       );
     },
 
