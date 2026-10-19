@@ -30,6 +30,7 @@ const sidebars: SidebarsConfig = {
         'concepts/hybrid-objects',
         'concepts/hybrid-views',
         'concepts/nitrogen',
+        'concepts/platform-decorators',
       ]
     },
     {

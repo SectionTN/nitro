@@ -101,7 +101,7 @@ To actually use Nitro, you need to create [Hybrid Objects](../concepts/hybrid-ob
     ### 2.1. Write the HybridObject specs
 
     A spec is just a `*.nitro.ts` file that exports two things:
-    1. A **class declaration** which extends `HybridObject` and describes its implementation via `@iOS` or `@Android`
+    1. A **class declaration** which extends `HybridObject` and describes its implementation via the [`@iOS` or `@Android` decorators](../concepts/platform-decorators)
     2. The generated JS class bindings via `#nitro/...`
 
     <Tabs groupId="native-language">

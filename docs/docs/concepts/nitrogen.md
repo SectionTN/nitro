@@ -105,6 +105,8 @@ A Nitro spec file consists of one or more `declare class` statements and combine
 - The `@iOS` and `@Android` decorators on `declare class` describe the connection between the JS types and the native implementation - for example, `language: 'swift'` means that `Math` is implemented in Swift on iOS. `implementation: ...` defines the actual Swift class that implements the spec natively, which is required for it to have a `constructor()` or static methods.
 - Since `declare class` is type-only, no JS runtime code exists. Nitrogen generates this, which must be re-exported via `export * from '#nitro/Math'`.
 
+See [Platform decorators](platform-decorators) for all `@iOS` and `@Android` options, including multiple implementations, inheritance, and native protocol/interface requirements.
+
 ```ts title="Math.nitro.ts"
 import { iOS, type HybridObject } from 'nitro-core'
 
@@ -258,11 +260,6 @@ All the generated sources (`./nitrogen/generated/`) need to be part of your libr
 
   For an existing CocoaPods app, first run `npx react-native spm add --deintegrate` from the app directory. See [Minimum Requirements](../getting-started/minimum-requirements) for the required React Native and Swift versions.
 
-  #### Android
-
-  :::warning
-  Android autolinking is not implemented in the current v1 generator. Nitrogen stops with an error when a spec declares `@Android(...)`, so the old `+autolinking.gradle`, `+autolinking.cmake`, and `OnLoad` setup cannot be generated yet. Omit `@Android(...)` while generating iOS bindings.
-  :::
   </TabItem>
 </Tabs>
 
