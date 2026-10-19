@@ -12,16 +12,13 @@ export function checkNativeBuilds(root) {
   run('bun', ['test', 'scripts/performance'], { cwd: root })
   for (const app of ['example', 'benchmark']) {
     const appRoot = path.join(root, 'tests/react-native/apps', app)
-    run('bundle', ['install'], { cwd: appRoot })
-    run('bundle', ['exec', 'pod', 'install'], {
-      cwd: path.join(appRoot, 'ios'),
-    })
+    run('bun', ['run', 'spm'], { cwd: appRoot })
   }
   run(
     'xcodebuild',
     [
-      '-workspace',
-      'NitroExample.xcworkspace',
+      '-project',
+      'NitroExample.xcodeproj',
       '-scheme',
       'NitroExample',
       '-configuration',
