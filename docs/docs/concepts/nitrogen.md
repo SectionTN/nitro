@@ -14,11 +14,13 @@ import TabItem from '@theme/TabItem';
 <div className="side-by-side-block">
 
 ```ts title="Math.nitro.ts"
-interface Math
-  extends HybridObject<{ ios: 'swift' }> {
+@iOS(...)
+@Android(...)
+export declare class Math extends HybridObject {
   readonly pi: number
   add(a: number, b: number): number
 }
+export * from '#nitro/Math'
 ```
 
 </div>
@@ -39,7 +41,7 @@ When `HybridMathSpec` is not implemented properly on the native side (e.g. if `a
 ## Nitrogen is optional
 
 Nitrogen is a fully optional CLI that does some of the work for you.
-You can also build Nitro Modules and create Hybrid Objects without nitrogen, by just calling the `registerHybrids` method yourself.
+You can also build Nitro Modules and create Hybrid Objects without nitrogen, by just registering the `HybridClass` yourself.
 
 ## Who uses Nitrogen?
 
@@ -89,7 +91,6 @@ Create a `nitro.json` file in the root directory of your Nitro Module (next to `
     "androidNamespace": ["math"],
     "androidCxxLibName": "NitroMath"
   },
-  "autolinking": {}
 }
 ```
 
@@ -106,9 +107,19 @@ For example, let's create `Math.nitro.ts`:
 ```ts title="Math.nitro.ts"
 import { type HybridObject } from 'react-native-nitro-modules'
 
-interface Math extends HybridObject<{ ios: 'swift', android: 'kotlin' }> {
+@iOS({
+  language: 'swift',
+  implementation: { className: 'HybridMath' }
+})
+@Android({
+  language: 'kotlin',
+  implementation: { className: 'HybridMath' }
+})
+export declare class Math extends HybridObject {
+  readonly pi: number
   add(a: number, b: number): number
 }
+export * from '#nitro/Math'
 ```
 
 ### 2. Generate native specs
@@ -147,7 +158,6 @@ This will always generate a shared C++ interface, and then optionall also Swift 
 ⏳  Parsing Math.nitro.ts...
     ⚙️  Generating specs for HybridObject "Math"...
         shared: Generating C++ code...
-⛓️   Setting up build configs for autolinking...
 🎉  Generated 1/1 HybridObject in 0.6s!
 💡  Your code is in ./nitrogen/generated
 ‼️  Added 8 files - refresh SwiftPM (`npx react-native spm` for React Native) or sync Gradle to update files!
@@ -157,8 +167,6 @@ This will always generate a shared C++ interface, and then optionall also Swift 
 You should push the files in `./nitrogen/generated/` to git, and make sure those files are part of your npm package.
 This way your library will always ship a working package as a whole (including generated interfaces), and the user does not need to do anything else than to install your package.
 :::
-
-Nitrogen always writes a `.gitattributes` file in the output directory with `** linguist-generated=true`. GitHub uses this to collapse generated files in diffs and exclude them from language statistics.
 
 ### 3. Add generated sources to your library
 
