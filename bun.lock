@@ -216,6 +216,9 @@
       },
     },
   },
+  "patchedDependencies": {
+    "@react-native-segmented-control/segmented-control@2.5.7": "patches/@react-native-segmented-control%2Fsegmented-control@2.5.7.patch",
+  },
   "packages": {
     "@11ty/gray-matter": ["@11ty/gray-matter@1.0.0", "", { "dependencies": { "js-yaml": "^4.1.0", "kind-of": "^6.0.3", "section-matter": "^1.0.0", "strip-bom-string": "^1.0.0" } }, "sha512-7mJJl+wf1AByoT0PknQiQfOPnVNT4fevGrUBVWO4HXsnYn1aQPyRyrELYrNUFleUBM++KzMKN6QaxHPk0t/6/g=="],
 

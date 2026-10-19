@@ -74,5 +74,8 @@
   },
   "engines": {
     "node": "^22.13.0 || ^24.3.0 || >=26.0.0"
+  },
+  "patchedDependencies": {
+    "@react-native-segmented-control/segmented-control@2.5.7": "patches/@react-native-segmented-control%2Fsegmented-control@2.5.7.patch"
   }
 }
