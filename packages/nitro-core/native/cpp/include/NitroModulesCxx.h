@@ -6,7 +6,6 @@
 #include <NitroModules/BoxedHybridObject.hpp>
 #include <NitroModules/Callback.hpp>
 #include <NitroModules/CommonGlobals.hpp>
-#include <NitroModules/detail/CountTrailingOptionals.hpp>
 #include <NitroModules/Dispatcher.hpp>
 #include <NitroModules/GlobalErrorHandler.hpp>
 #include <NitroModules/HybridClass.hpp>
@@ -15,8 +14,6 @@
 #include <NitroModules/HybridObject.hpp>
 #include <NitroModules/InlineCallback.hpp>
 #include <NitroModules/InstallNitro.hpp>
-#include <NitroModules/detail/InstanceMethod.hpp>
-#include <NitroModules/detail/IsSharedPtrTo.hpp>
 #include <NitroModules/JSClass.hpp>
 #include <NitroModules/JSICache.hpp>
 #include <NitroModules/JSIConverter+AnyJSON.hpp>
@@ -43,12 +40,9 @@
 #include <NitroModules/Null.hpp>
 #include <NitroModules/NumberUtils.hpp>
 #include <NitroModules/Promise.hpp>
-#include <NitroModules/detail/PromiseType.hpp>
 #include <NitroModules/PropNameIDCache.hpp>
-#include <NitroModules/detail/ReferenceState.hpp>
 #include <NitroModules/RoundTripResult.hpp>
 #include <NitroModules/ThreadPool.hpp>
 #include <NitroModules/ThreadUtils.hpp>
 #include <NitroModules/TypeIndex.hpp>
-#include <NitroModules/detail/WeakReference+Borrowing.hpp>
 #include <NitroModules/WeakReference.hpp>
