@@ -2,15 +2,13 @@
 
 Run `bun test:ios` from the repository root with Xcode, an iOS simulator, CMake and Ninja installed. The command prepares the TypeScript tests and Nitrogen bindings, builds the pinned Hermes sources, and runs Swift Testing through `xcodebuild`.
 
-The project has three static framework targets, `NitroModules`, `NitroTest` and `NitroTestExternal`, and one test bundle. The external fixture is a separate module so the tests exercise generated bindings across module boundaries. Xcode supplies the simulator test runner. There is no application target or React Native dependency.
+The root `Package.swift` defines the runtime, both fixture modules and the Swift Testing bundle. It compiles canonical sources directly from `packages/nitro-core/native`, with separate C++, Apple C++, Swift and Swift-to-C++ bridge targets. The fixture modules use the same target split as Nitrogen's generated React Native packages. Xcode supplies the simulator test runner; there is no application target or React Native dependency.
 
-`NitroRuntimeTests.xcodeproj` uses synchronized folders to discover sources and generated bindings. The Core target compiles the sources directly from `packages/nitro-core/native/cpp` and `packages/nitro-core/native/apple`, without React Native source exclusions. The mixed Swift/C++ frameworks preserve the module names and headers emitted by Nitrogen. Hermes is a local Swift package wrapping an XCFramework built from its upstream CMake targets.
+The V1 runtime requires Swift 6.4. Its Swift target links [SimdUTF](https://github.com/margelo/simdutf-swift) 1.0.1 or newer with the `UTF8`, `UTF16`, and `ASCII` traits. Canonical header facades expose the existing `<NitroModules/Header.hpp>` imports. The private bridge targets compile after Swift and include its generated headers.
 
-The V1 runtime requires Swift 6.4. The `NitroModules` target links [SimdUTF](https://github.com/margelo/simdutf-swift) 1.0.1 or newer with its `UTF8`, `UTF16`, and `ASCII` traits. Direct Swift converters compile as C++ sources in that target. Their headers stay outside its Swift-facing umbrella because they include the generated `NitroModules-Swift.h`.
+Hermes is a local XCFramework built from the pinned upstream CMake sources. Its binary target lives in the root manifest so the framework and all canonical runtime sources stay inside the Swift package boundary. Run the existing Hermes build helper before opening the package in Xcode. The command-line test runner builds Hermes automatically unless `--skip-hermes-build` is passed.
 
-`prepare-headers.sh` discovers core and external fixture headers and creates build-directory symlinks for Nitrogen's existing `<NitroModules/Header.hpp>` and `<NitroTestExternal/Header.hpp>` imports. It also exposes the generated `NitroTestAppleCxx` and `NitroTestExternalAppleCxx` Clang modules through build-directory module maps. It removes stale headers only in those generated directories and rejects duplicate header names within each flat module. The small umbrella headers expose the Swift/C++ bridge interfaces; they do not list the implementation sources.
-
-The mixed targets remain Xcode targets because [SwiftPM's mixed-language support requires Swift 6.5](https://docs.swift.org/main/documentation/packagemanagerdocs/creatingmixedlanguagetargets/). The current Swift 6.4 toolchain rejects mixed Swift/C++ package targets. Keeping them together lets C++ include the generated Swift header without depending on SwiftPM build internals.
+`RuntimeTests.swift` loads the bundled JavaScript and case manifests from SwiftPM's resource bundle. `NitroTestRunnerBridge` exports the Objective-C++ test entry point to Swift.
 
 Simulator OS, device, architecture, build jobs and deployment target defaults live in [`config.json`](config.json). By default, the runner selects the newest installed iOS 26 simulator and the host architecture. Override them on the command line:
 
