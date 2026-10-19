@@ -5,8 +5,9 @@ import type {
   HybridViewProps,
 } from './HybridView'
 
-// Keep the runtime import compatible with React Native < 0.83. The public export
-// supplies the types because React Native 0.88 no longer exposes deep-import types.
+// Keep the runtime import compatible with React Native < 0.82. The public
+// TypeScript export was added in 0.83; use it because RN 0.88 no longer exposes
+// declarations at the deep-import path.
 const NativeComponentRegistry =
   // eslint-disable-next-line @react-native/no-deep-imports
   require('react-native/Libraries/NativeComponent/NativeComponentRegistry') as typeof import('react-native').NativeComponentRegistry
