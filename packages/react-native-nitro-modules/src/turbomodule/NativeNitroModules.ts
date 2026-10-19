@@ -7,7 +7,7 @@ import {
   getNitroModules,
   isRuntimeAlive,
   warnIfNitroVersionMismatch,
-} from 'nitro-core'
+} from 'nitro-core/host'
 
 interface Spec extends TurboModule {
   /**
