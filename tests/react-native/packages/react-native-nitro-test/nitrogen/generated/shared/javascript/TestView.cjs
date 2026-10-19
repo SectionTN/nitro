@@ -26,24 +26,16 @@ module.exports = {
   },
   get TestViewComponent() {
     if (hybridComponent === undefined) {
-      hybridComponent = require('react-native-nitro-modules').getHostComponent(
-        "NitroTest_TestView",
-        () => ({
-          "uiViewClassName": "NitroTest_TestView",
-          "supportsRawText": false,
-          "bubblingEventTypes": {},
-          "directEventTypes": {},
-          "validAttributes": {
-            "isBlue": true,
-            "hasBeenCalled": true,
-            "int64Value": true,
-            "colorScheme": true,
-            "someCallback": true,
-            "nativeDefaultValue": true,
-            "hybridRef": true
-          }
-        }),
-      )
+      const { getHostComponent, NitroViewProp } = require('react-native-nitro-modules')
+      hybridComponent = getHostComponent("NitroTest_TestView", {
+        "isBlue": NitroViewProp,
+        "hasBeenCalled": NitroViewProp,
+        "int64Value": NitroViewProp,
+        "colorScheme": NitroViewProp,
+        "someCallback": NitroViewProp,
+        "nativeDefaultValue": NitroViewProp,
+        "hybridRef": NitroViewProp,
+      })
     }
     Object.defineProperty(module.exports, 'TestViewComponent', {
       value: hybridComponent,

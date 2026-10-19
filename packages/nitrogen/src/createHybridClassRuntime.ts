@@ -29,6 +29,7 @@ interface WriteHybridClassRuntimeOptions {
 interface LazyExportOptions {
   name: string
   cacheName: string
+  setupCode?: string
   initializer: string
 }
 
@@ -36,12 +37,16 @@ interface LazyExportOptions {
 function createLazyExport({
   name,
   cacheName,
+  setupCode,
   initializer,
 }: LazyExportOptions): string {
+  const initializationCode: string[] = []
+  if (setupCode != null) initializationCode.push(setupCode)
+  initializationCode.push(`${cacheName} = ${initializer}`)
   return `
 get ${name}() {
   if (${cacheName} === undefined) {
-    ${cacheName} = ${indent(initializer, '    ')}
+    ${indent(initializationCode.join('\n'), '    ')}
   }
   Object.defineProperty(module.exports, '${name}', {
     value: ${cacheName},
@@ -57,26 +62,17 @@ get ${name}() {
 /** The component's native implementation uses the same property-name list. */
 function createComponentInitializer(view: HybridViewRuntimeSpec): string {
   const attributeNames = [...view.propertyNames, 'hybridRef']
-  const validAttributes = Object.fromEntries(
-    attributeNames.map((name) => [name, true])
-  )
-  const configCode = JSON.stringify(
-    {
-      uiViewClassName: view.componentName,
-      supportsRawText: false,
-      bubblingEventTypes: {},
-      directEventTypes: {},
-      validAttributes: validAttributes,
-    },
-    null,
-    2
-  )
+  const attributesCode = attributeNames.map((name) => {
+    const nameCode = JSON.stringify(name)
+    // __proto__ must be a property, not an object literal's prototype setter.
+    const keyCode = name === '__proto__' ? `[${nameCode}]` : nameCode
+    return `${keyCode}: NitroViewProp,`
+  })
   const componentNameCode = JSON.stringify(view.componentName)
   return `
-require('react-native-nitro-modules').getHostComponent(
-  ${componentNameCode},
-  () => (${indent(configCode, '  ')}),
-)
+getHostComponent(${componentNameCode}, {
+  ${indent(attributesCode.join('\n'), '  ')}
+})
 `.trim()
 }
 
@@ -164,6 +160,8 @@ function createHybridClassRuntime({
       const componentExportCode = createLazyExport({
         name: `${name}Component`,
         cacheName: 'hybridComponent',
+        setupCode:
+          "const { getHostComponent, NitroViewProp } = require('react-native-nitro-modules')",
         initializer: componentInitializerCode,
       })
       exportsCode.push(componentExportCode)

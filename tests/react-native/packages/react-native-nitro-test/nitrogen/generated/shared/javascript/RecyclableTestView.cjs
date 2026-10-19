@@ -26,20 +26,12 @@ module.exports = {
   },
   get RecyclableTestViewComponent() {
     if (hybridComponent === undefined) {
-      hybridComponent = require('react-native-nitro-modules').getHostComponent(
-        "NitroTest_RecyclableTestView",
-        () => ({
-          "uiViewClassName": "NitroTest_RecyclableTestView",
-          "supportsRawText": false,
-          "bubblingEventTypes": {},
-          "directEventTypes": {},
-          "validAttributes": {
-            "isBlue": true,
-            "nativeDefaultValue": true,
-            "hybridRef": true
-          }
-        }),
-      )
+      const { getHostComponent, NitroViewProp } = require('react-native-nitro-modules')
+      hybridComponent = getHostComponent("NitroTest_RecyclableTestView", {
+        "isBlue": NitroViewProp,
+        "nativeDefaultValue": NitroViewProp,
+        "hybridRef": NitroViewProp,
+      })
     }
     Object.defineProperty(module.exports, 'RecyclableTestViewComponent', {
       value: hybridComponent,
