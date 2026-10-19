@@ -1,0 +1,71 @@
+diff --git a/dist/xcrun/simctl.js b/dist/xcrun/simctl.js
+index 1c2f32ffb2c72f83c39f32fca389dde394fb0a94..7fb5b97a7703bed18f95ce84ad113a842f520892 100644
+--- a/dist/xcrun/simctl.js
++++ b/dist/xcrun/simctl.js
+@@ -88,12 +88,24 @@ export const collectCrashReports = async ({ udid, processNames, crashArtifactWri
+     return [];
+ };
+ export const getAppInfo = async (udid, bundleId) => {
+-    const { stdout: plistOutput } = await spawn('xcrun', [
+-        'simctl',
+-        'appinfo',
+-        udid,
+-        bundleId,
+-    ]);
++    let plistOutput;
++    try {
++        const result = await spawn('xcrun', [
++            'simctl',
++            'appinfo',
++            udid,
++            bundleId,
++        ]);
++        plistOutput = result.stdout;
++    }
++    catch (error) {
++        if (error instanceof SubprocessError &&
++            error.exitCode === 3 &&
++            error.stderr.includes('Application not found')) {
++            return null;
++        }
++        throw error;
++    }
+     const json = await plistToJson(plistOutput);
+     // If there is only one entry, it means the app is not installed
+     const hasMoreThanOneEntry = Object.keys(json).length > 1;
+diff --git a/src/xcrun/simctl.ts b/src/xcrun/simctl.ts
+index 720fd3b0009efb43e5f53b739624cf608884bbb6..0ac92d7c0494894c187d8826af52a040facf41f0 100644
+--- a/src/xcrun/simctl.ts
++++ b/src/xcrun/simctl.ts
+@@ -184,12 +184,25 @@ export const getAppInfo = async (
+   udid: string,
+   bundleId: string,
+ ): Promise<AppleAppInfo | null> => {
+-  const { stdout: plistOutput } = await spawn('xcrun', [
+-    'simctl',
+-    'appinfo',
+-    udid,
+-    bundleId,
+-  ]);
++  let plistOutput: string;
++  try {
++    const result = await spawn('xcrun', [
++      'simctl',
++      'appinfo',
++      udid,
++      bundleId,
++    ]);
++    plistOutput = result.stdout;
++  } catch (error) {
++    if (
++      error instanceof SubprocessError &&
++      error.exitCode === 3 &&
++      error.stderr.includes('Application not found')
++    ) {
++      return null;
++    }
++    throw error;
++  }
+ 
+   const json = await plistToJson(plistOutput);
+ 
