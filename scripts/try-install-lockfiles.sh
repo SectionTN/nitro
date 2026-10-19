@@ -12,14 +12,10 @@ cd "$(pwd)" || exit 0
   bun run build
 
   # Resolve app Swift packages
-  for app in example benchmark; do
-    project=NitroExample
-    if [ "$app" = benchmark ]; then project=NitroBenchmark; fi
-    bun "$app" spm
-    xcodebuild -resolvePackageDependencies \
-      -project "tests/react-native/apps/$app/ios/$project.xcodeproj" \
-      -scheme "$project"
-  done
+  bun example spm
+  xcodebuild -resolvePackageDependencies -project tests/react-native/apps/example/ios/NitroExample.xcodeproj -scheme NitroExample
+  bun benchmark spm
+  xcodebuild -resolvePackageDependencies -project tests/react-native/apps/benchmark/ios/NitroBenchmark.xcodeproj -scheme NitroBenchmark
 
   # Add everything to git
   git add bun.lock Package.resolved tests/react-native/apps/*/ios/*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
