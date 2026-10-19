@@ -38,10 +38,9 @@ class Callback;
  * "later", e.g. stored as a class member and invoked at a later point in time.
  *
  * `Callback` can be invoked sync (which has to be called on the JS Runtime
- * context/Thread) or async (which returns a `Promise<T>` and uses the `Dispatcher`)
- *
- * The Runtime host must perform microtask checkpoints after its outermost JS
- * tasks. Callbacks can be nested within a task and do not drain microtasks.
+ * context/Thread) or async (which returns a `Promise<T>` and uses the `Dispatcher`).
+ * Synchronous JS calls invoke the Dispatcher's JS entry hooks. The runtime host
+ * controls microtask checkpoints through those hooks and its dispatched tasks.
  */
 template <typename R, typename... Args>
 class Callback<R(Args...)> final {
@@ -147,12 +146,14 @@ private:
       assert(dispatcher->isOnDispatcher() && "callSync(...) must be called on the JS Runtime's context/Thread!");
       assertFunctionNotNull(_function);
 
-      if constexpr (std::is_void_v<R>) {
-        _function->call(_runtime, JSIConverter<std::decay_t<Args>>::toJSI(_runtime, std::forward<Args>(args))...);
-      } else {
-        jsi::Value result = _function->call(_runtime, JSIConverter<std::decay_t<Args>>::toJSI(_runtime, std::forward<Args>(args))...);
-        return JSIConverter<R>::fromJSI(_runtime, result);
-      }
+      return dispatcher->withJSEntry(_runtime, [&]() -> R {
+        if constexpr (std::is_void_v<R>) {
+          _function->call(_runtime, JSIConverter<std::decay_t<Args>>::toJSI(_runtime, std::forward<Args>(args))...);
+        } else {
+          jsi::Value result = _function->call(_runtime, JSIConverter<std::decay_t<Args>>::toJSI(_runtime, std::forward<Args>(args))...);
+          return JSIConverter<R>::fromJSI(_runtime, result);
+        }
+      });
     }
     Promise<R> callAsync(Args&&... args) const {
       std::shared_ptr<Dispatcher> dispatcher = _dispatcher.lock();
