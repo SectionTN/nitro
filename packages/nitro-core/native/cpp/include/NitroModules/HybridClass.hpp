@@ -114,7 +114,7 @@ public:
 
   /** Register a native function on this type's JavaScript constructor. */
   template <typename ReturnType, typename... Args>
-  void registerHybridStaticMethod(std::string name, ReturnType (*NON_NULL method)(Args...)) {
+  void registerStaticHybridMethod(std::string name, ReturnType (*NON_NULL method)(Args...)) {
     _staticMethods.emplace(name, HybridFunction::createStaticHybridFunction(name, method));
   }
 
