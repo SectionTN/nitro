@@ -1,0 +1,20 @@
+diff --git a/ios/Fabric/RNCSafeAreaProviderComponentView.mm b/ios/Fabric/RNCSafeAreaProviderComponentView.mm
+index f315ccda83ea81b1ce24ca2c33dad2513e299b17..fcae147fde201be9e524afdbbb2cad72a87c884d 100644
+--- a/ios/Fabric/RNCSafeAreaProviderComponentView.mm
++++ b/ios/Fabric/RNCSafeAreaProviderComponentView.mm
+@@ -104,11 +104,13 @@ - (void)invalidateSafeAreaInsets
+   if (_eventEmitter) {
++    // TODO: Remove this local field-order patch when
++    // https://github.com/AppAndFlow/react-native-safe-area-context/pull/759 is released.
+     RNCSafeAreaProviderEventEmitter::OnInsetsChange event = {
+         .insets =
+             {
+                 .top = safeAreaInsets.top,
+-                .left = safeAreaInsets.left,
+-                .bottom = safeAreaInsets.bottom,
+                 .right = safeAreaInsets.right,
++                .bottom = safeAreaInsets.bottom,
++                .left = safeAreaInsets.left,
+             },
+         .frame =
+             {
