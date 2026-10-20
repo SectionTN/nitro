@@ -27,6 +27,7 @@ import {
   parseVersion,
   publishPackages,
   registryPackage,
+  releaseNotes,
   run,
   saveDraft,
   validateManifest,
@@ -914,9 +915,10 @@ function githubFixture(manifest) {
       return structuredClone(releases.slice((page - 1) * 100, page * 100))
     }
     if (endpoint === `${repo}/git/ref/tags/${manifest.tag}`) return {}
-    if (endpoint === `${repo}/releases` && options.method === 'POST') {
-      return structuredClone(addRelease({ draft: options.body.draft }))
-    }
+    if (endpoint === `${repo}/releases/generate-notes`)
+      return { body: 'Generated changes' }
+    if (endpoint === `${repo}/releases` && options.method === 'POST')
+      return structuredClone(addRelease(options.body))
     if (endpoint === `${repo}/releases/latest`) return null
     if (options.method === 'DELETE') {
       const id = Number(endpoint.split('/').at(-1))
@@ -968,6 +970,127 @@ function githubFixture(manifest) {
     lookup,
   }
 }
+
+test('nightly notes use the previous published version in the same channel', (t) => {
+  for (const [version, expected] of [
+    ['0.37.2-nightly.50.gcccccccccccc', '0.37.2-nightly.42.gbbbbbbbbbbbb'],
+    [
+      '1.0.0-alpha.nightly.50.gcccccccccccc',
+      '1.0.0-alpha.nightly.42.gbbbbbbbbbbbb',
+    ],
+  ]) {
+    const { manifest, directory } = releaseFixture(t, { version })
+    const github = githubFixture(manifest)
+    for (let i = 0; i < 100; i++)
+      github.addRelease({ tag_name: `v9.0.0-nightly.${i}`, draft: true })
+    for (const previous of [
+      '0.37.1',
+      '0.37.2-nightly.42.gbbbbbbbbbbbb',
+      '0.37.2-nightly.32.gaaaaaaaaaaaa', // Published later during recovery.
+      '1.0.0-alpha.nightly.42.gbbbbbbbbbbbb',
+      '1.0.0-alpha.99',
+      '9.0.0',
+      'not-a-version',
+    ]) {
+      github.addRelease({
+        tag_name: `v${previous}`,
+        draft: false,
+        published_at: '2026-10-20T16:00:00Z',
+      })
+    }
+    const release = saveDraft(manifest, directory, 'nitro-release.json', github)
+    const generated = github.calls.find((call) =>
+      call.endpoint?.endsWith('/generate-notes')
+    )
+    assert.deepEqual(generated.body, {
+      tag_name: manifest.tag,
+      previous_tag_name: `v${expected}`,
+    })
+    assert.equal(
+      release.body,
+      `Generated changes\n\n[Changes since latest stable (v0.37.1)](https://github.com/margelo/nitro/compare/v0.37.1...${manifest.tag})`
+    )
+    assert.equal(release.generate_release_notes, undefined)
+    assert.ok(github.calls.some((call) => call.endpoint?.endsWith('page=2')))
+  }
+})
+
+test('stable releases and the first nightly in a channel start from the previous stable', (t) => {
+  for (const version of ['0.38.0', '1.0.0-alpha.nightly.1.gaaaaaaaaaaaa']) {
+    const { manifest } = releaseFixture(t, { version })
+    const github = githubFixture(manifest)
+    for (const previous of [
+      '0.37.1',
+      '0.37.0',
+      '0.38.0-beta.1',
+      '0.38.0-nightly.50.gbbbbbbbbbbbb',
+      version,
+      '2.0.0',
+    ]) {
+      github.addRelease({
+        tag_name: `v${previous}`,
+        draft: false,
+        published_at: '2026-10-20T16:00:00Z',
+      })
+    }
+    const notes = releaseNotes(manifest, github.request)
+    assert.equal(github.calls.at(-1).body.previous_tag_name, 'v0.37.1')
+    assert.equal(
+      notes.body.includes('Changes since latest stable'),
+      version.includes('nightly')
+    )
+  }
+})
+
+test('notes retain GitHub defaults without a previous release or for other prereleases', (t) => {
+  for (const version of [
+    '0.37.2',
+    '0.37.2-nightly.1.gaaaaaaaaaaaa',
+    '1.0.0-beta.1',
+  ]) {
+    const { manifest } = releaseFixture(t, { version })
+    assert.deepEqual(
+      releaseNotes(manifest, () => []),
+      { generate_release_notes: true }
+    )
+  }
+})
+
+test('note generation failures do not prevent saving a release checkpoint', (t) => {
+  for (const failure of ['history', 'generation']) {
+    const { manifest, directory } = releaseFixture(t)
+    const github = githubFixture(manifest)
+    github.addRelease({
+      tag_name: 'v0.37.1',
+      draft: false,
+      published_at: '2026-10-20T16:00:00Z',
+    })
+    const release = saveDraft(manifest, directory, 'nitro-release.json', {
+      ...github,
+      request: (endpoint, options) => {
+        if (
+          (failure === 'history' && endpoint.includes('/releases?')) ||
+          endpoint.endsWith('/generate-notes')
+        )
+          throw new Error('GitHub HTTP 503')
+        return github.request(endpoint, options)
+      },
+    })
+    assert.equal(release.generate_release_notes, true)
+    assert.equal(release.assets.at(-1).name, 'nitro-release.json')
+  }
+})
+
+test('resuming an existing draft keeps its notes without regenerating them', (t) => {
+  const { manifest, directory } = releaseFixture(t)
+  const github = githubFixture(manifest)
+  github.addRelease({ body: 'Previously generated or edited notes' })
+  const release = saveDraft(manifest, directory, 'nitro-release.json', {
+    ...github,
+    request: () => assert.fail('must not generate or update saved notes'),
+  })
+  assert.equal(release.body, 'Previously generated or edited notes')
+})
 
 test('draft lookup scans all pages and selects the exact tag checkpoint past an empty duplicate', (t) => {
   const { manifest } = releaseFixture(t)

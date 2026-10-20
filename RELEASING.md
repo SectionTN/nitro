@@ -70,6 +70,10 @@ Nightlies use the same validation and three-package publication process. CI crea
 
 An older nightly that finishes after a newer one uses the npm tag `nightly-<release-commit-prefix>` so it cannot move `nightly` backwards. Publication is serialized; GitHub's queue limit still applies during bursts of pushes.
 
+GitHub nightly notes compare against the previous published version in the same channel (`nightly` or `alpha-nightly`). The first nightly in a channel falls back to the previous stable release. Each nightly also links to all changes since that stable release. Stable release notes compare against the previous stable version.
+
+Draft retries keep their existing notes. If changelog selection or generation is unavailable, draft creation uses GitHub's default generated notes.
+
 ## Resume a failed release
 
 Rerun the failed workflow or request the same version with the same npm tag. For a nightly, rerun the original workflow to preserve its run number and version.
