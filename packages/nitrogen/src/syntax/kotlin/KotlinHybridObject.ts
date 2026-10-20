@@ -13,7 +13,7 @@ import { createFbjniHybridObject } from './FbjniHybridObject.js'
 import type { KotlinConstructor } from './KotlinConstructor.js'
 import { getKotlinClassMembers } from './KotlinHybridClassBindings.js'
 import { getKotlinPropertyAccessors, KotlinInstanceMethod } from './KotlinInstanceMethod.js'
-import { getKotlinImplementation } from './KotlinMethodHelpers.js'
+import { canUseNonvirtualJniCalls, getKotlinImplementation } from './KotlinMethodHelpers.js'
 import type { KotlinStaticMethod } from './KotlinStaticMethod.js'
 import type { KotlinStaticProperty } from './KotlinStaticProperty.js'
 import { wrapKotlinType } from './wrapKotlinType.js'
@@ -40,6 +40,7 @@ export function createKotlinHybridObject(publicSpec: HybridObjectSpec<'kotlin'>)
     })
     .join('\n\n')
   const bridgeCompanion = getKotlinCompanion(spec)
+  const cxxPartMembers = getKotlinCxxPartMembers(spec)
 
   const extraImports: SourceImport[] = [
     ...spec.properties.flatMap((p) => p.getRequiredImports('kotlin')),
@@ -48,6 +49,7 @@ export function createKotlinHybridObject(publicSpec: HybridObjectSpec<'kotlin'>)
     ...spec.staticMethods.flatMap((m) => m.getRequiredImports('kotlin')),
     ...(spec.constructor?.getRequiredImports('kotlin') ?? []),
     ...bridgeCompanion.imports,
+    ...cxxPartMembers.imports,
     ...spec.baseTypes.flatMap((b) => new HybridObjectType(b).getRequiredImports('kotlin')),
     {
       name: 'com.margelo.nitro.core.HybridObject',
@@ -124,9 +126,7 @@ abstract class ${name.HybridTSpec}: ${supertypes} {
   @DoNotStrip
   @Keep
   protected open class CxxPart(javaPart: ${name.HybridTSpec}): ${cxxPartBase}(javaPart) {
-    // C++ ${name.JHybridTSpec}::CxxPart::initHybrid(...)
-    @FastNative
-    external override fun initHybrid(): HybridData
+    ${indent(cxxPartMembers.code, '    ')}
   }
   override fun createCxxPart(): CxxPart {
     return CxxPart(this)
@@ -179,6 +179,34 @@ interface KotlinCompanion {
 interface KotlinCompanionGroup {
   comment: string
   callables: (KotlinConstructor | KotlinStaticMethod | KotlinStaticProperty)[]
+}
+
+function getKotlinCxxPartMembers(spec: HybridObjectSpec<'kotlin'>): KotlinCompanion {
+  const name = getHybridObjectName(spec.name)
+  const initHybridCode = `
+// C++ ${name.JHybridTSpec}::CxxPart::initHybrid(...)
+@FastNative
+external override fun initHybrid(): HybridData
+`.trim()
+  const sections = [initHybridCode]
+  const imports: SourceImport[] = []
+  if (canUseNonvirtualJniCalls(spec)) {
+    const implementation = getKotlinImplementation(spec)
+    imports.push(implementation.kotlinImport)
+    const implementationClassCode = `
+companion object {
+  // A class literal keeps the implementation reachable after R8 renaming.
+  @DoNotStrip
+  @Keep
+  @JvmStatic
+  private fun implementationClass_cxx(): Class<out ${name.HybridTSpec}> {
+    return ${implementation.className}::class.java
+  }
+}
+`.trim()
+    sections.push(implementationClassCode)
+  }
+  return { code: sections.join('\n\n'), imports: imports }
 }
 
 /**

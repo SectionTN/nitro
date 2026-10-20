@@ -91,6 +91,10 @@ interface CppJniCallBodyOptions {
   jniMethodLookup: string
   /** The Java instance, or the class for static methods. */
   jniReceiver: string
+  /** The concrete class passed to fbjni's nonvirtual invocation. */
+  jniDeclaringClass?: string
+  /** JNI setup before the cached method lookup. */
+  jniSetupCode?: string
 }
 
 /**
@@ -98,7 +102,14 @@ interface CppJniCallBodyOptions {
  * The caller must already be attached to the JVM.
  * Generated locals use the reserved `__` prefix, so they cannot shadow parameters.
  */
-export function createCppJniCallBody({ callable, jvmName, jniMethodLookup, jniReceiver }: CppJniCallBodyOptions): string {
+export function createCppJniCallBody({
+  callable,
+  jvmName,
+  jniMethodLookup,
+  jniReceiver,
+  jniDeclaringClass,
+  jniSetupCode = '',
+}: CppJniCallBodyOptions): string {
   const jniReturnType = callable.returnType.getCode('c++', {
     context: 'return',
   })
@@ -107,19 +118,26 @@ export function createCppJniCallBody({ callable, jvmName, jniMethodLookup, jniRe
     return `${type} /* ${parameter.native.name} */`
   })
   const jniSignature = `${jniReturnType}(${jniParameterTypes.join(', ')})`
-  const jniArguments = [
-    jniReceiver,
+  const jniArguments = [jniReceiver]
+  if (jniDeclaringClass != null) {
+    jniArguments.push(jniDeclaringClass)
+  }
+  jniArguments.push(
     ...callable.parameters.map((parameter) =>
       parameter.type.convert(parameter.native.type.escapedName, {
         from: 'c++',
         to: 'kotlin',
         in: 'c++',
       })
-    ),
-  ]
+    )
+  )
+  const methodLookupCode = `
+${indent(jniSetupCode, '')}
+static const auto __method = ${jniMethodLookup}<${jniSignature}>("${jvmName}");
+`.trim()
   if (callable.nativeMethod.returnType.kind === 'void') {
     return `
-static const auto __method = ${jniMethodLookup}<${jniSignature}>("${jvmName}");
+${indent(methodLookupCode, '')}
 __method(${jniArguments.join(', ')});
 `.trim()
   }
@@ -129,10 +147,15 @@ __method(${jniArguments.join(', ')});
     in: 'c++',
   })
   return `
-static const auto __method = ${jniMethodLookup}<${jniSignature}>("${jvmName}");
+${indent(methodLookupCode, '')}
 auto __result = __method(${jniArguments.join(', ')});
 return ${indent(cppResult, '')};
 `.trim()
+}
+
+/** An exact implementation can skip JVM virtual dispatch for its direct members. */
+export function canUseNonvirtualJniCalls(spec: HybridObjectSpec<'kotlin'>): boolean {
+  return spec.implementation != null && !spec.allowInheritance && !spec.allowMultipleImplementations
 }
 
 interface KotlinImplementation {

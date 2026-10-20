@@ -21,6 +21,10 @@ interface KotlinInstanceMethodOptions {
   accessor?: KotlinAccessor
 }
 
+interface KotlinInstanceBridgeOptions {
+  nonvirtual?: boolean
+}
+
 /**
  * The Kotlin member that C++ calls through JNI.
  * If values need conversion, this is a private `_cxx` forwarder;
@@ -75,16 +79,33 @@ export class KotlinInstanceMethod extends InstanceMethod {
     return this.callable.needsKotlinConversion
   }
 
-  createBridge(): KotlinMethodBridge {
+  createBridge({ nonvirtual = false }: KotlinInstanceBridgeOptions = {}): KotlinMethodBridge {
     const nativeMethod = this.nativeMethod
     const cppMethod = new InstanceMethod(nativeMethod.name, nativeMethod.returnType, nativeMethod.parameters, {
       generated: true,
     })
+    let jniMethodLookup: string
+    let jniDeclaringClass: string | undefined
+    let jniSetupCode: string
+    if (nonvirtual && !this.needsKotlinForwarder) {
+      jniMethodLookup = '__class->getNonvirtualMethod'
+      jniDeclaringClass = '__class'
+      jniSetupCode = `
+static const auto __class = CxxPart::getImplementationClass();
+`.trim()
+    } else {
+      // Conversion forwarders belong to the generated abstract spec.
+      jniMethodLookup = '_javaPart->javaClassStatic()->getMethod'
+      jniDeclaringClass = undefined
+      jniSetupCode = ''
+    }
     const cppBody = createCppJniCallBody({
       callable: this.callable,
       jvmName: this.name,
-      jniMethodLookup: '_javaPart->javaClassStatic()->getMethod',
+      jniMethodLookup: jniMethodLookup,
       jniReceiver: '_javaPart',
+      jniDeclaringClass: jniDeclaringClass,
+      jniSetupCode: jniSetupCode,
     })
     const kotlinMethods: KotlinMethodDefinition[] = []
     if (this.needsKotlinForwarder) {

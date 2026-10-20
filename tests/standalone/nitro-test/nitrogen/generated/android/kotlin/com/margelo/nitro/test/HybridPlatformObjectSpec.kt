@@ -46,6 +46,16 @@ abstract class HybridPlatformObjectSpec: HybridObject() {
     // C++ JHybridPlatformObjectSpec::CxxPart::initHybrid(...)
     @FastNative
     external override fun initHybrid(): HybridData
+
+    companion object {
+      // A class literal keeps the implementation reachable after R8 renaming.
+      @DoNotStrip
+      @Keep
+      @JvmStatic
+      private fun implementationClass_cxx(): Class<out HybridPlatformObjectSpec> {
+        return HybridPlatformObject::class.java
+      }
+    }
   }
   override fun createCxxPart(): CxxPart {
     return CxxPart(this)

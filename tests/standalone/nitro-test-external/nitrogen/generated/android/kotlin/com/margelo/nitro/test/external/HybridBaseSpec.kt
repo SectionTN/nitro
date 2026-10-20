@@ -62,6 +62,16 @@ abstract class HybridBaseSpec: HybridObject() {
     // C++ JHybridBaseSpec::CxxPart::initHybrid(...)
     @FastNative
     external override fun initHybrid(): HybridData
+
+    companion object {
+      // A class literal keeps the implementation reachable after R8 renaming.
+      @DoNotStrip
+      @Keep
+      @JvmStatic
+      private fun implementationClass_cxx(): Class<out HybridBaseSpec> {
+        return HybridBase::class.java
+      }
+    }
   }
   override fun createCxxPart(): CxxPart {
     return CxxPart(this)

@@ -20,6 +20,12 @@ namespace margelo::nitro::test {
     return __result->getJHybridGrandchildSpec();
   }
 
+  jni::alias_ref<jni::JClass> JHybridGrandchildSpec::CxxPart::getImplementationClass() {
+    static const auto __method = CxxPart::javaClassStatic()->getStaticMethod<jni::local_ref<jni::JClass>()>("implementationClass_cxx");
+    static const auto __class = jni::make_global(__method(CxxPart::javaClassStatic()));
+    return __class;
+  }
+
   const std::shared_ptr<const HybridClass>& JHybridGrandchildSpec::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
       clazz.registerHybridProperty("grandchildValue", &JHybridGrandchildSpec::getGrandchildValue);
@@ -57,8 +63,9 @@ namespace margelo::nitro::test {
 
   // Properties
   double JHybridGrandchildSpec::getGrandchildValue() {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<double()>("getGrandchildValue");
-    auto __result = __method(_javaPart);
+    static const auto __class = CxxPart::getImplementationClass();
+    static const auto __method = __class->getNonvirtualMethod<double()>("getGrandchildValue");
+    auto __result = __method(_javaPart, __class);
     return __result;
   }
 

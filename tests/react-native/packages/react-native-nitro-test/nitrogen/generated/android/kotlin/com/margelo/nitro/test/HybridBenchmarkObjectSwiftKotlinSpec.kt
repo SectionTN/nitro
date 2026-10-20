@@ -117,6 +117,16 @@ abstract class HybridBenchmarkObjectSwiftKotlinSpec: HybridObject() {
     // C++ JHybridBenchmarkObjectSwiftKotlinSpec::CxxPart::initHybrid(...)
     @FastNative
     external override fun initHybrid(): HybridData
+
+    companion object {
+      // A class literal keeps the implementation reachable after R8 renaming.
+      @DoNotStrip
+      @Keep
+      @JvmStatic
+      private fun implementationClass_cxx(): Class<out HybridBenchmarkObjectSwiftKotlinSpec> {
+        return HybridBenchmarkObjectKotlin::class.java
+      }
+    }
   }
   override fun createCxxPart(): CxxPart {
     return CxxPart(this)

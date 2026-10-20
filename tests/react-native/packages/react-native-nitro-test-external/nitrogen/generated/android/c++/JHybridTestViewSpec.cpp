@@ -19,7 +19,11 @@ namespace margelo::nitro::test::external {
     jni::ThreadScope::WithClassLoader([&] { _javaPart.reset(); });
   }
 
-
+  jni::alias_ref<jni::JClass> JHybridTestViewSpec::CxxPart::getImplementationClass() {
+    static const auto __method = CxxPart::javaClassStatic()->getStaticMethod<jni::local_ref<jni::JClass>()>("implementationClass_cxx");
+    static const auto __class = jni::make_global(__method(CxxPart::javaClassStatic()));
+    return __class;
+  }
 
   const std::shared_ptr<const HybridClass>& JHybridTestViewSpec::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
@@ -60,13 +64,15 @@ namespace margelo::nitro::test::external {
 
   // Properties
   bool JHybridTestViewSpec::getIsBlue() {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<jboolean()>("isBlue");
-    auto __result = __method(_javaPart);
+    static const auto __class = CxxPart::getImplementationClass();
+    static const auto __method = __class->getNonvirtualMethod<jboolean()>("isBlue");
+    auto __result = __method(_javaPart, __class);
     return static_cast<bool>(__result);
   }
   void JHybridTestViewSpec::setIsBlue(bool isBlue) {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<void(jboolean /* isBlue */)>("setBlue");
-    __method(_javaPart, isBlue);
+    static const auto __class = CxxPart::getImplementationClass();
+    static const auto __method = __class->getNonvirtualMethod<void(jboolean /* isBlue */)>("setBlue");
+    __method(_javaPart, __class, isBlue);
   }
   Callback<void()> JHybridTestViewSpec::getSomeCallback() {
     static const auto __method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JCallback_void::javaobject>()>("getSomeCallback_cxx");
@@ -88,12 +94,14 @@ namespace margelo::nitro::test::external {
 
   // Methods
   void JHybridTestViewSpec::someMethod() {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<void()>("someMethod");
-    __method(_javaPart);
+    static const auto __class = CxxPart::getImplementationClass();
+    static const auto __method = __class->getNonvirtualMethod<void()>("someMethod");
+    __method(_javaPart, __class);
   }
   std::string JHybridTestViewSpec::getModuleName() {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<jni::JString>()>("getModuleName");
-    auto __result = __method(_javaPart);
+    static const auto __class = CxxPart::getImplementationClass();
+    static const auto __method = __class->getNonvirtualMethod<jni::local_ref<jni::JString>()>("getModuleName");
+    auto __result = __method(_javaPart, __class);
     return __result->toStdString();
   }
 

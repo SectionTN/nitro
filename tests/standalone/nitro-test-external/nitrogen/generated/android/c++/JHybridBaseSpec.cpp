@@ -32,6 +32,12 @@ namespace margelo::nitro::test::external {
     return __result->getJHybridBaseSpec();
   }
 
+  jni::alias_ref<jni::JClass> JHybridBaseSpec::CxxPart::getImplementationClass() {
+    static const auto __method = CxxPart::javaClassStatic()->getStaticMethod<jni::local_ref<jni::JClass>()>("implementationClass_cxx");
+    static const auto __class = jni::make_global(__method(CxxPart::javaClassStatic()));
+    return __class;
+  }
+
   const std::shared_ptr<const HybridClass>& JHybridBaseSpec::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
       clazz.registerHybridProperty("baseValue", &JHybridBaseSpec::getBaseValue);
@@ -72,20 +78,23 @@ namespace margelo::nitro::test::external {
 
   // Properties
   double JHybridBaseSpec::getBaseValue() {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<double()>("getBaseValue");
-    auto __result = __method(_javaPart);
+    static const auto __class = CxxPart::getImplementationClass();
+    static const auto __method = __class->getNonvirtualMethod<double()>("getBaseValue");
+    auto __result = __method(_javaPart, __class);
     return __result;
   }
 
   // Methods
   SizeKotlin JHybridBaseSpec::bounceSize(const SizeKotlin& size) {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JSize>(jni::alias_ref<JSize> /* size */)>("bounceSize");
-    auto __result = __method(_javaPart, JSize::fromCpp(size));
+    static const auto __class = CxxPart::getImplementationClass();
+    static const auto __method = __class->getNonvirtualMethod<jni::local_ref<JSize>(jni::alias_ref<JSize> /* size */)>("bounceSize");
+    auto __result = __method(_javaPart, __class, JSize::fromCpp(size));
     return __result->toCpp();
   }
   SizeUnit JHybridBaseSpec::bounceSizeUnit(SizeUnit unit) {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JSizeUnit>(jni::alias_ref<JSizeUnit> /* unit */)>("bounceSizeUnit");
-    auto __result = __method(_javaPart, JSizeUnit::fromCpp(unit));
+    static const auto __class = CxxPart::getImplementationClass();
+    static const auto __method = __class->getNonvirtualMethod<jni::local_ref<JSizeUnit>(jni::alias_ref<JSizeUnit> /* unit */)>("bounceSizeUnit");
+    auto __result = __method(_javaPart, __class, JSizeUnit::fromCpp(unit));
     return __result->toCpp();
   }
   Promise<SizeKotlin> JHybridBaseSpec::mapSize(const SizeKotlin& size, const Callback<SizeKotlin(const SizeKotlin& /* size */)>& callback) {
