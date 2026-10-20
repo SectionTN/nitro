@@ -801,13 +801,10 @@ abstract class HybridTestObjectSwiftKotlinSpec: HybridObject() {
     external override fun initHybrid(): HybridData
 
     companion object {
-      // A class literal keeps the implementation reachable after R8 renaming.
       @DoNotStrip
       @Keep
-      @JvmStatic
-      private fun implementationClass_cxx(): Class<out HybridTestObjectSwiftKotlinSpec> {
-        return HybridTestObjectKotlin::class.java
-      }
+      @JvmField
+      val implementationClass_cxx: Class<out HybridTestObjectSwiftKotlinSpec> = HybridTestObjectKotlin::class.java
     }
   }
   override fun createCxxPart(): CxxPart {

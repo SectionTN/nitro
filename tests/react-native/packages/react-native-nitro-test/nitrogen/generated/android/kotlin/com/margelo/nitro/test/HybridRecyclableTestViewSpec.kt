@@ -71,13 +71,10 @@ abstract class HybridRecyclableTestViewSpec: HybridView() {
     external override fun initHybrid(): HybridData
 
     companion object {
-      // A class literal keeps the implementation reachable after R8 renaming.
       @DoNotStrip
       @Keep
-      @JvmStatic
-      private fun implementationClass_cxx(): Class<out HybridRecyclableTestViewSpec> {
-        return HybridRecyclableTestView::class.java
-      }
+      @JvmField
+      val implementationClass_cxx: Class<out HybridRecyclableTestViewSpec> = HybridRecyclableTestView::class.java
     }
   }
   override fun createCxxPart(): CxxPart {

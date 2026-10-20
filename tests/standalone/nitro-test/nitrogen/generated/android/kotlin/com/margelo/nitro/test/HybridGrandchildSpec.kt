@@ -48,13 +48,10 @@ abstract class HybridGrandchildSpec: HybridChildSpec() {
     external override fun initHybrid(): HybridData
 
     companion object {
-      // A class literal keeps the implementation reachable after R8 renaming.
       @DoNotStrip
       @Keep
-      @JvmStatic
-      private fun implementationClass_cxx(): Class<out HybridGrandchildSpec> {
-        return HybridGrandchild::class.java
-      }
+      @JvmField
+      val implementationClass_cxx: Class<out HybridGrandchildSpec> = HybridGrandchild::class.java
     }
   }
   override fun createCxxPart(): CxxPart {

@@ -193,15 +193,13 @@ external override fun initHybrid(): HybridData
   if (canUseNonvirtualJniCalls(spec)) {
     const implementation = getKotlinImplementation(spec)
     imports.push(implementation.kotlinImport)
+    // A class literal keeps the implementation reachable after R8 renaming.
     const implementationClassCode = `
 companion object {
-  // A class literal keeps the implementation reachable after R8 renaming.
   @DoNotStrip
   @Keep
-  @JvmStatic
-  private fun implementationClass_cxx(): Class<out ${name.HybridTSpec}> {
-    return ${implementation.className}::class.java
-  }
+  @JvmField
+  val implementationClass_cxx: Class<out ${name.HybridTSpec}> = ${implementation.className}::class.java
 }
 `.trim()
     sections.push(implementationClassCode)

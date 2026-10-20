@@ -20,8 +20,8 @@ namespace margelo::nitro::test::external {
   }
 
   jni::alias_ref<jni::JClass> JHybridTestViewSpec::CxxPart::getImplementationClass() {
-    static const auto __method = CxxPart::javaClassStatic()->getStaticMethod<jni::local_ref<jni::JClass>()>("implementationClass_cxx");
-    static const auto __class = jni::make_global(__method(CxxPart::javaClassStatic()));
+    static const auto __field = CxxPart::javaClassStatic()->getStaticField<jni::JClass>("implementationClass_cxx");
+    static const auto __class = jni::make_global(CxxPart::javaClassStatic()->getStaticFieldValue(__field));
     return __class;
   }
 
