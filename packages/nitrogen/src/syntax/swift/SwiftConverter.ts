@@ -1,4 +1,4 @@
-import type { Type } from '../types/Type.js'
+import type { Type, TypeQualification } from '../types/Type.js'
 import { wrapSwiftType } from './wrapSwiftType.js'
 import { getUmbrellaHeaderName } from '../../autolinking/ios/createSwiftUmbrellaHeader.js'
 import { NitroConfig } from '../../config/NitroConfig.js'
@@ -12,22 +12,22 @@ interface GetSwiftConverterOptions {
   cppType: Type
   context?: 'value' | 'parameter-type'
   swiftType?: SwiftType
-  fullyQualified?: boolean
+  qualification?: TypeQualification
 }
 
 export function getSwiftConverter({
   cppType: type,
   context = 'value',
-  fullyQualified = false,
+  qualification = 'module',
   swiftType: swiftRepresentation = wrapSwiftType(type),
 }: GetSwiftConverterOptions): string {
   const cppType = type.getCode('c++', {
-    fullyQualified: true,
+    qualification: qualification,
     context: context,
   })
   const swiftContext = context === 'parameter-type' ? 'parameter-type' : 'type-argument'
-  const swiftType = swiftRepresentation.getCode('c++', { context: swiftContext, fullyQualified: fullyQualified })
-  const name = fullyQualified ? '::margelo::nitro::SwiftConverter' : 'SwiftConverter'
+  const swiftType = swiftRepresentation.getCode('c++', { context: swiftContext, qualification: qualification })
+  const name = qualification === 'full' ? '::margelo::nitro::SwiftConverter' : 'SwiftConverter'
   return `${name}<${cppType}, ${swiftType}>`
 }
 
@@ -60,7 +60,7 @@ export function createSwiftConverter({
   dependencies = [],
 }: SwiftConverterImplementation): SwiftCppConverter {
   const converterName = `${name}-SwiftConverter`
-  const cppType = type.getCode('c++', { context: 'type-argument', fullyQualified: true })
+  const cppType = type.getCode('c++', { context: 'type-argument', qualification: 'module' })
   const cppSwiftType = swiftType.getCode('c++', { context: 'value' })
   let specialization: string
   if (swiftType.requiresExplicitSwiftTarget) {

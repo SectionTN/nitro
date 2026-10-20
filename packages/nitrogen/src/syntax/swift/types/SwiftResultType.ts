@@ -47,7 +47,7 @@ export class SwiftResultType implements SwiftType {
           context: 'type-argument',
         })
         const owner = this.sourceConfig.getSwiftBridgeNamespace('c++')
-        const name = options.fullyQualified ? '::margelo::nitro::Result' : 'Result'
+        const name = options.qualification === 'full' ? '::margelo::nitro::Result' : 'Result'
         const type = `${name}<${payload}, ${owner}::ResultTag>`
         return options.context === 'parameter' ? `const ${type}&` : type
       }

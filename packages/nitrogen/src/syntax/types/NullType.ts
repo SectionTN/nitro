@@ -13,7 +13,7 @@ export class NullType implements Type {
   getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        return options.fullyQualified ? '::margelo::nitro::NullType' : 'NullType'
+        return options.qualification === 'full' ? '::margelo::nitro::NullType' : 'NullType'
       case 'swift':
         return 'NullType'
       case 'kotlin':

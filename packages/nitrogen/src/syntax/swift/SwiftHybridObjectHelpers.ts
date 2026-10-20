@@ -62,7 +62,7 @@ interface SwiftHybridObjectCppConverterOptions {
 }
 
 export function createSwiftHybridObjectCppConverter({ type, cppType }: SwiftHybridObjectCppConverterOptions): SwiftCppConverter {
-  const adapter = cppType.getCode('c++', { context: 'value', fullyQualified: true })
+  const adapter = cppType.getCode('c++', { context: 'value', qualification: 'module' })
   const pointer = new SwiftRetainedPointerType(type)
   const bridge = getHybridObjectBridgeNames(type.type)
   const bridgeNamespace = type.sourceConfig.getSwiftBridgeNamespace('c++')

@@ -28,7 +28,7 @@ export function createCppStruct(typename: string, properties: NamedType[]): [hea
   // Get C++ code for converting each member from a jsi::Value
   const codeOptions: GetCallbackCodeOptions = {
     context: 'type-argument',
-    fullyQualified: true,
+    qualification: 'module',
     includeNameInfo: false,
   }
   const cppFromJsiParams = properties

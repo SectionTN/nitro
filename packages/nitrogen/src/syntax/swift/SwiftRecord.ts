@@ -112,7 +112,7 @@ interface SwiftRecordCppConverterOptions {
 
 export function createSwiftRecordCppConverter({ type, cppType }: SwiftRecordCppConverterOptions): SwiftCppConverter {
   const recordType = getTypeAs(cppType, RecordType)
-  const cppDictionaryType = recordType.getCode('c++', { context: 'type-argument', fullyQualified: true })
+  const cppDictionaryType = recordType.getCode('c++', { context: 'type-argument', qualification: 'module' })
   const swiftKeyType = type.keyType.getCode('c++', { context: 'type-argument' })
   const swiftValueType = type.valueType.getCode('c++', { context: 'type-argument' })
   const converter = `SwiftDictionaryConverter<${cppDictionaryType}, SwiftType, ${swiftKeyType}, ${swiftValueType}>`

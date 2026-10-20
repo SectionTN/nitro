@@ -16,7 +16,7 @@ export class AnyHybridObjectType implements Type {
   getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++': {
-        const name = options.fullyQualified ? '::margelo::nitro::HybridObject' : 'HybridObject'
+        const name = options.qualification === 'full' ? '::margelo::nitro::HybridObject' : 'HybridObject'
         const type = `std::shared_ptr<${name}>`
         return options.context === 'parameter' ? `const ${type}&` : type
       }

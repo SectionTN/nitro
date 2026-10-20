@@ -94,10 +94,10 @@ export class EnumType implements Type {
     return true
   }
 
-  getCode(language: Language, { fullyQualified }: GetCodeOptions): string {
+  getCode(language: Language, { qualification = 'none' }: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        if (fullyQualified) {
+        if (qualification !== 'none') {
           return NitroConfig.current.getCxxNamespace('c++', this.enumName)
         } else {
           return this.enumName

@@ -137,7 +137,7 @@ export function createCppHybridObjectAdapter(spec: HybridObjectSpec<'swift' | 'c
   function getSignature(method: Method, qualified: boolean, isStatic: boolean): string {
     const returnType = method.returnType.getCode('c++', {
       context: 'return',
-      fullyQualified: true,
+      qualification: 'module',
     })
     const name = qualified ? `${names.className}::${method.name}` : method.name
     const prefix = isStatic && !qualified ? 'static ' : ''

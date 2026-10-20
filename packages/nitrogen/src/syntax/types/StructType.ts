@@ -35,11 +35,11 @@ export class StructType implements Type {
     return this.properties.every((p) => p.isEquatable)
   }
 
-  getCode(language: Language, { fullyQualified, context }: GetCodeOptions): string {
+  getCode(language: Language, { qualification = 'none', context }: GetCodeOptions): string {
     switch (language) {
       case 'c++': {
         let type = this.structName
-        if (fullyQualified) {
+        if (qualification !== 'none') {
           type = NitroConfig.current.getCxxNamespace('c++', this.structName)
         }
         return context === 'parameter' ? `const ${type}&` : type

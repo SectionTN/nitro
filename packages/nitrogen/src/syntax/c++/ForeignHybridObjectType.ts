@@ -35,9 +35,9 @@ export class ForeignHybridObjectType extends HybridObjectType {
           throw new Error('C++ adapters are owning values; use the native handle for weak references.')
         }
         const names = getCppHybridObjectAdapterNames(this)
-        const fullyQualified = options.fullyQualified ?? this.sourceConfig.isExternalConfig
+        const qualification = options.qualification ?? (this.sourceConfig.isExternalConfig ? 'module' : 'none')
         let type: string
-        if (fullyQualified || this.sourceConfig.isExternalConfig) {
+        if (qualification !== 'none' || this.sourceConfig.isExternalConfig) {
           type = names.qualifiedName
         } else {
           type = names.className

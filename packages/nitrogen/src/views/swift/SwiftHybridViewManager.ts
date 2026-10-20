@@ -52,7 +52,7 @@ export function createSwiftHybridViewManager(spec: HybridObjectSpec<'swift'>): S
   const propAssignments = viewProperties.map(({ property, swiftType }) => {
     const name = escapeCppName(property.name)
     const setter = property.getSetterName('other')
-    const converter = getSwiftConverter({ cppType: property.type, swiftType: swiftType, fullyQualified: true })
+    const converter = getSwiftConverter({ cppType: property.type, swiftType: swiftType, qualification: 'full' })
     return `
 // ${property.jsSignature}
 if (oldViewProps == nullptr

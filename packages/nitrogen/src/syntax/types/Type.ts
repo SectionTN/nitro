@@ -29,6 +29,8 @@ export type TypeKind =
 
 export type TypeContext = 'value' | 'parameter' | 'parameter-type' | 'return' | 'property' | 'type-argument'
 
+export type TypeQualification = 'none' | 'module' | 'full'
+
 export interface GetCodeOptions {
   /**
    * Where this type appears in generated code.
@@ -38,10 +40,13 @@ export interface GetCodeOptions {
    */
   context: TypeContext
   /**
-   * Specifies whether the name (e.g. a C++ class name)
-   * should use the fully qualified namespace name prefix.
+   * `none` uses local names (the default).
+   * `module` qualifies module-owned types while keeping core Nitro types local,
+   * for converters emitted inside `margelo::nitro`.
+   * `full` also qualifies core Nitro types, for code outside Nitro namespaces.
+   * Containers pass the same mode to their nested types.
    */
-  fullyQualified?: boolean
+  qualification?: TypeQualification
 }
 
 /**

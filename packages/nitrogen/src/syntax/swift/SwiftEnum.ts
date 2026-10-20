@@ -213,7 +213,7 @@ interface SwiftEnumCppConverterOptions {
 
 export function createSwiftEnumCppConverter({ type, cppType }: SwiftEnumCppConverterOptions): SwiftCppConverter {
   const enumType = getTypeAs(cppType, EnumType)
-  const nativeEnumType = enumType.getCode('c++', { context: 'value', fullyQualified: true })
+  const nativeEnumType = enumType.getCode('c++', { context: 'value', qualification: 'module' })
   const swiftToCppConverterCode = `
 return static_cast<${nativeEnumType}>(value.getRawValue());
 `.trim()

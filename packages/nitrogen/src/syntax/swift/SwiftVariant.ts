@@ -133,7 +133,7 @@ if (JSIConverter<${payloadType}>::canConvert(runtime, value)) {
 `.trim()
   })
   const diagnosticTypes = variantType.variants
-    .map((variant) => variant.getCode('c++', { context: 'type-argument', fullyQualified: true }))
+    .map((variant) => variant.getCode('c++', { context: 'type-argument', qualification: 'module' }))
     .join(', ')
   const jsToSwiftConverterCode = `
 ${jsToSwiftCases.join('\n')}
@@ -178,7 +178,7 @@ interface SwiftVariantCppConverterOptions {
 
 export function createSwiftVariantCppConverter({ type, cppType }: SwiftVariantCppConverterOptions): SwiftCppConverter {
   const variantType = getTypeAs(cppType, VariantType)
-  const cppVariantType = variantType.getCode('c++', { context: 'value', fullyQualified: true })
+  const cppVariantType = variantType.getCode('c++', { context: 'value', qualification: 'module' })
   const storage = new SwiftOutPointerType(type)
   const payloads = variantType.cases.map(([label, native], index) => {
     const swift = type.variants[index]

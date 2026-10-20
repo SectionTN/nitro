@@ -129,7 +129,7 @@ export function createSwiftStructCppConverter({ type, cppType }: SwiftStructCppC
     if (swiftProperty == null) throw new Error(`Missing Swift property ${type.name}.${property.name}`)
     return { native: property, swift: swiftProperty }
   })
-  const nativeStructType = structType.getCode('c++', { context: 'value', fullyQualified: true })
+  const nativeStructType = structType.getCode('c++', { context: 'value', qualification: 'module' })
   const cppInitializerValues = properties.map(({ native, swift }) => {
     const converter = getSwiftConverter({ cppType: native, swiftType: swift })
     const getterName = `get${capitalizeName(swift.escapedName)}_cxx`

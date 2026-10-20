@@ -54,13 +54,13 @@ export class HybridObjectType implements Type {
   getCode(language: Language, options: GetHybridObjectCodeOptions): string {
     const name = getHybridObjectName(this.hybridObjectName)
     const mode = options.mode ?? 'strong'
-    const fullyQualified = options.fullyQualified ?? this.sourceConfig.isExternalConfig
+    const qualification = options.qualification ?? (this.sourceConfig.isExternalConfig ? 'module' : 'none')
 
     switch (language) {
       case 'c++': {
         const ptrType = mode === 'strong' ? 'std::shared_ptr' : 'std::weak_ptr'
         let typeName = name.HybridTSpec
-        if (fullyQualified) {
+        if (qualification !== 'none') {
           typeName = this.sourceConfig.getCxxNamespace('c++', name.HybridTSpec)
         }
         const type = `${ptrType}<${typeName}>`
@@ -88,7 +88,7 @@ export class HybridObjectType implements Type {
             `HybridObject "${this.hybridObjectName}" is implemented in ${android.language} on Android, but this reference requires Kotlin. Cross-language HybridObject references are currently supported only in C++ APIs.`
           )
         }
-        if (fullyQualified) {
+        if (qualification !== 'none') {
           // full qualified name: "com.margelo.nitro.image.Image"
           return this.sourceConfig.getAndroidPackage('java/kotlin', name.HybridTSpec)
         } else {
