@@ -85,22 +85,37 @@ public extension ${enumType.enumName} {
   const cppEnumType = type.getCode('c++', { context: 'value' })
   const enumMemberValues = enumType.enumMembers.map((member) => member.value)
   const enumValues = [...new Set(enumMemberValues)]
-  const nativeEnumType = enumType.getCode('c++', {
-    context: 'value',
-    fullyQualified: true,
-  })
-  // Share validation and error messages with the C++ enum converter.
-  const jsToSwiftConverterCode = `
-const auto nativeValue = JSIConverter<${nativeEnumType}>::fromJSI(runtime, value);
-return ${cppEnumType}::fromRawValue(static_cast<int32_t>(nativeValue));
-`.trim()
-  const jsCanConvertCode = `return JSIConverter<${nativeEnumType}>::canConvert(runtime, value);`
+  let jsToSwiftConverterCode: string
   let swiftToJSConverterCode: string
+  let jsCanConvertCode: string
   if (enumType.jsType === 'union') {
+    const fromJSICases = enumType.enumMembers.map(
+      (member) =>
+        `case hashString("${member.stringValue}"): return ${cppEnumType}::fromRawValue(${member.value});`,
+    )
+    const canConvertCases = enumType.enumMembers.map(
+      (member) => `case hashString("${member.stringValue}"): return true;`,
+    )
     const toJSICases = enumType.enumMembers.map(
       (member) =>
         `case ${member.value}: return createJSIString<"${member.stringValue}">(runtime);`,
     )
+    jsToSwiftConverterCode = `
+const auto string = value.asString(runtime).utf8(runtime);
+switch (hashString(string)) {
+  ${indent(fromJSICases.join('\n'), '  ')}
+  default: [[unlikely]]
+    throw std::invalid_argument("Cannot convert \\"" + string + "\\" to enum ${enumType.enumName} - invalid value!");
+}
+`.trim()
+    jsCanConvertCode = `
+if (!value.isString()) return false;
+const auto string = value.getString(runtime).utf8(runtime);
+switch (hashString(string)) {
+  ${indent(canConvertCases.join('\n'), '  ')}
+  default: return false;
+}
+`.trim()
     swiftToJSConverterCode = `
 switch (value.getRawValue()) {
   ${indent(toJSICases.join('\n'), '  ')}
@@ -109,7 +124,48 @@ switch (value.getRawValue()) {
 }
 `.trim()
   } else {
+    const minimum = Math.min(...enumValues)
+    const maximum = Math.max(...enumValues)
+    const fromJSICases = enumValues.map(
+      (raw) => `case ${raw}: return ${cppEnumType}::fromRawValue(${raw});`,
+    )
+    const canConvertCases = enumValues.map((raw) => `case ${raw}: return true;`)
+    // Reject NaN, infinities, and out-of-range values before the integer cast.
+    const readInteger = (onInvalid: string) =>
+      `
+if (!value.isNumber()) { ${onInvalid} }
+const double number = value.getNumber();
+if (!(number >= ${minimum} && number <= ${maximum})) { ${onInvalid} }
+const auto integer = static_cast<int32_t>(number);
+if (number != integer) { ${onInvalid} }
+`.trim()
+    jsToSwiftConverterCode = `
+const int integer = doubleToInt(value.asNumber());
+switch (integer) {
+  ${indent(fromJSICases.join('\n'), '  ')}
+  default: [[unlikely]]
+    throw std::invalid_argument("Cannot convert " + value.toString(runtime).utf8(runtime) + " to enum ${enumType.enumName} - invalid value!");
+}
+`.trim()
     swiftToJSConverterCode = 'return jsi::Value(value.getRawValue());'
+    const isContiguous = maximum - minimum + 1 === enumValues.length
+    let canConvertIntegerBody: string
+    if (isContiguous) {
+      canConvertIntegerBody = 'return true;'
+    } else {
+      canConvertIntegerBody = `
+switch (integer) {
+  ${indent(canConvertCases.join('\n'), '  ')}
+  default: return false;
+}
+`.trim()
+    }
+    const cannotConvertCode = 'return false;'
+    const canConvertIntegerChecks = readInteger(cannotConvertCode)
+    jsCanConvertCode = `
+${canConvertIntegerChecks}
+${canConvertIntegerBody}
+`.trim()
   }
   const swiftToCppConverterCode = `
 return static_cast<${enumType.getCode('c++', { context: 'value', fullyQualified: true })}>(value.getRawValue());
@@ -137,6 +193,20 @@ return SwiftType::fromRawValue(rawValue);
         {
           language: 'c++',
           declaration: { name: 'NitroModules/NitroDefines.hpp', space: 'system' },
+        },
+        {
+          language: 'c++',
+          declaration: {
+            name: 'NitroModules/NitroHash.hpp',
+            space: 'system',
+          },
+        },
+        {
+          language: 'c++',
+          declaration: {
+            name: 'NitroModules/NumberUtils.hpp',
+            space: 'system',
+          },
         },
         {
           language: 'c++',

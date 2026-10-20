@@ -10,6 +10,8 @@
 #include <NitroModules/SwiftConverter.hpp>
 #include <NitroTest/WeirdNumbersEnum.hpp>
 #include <NitroModules/NitroDefines.hpp>
+#include <NitroModules/NitroHash.hpp>
+#include <NitroModules/NumberUtils.hpp>
 #include <NitroModules/JSIString.hpp>
 
 namespace margelo::nitro {
@@ -29,8 +31,14 @@ namespace margelo::nitro {
   }
 
   NitroTest::WeirdNumbersEnum JSIConverter<NitroTest::WeirdNumbersEnum>::fromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    const auto nativeValue = JSIConverter<margelo::nitro::test::WeirdNumbersEnum>::fromJSI(runtime, value);
-    return NitroTest::WeirdNumbersEnum::fromRawValue(static_cast<int32_t>(nativeValue));
+    const int integer = doubleToInt(value.asNumber());
+    switch (integer) {
+      case 0: return NitroTest::WeirdNumbersEnum::fromRawValue(0);
+      case 32: return NitroTest::WeirdNumbersEnum::fromRawValue(32);
+      case 64: return NitroTest::WeirdNumbersEnum::fromRawValue(64);
+      default: [[unlikely]]
+        throw std::invalid_argument("Cannot convert " + value.toString(runtime).utf8(runtime) + " to enum WeirdNumbersEnum - invalid value!");
+    }
   }
 
   jsi::Value JSIConverter<NitroTest::WeirdNumbersEnum>::toJSI(jsi::Runtime& runtime, const NitroTest::WeirdNumbersEnum& value) {
@@ -38,7 +46,17 @@ namespace margelo::nitro {
   }
 
   bool JSIConverter<NitroTest::WeirdNumbersEnum>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-    return JSIConverter<margelo::nitro::test::WeirdNumbersEnum>::canConvert(runtime, value);
+    if (!value.isNumber()) { return false; }
+    const double number = value.getNumber();
+    if (!(number >= 0 && number <= 64)) { return false; }
+    const auto integer = static_cast<int32_t>(number);
+    if (number != integer) { return false; }
+    switch (integer) {
+      case 0: return true;
+      case 32: return true;
+      case 64: return true;
+      default: return false;
+    }
   }
 
 } // namespace margelo::nitro

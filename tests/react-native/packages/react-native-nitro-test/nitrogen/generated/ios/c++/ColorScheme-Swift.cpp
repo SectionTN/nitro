@@ -10,6 +10,8 @@
 #include <NitroModules/SwiftConverter.hpp>
 #include <NitroTest/ColorScheme.hpp>
 #include <NitroModules/NitroDefines.hpp>
+#include <NitroModules/NitroHash.hpp>
+#include <NitroModules/NumberUtils.hpp>
 #include <NitroModules/JSIString.hpp>
 
 namespace margelo::nitro {
@@ -29,8 +31,13 @@ namespace margelo::nitro {
   }
 
   NitroTest::ColorScheme JSIConverter<NitroTest::ColorScheme>::fromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    const auto nativeValue = JSIConverter<margelo::nitro::test::ColorScheme>::fromJSI(runtime, value);
-    return NitroTest::ColorScheme::fromRawValue(static_cast<int32_t>(nativeValue));
+    const auto string = value.asString(runtime).utf8(runtime);
+    switch (hashString(string)) {
+      case hashString("light"): return NitroTest::ColorScheme::fromRawValue(0);
+      case hashString("dark"): return NitroTest::ColorScheme::fromRawValue(1);
+      default: [[unlikely]]
+        throw std::invalid_argument("Cannot convert \"" + string + "\" to enum ColorScheme - invalid value!");
+    }
   }
 
   jsi::Value JSIConverter<NitroTest::ColorScheme>::toJSI(jsi::Runtime& runtime, const NitroTest::ColorScheme& value) {
@@ -43,7 +50,13 @@ namespace margelo::nitro {
   }
 
   bool JSIConverter<NitroTest::ColorScheme>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-    return JSIConverter<margelo::nitro::test::ColorScheme>::canConvert(runtime, value);
+    if (!value.isString()) return false;
+    const auto string = value.getString(runtime).utf8(runtime);
+    switch (hashString(string)) {
+      case hashString("light"): return true;
+      case hashString("dark"): return true;
+      default: return false;
+    }
   }
 
 } // namespace margelo::nitro
