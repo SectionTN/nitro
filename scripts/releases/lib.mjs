@@ -217,6 +217,14 @@ export function github(
   return result.stdout.trim() ? JSON.parse(result.stdout) : null
 }
 
+function* listReleases(repo, request) {
+  for (let page = 1; ; page++) {
+    const releases = request(`repos/${repo}/releases?per_page=100&page=${page}`)
+    yield* releases
+    if (releases.length < 100) break
+  }
+}
+
 export function getRelease(
   repo,
   tag,
@@ -224,12 +232,9 @@ export function getRelease(
 ) {
   // The tag endpoint excludes drafts. Scan every page so an empty duplicate
   // cannot hide an older release containing the saved checkpoint.
-  const matches = []
-  for (let page = 1; ; page++) {
-    const releases = request(`repos/${repo}/releases?per_page=100&page=${page}`)
-    matches.push(...releases.filter((release) => release.tag_name === tag))
-    if (releases.length < 100) break
-  }
+  const matches = [...listReleases(repo, request)].filter(
+    (release) => release.tag_name === tag
+  )
   const checkpoints = matches.filter((release) =>
     release.assets.some((asset) => asset.name === manifestName)
   )
@@ -441,6 +446,57 @@ export async function publishPackages(
   }
 }
 
+export function releaseNotes(manifest, request = github) {
+  const channel = (version) =>
+    parseVersion(version)
+      .prerelease.join('.')
+      .match(/^(?:alpha\.)?nightly(?=\.|$)/)?.[0]
+  const nightly = channel(manifest.version)
+  if (!nightly && parseVersion(manifest.version).prerelease.length)
+    return { generate_release_notes: true }
+  try {
+    let stable
+    let previous
+    for (const release of listReleases(manifest.repository, request)) {
+      if (release.draft || !release.published_at) continue
+      let version
+      try {
+        version = versionFromTag(release.tag_name)
+      } catch {
+        continue
+      }
+      if (compareVersions(version, manifest.version) >= 0) continue
+      if (!release.prerelease && !parseVersion(version).prerelease.length) {
+        if (!stable || compareVersions(version, stable) > 0) stable = version
+      } else if (nightly && channel(version) === nightly) {
+        if (!previous || compareVersions(version, previous) > 0)
+          previous = version
+      }
+    }
+    previous ??= stable
+    if (!previous) return { generate_release_notes: true }
+    const notes = request(
+      `repos/${manifest.repository}/releases/generate-notes`,
+      {
+        method: 'POST',
+        body: {
+          tag_name: manifest.tag,
+          previous_tag_name: `v${previous}`,
+        },
+      }
+    )
+    let body = notes.body
+    if (nightly && stable) {
+      body += `\n\n[Changes since latest stable (v${stable})](https://github.com/${manifest.repository}/compare/v${stable}...${manifest.tag})`
+    }
+    return { body }
+  } catch (error) {
+    // Optional changelog selection must not prevent package publication.
+    console.warn(`Using GitHub's default release notes: ${error.message}`)
+    return { generate_release_notes: true }
+  }
+}
+
 export function saveDraft(
   manifest,
   directory,
@@ -471,7 +527,7 @@ export function saveDraft(
         name: manifest.tag,
         draft: true,
         prerelease: !!parseVersion(manifest.version).prerelease.length,
-        generate_release_notes: true,
+        ...releaseNotes(manifest, request),
         make_latest: 'false',
       },
     })
