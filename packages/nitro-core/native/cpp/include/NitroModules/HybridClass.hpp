@@ -135,7 +135,13 @@ public:
     _staticMethods.emplace(name, HybridFunction::createStaticHybridFunction(name, method));
   }
 
-  /** Register a read-only property on this type's JavaScript prototype. */
+  /**
+   * Registers the given C++ getter as a read-only property on this type's JavaScript prototype.
+   * Example:
+   * ```cpp
+   * registerHybridProperty("foo", &MyObject::getFoo);
+   * ```
+   */
   template <typename Derived, typename ReturnType>
     requires JSIEncodable<ReturnType>
   inline void registerHybridProperty(std::string name, InstanceMethod<Derived, ReturnType> getter) {
@@ -145,7 +151,13 @@ public:
                                  });
   }
 
-  /** Register a property with a getter and setter on this type's JavaScript prototype. */
+  /**
+   * Registers the given C++ getter and setter as a property on this type's JavaScript prototype.
+   * Example:
+   * ```cpp
+   * registerHybridProperty("foo", &MyObject::getFoo, &MyObject::setFoo);
+   * ```
+   */
   template <typename GetterClass, typename ReturnType, typename SetterClass, typename ValueType>
     requires(JSIEncodable<ReturnType> && JSIDecodable<std::decay_t<ValueType>>)
   inline void registerHybridProperty(std::string name, InstanceMethod<GetterClass, ReturnType> getter,
