@@ -10,7 +10,6 @@
 #include <NitroModules/SwiftConverter.hpp>
 #include <NitroTest/SizeUnit.hpp>
 #include <NitroModules/NitroDefines.hpp>
-#include <NitroModules/NitroHash.hpp>
 #include <NitroModules/JSIString.hpp>
 
 namespace margelo::nitro {
@@ -30,16 +29,8 @@ namespace margelo::nitro {
   }
 
   NitroTest::SizeUnit JSIConverter<NitroTest::SizeUnit>::fromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isNumber()) { throw std::invalid_argument("Invalid value for SizeUnit"); }
-    const double number = value.getNumber();
-    if (!(number >= 1 && number <= 2)) { throw std::invalid_argument("Invalid value for SizeUnit"); }
-    const auto integer = static_cast<int32_t>(number);
-    if (number != integer) { throw std::invalid_argument("Invalid value for SizeUnit"); }
-    switch (integer) {
-      case 1: return NitroTest::SizeUnit::fromRawValue(1);
-      case 2: return NitroTest::SizeUnit::fromRawValue(2);
-      default: throw std::invalid_argument("Invalid value for SizeUnit");
-    }
+    const auto nativeValue = JSIConverter<margelo::nitro::test::SizeUnit>::fromJSI(runtime, value);
+    return NitroTest::SizeUnit::fromRawValue(static_cast<int32_t>(nativeValue));
   }
 
   jsi::Value JSIConverter<NitroTest::SizeUnit>::toJSI(jsi::Runtime& runtime, const NitroTest::SizeUnit& value) {
@@ -47,12 +38,7 @@ namespace margelo::nitro {
   }
 
   bool JSIConverter<NitroTest::SizeUnit>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isNumber()) { return false; }
-    const double number = value.getNumber();
-    if (!(number >= 1 && number <= 2)) { return false; }
-    const auto integer = static_cast<int32_t>(number);
-    if (number != integer) { return false; }
-    return true;
+    return JSIConverter<margelo::nitro::test::SizeUnit>::canConvert(runtime, value);
   }
 
 } // namespace margelo::nitro

@@ -10,7 +10,6 @@
 #include <NitroModules/SwiftConverter.hpp>
 #include <NitroTest/OldEnum.hpp>
 #include <NitroModules/NitroDefines.hpp>
-#include <NitroModules/NitroHash.hpp>
 #include <NitroModules/JSIString.hpp>
 
 namespace margelo::nitro {
@@ -30,17 +29,8 @@ namespace margelo::nitro {
   }
 
   NitroTest::OldEnum JSIConverter<NitroTest::OldEnum>::fromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isNumber()) { throw std::invalid_argument("Invalid value for OldEnum"); }
-    const double number = value.getNumber();
-    if (!(number >= 0 && number <= 2)) { throw std::invalid_argument("Invalid value for OldEnum"); }
-    const auto integer = static_cast<int32_t>(number);
-    if (number != integer) { throw std::invalid_argument("Invalid value for OldEnum"); }
-    switch (integer) {
-      case 0: return NitroTest::OldEnum::fromRawValue(0);
-      case 1: return NitroTest::OldEnum::fromRawValue(1);
-      case 2: return NitroTest::OldEnum::fromRawValue(2);
-      default: throw std::invalid_argument("Invalid value for OldEnum");
-    }
+    const auto nativeValue = JSIConverter<margelo::nitro::test::OldEnum>::fromJSI(runtime, value);
+    return NitroTest::OldEnum::fromRawValue(static_cast<int32_t>(nativeValue));
   }
 
   jsi::Value JSIConverter<NitroTest::OldEnum>::toJSI(jsi::Runtime& runtime, const NitroTest::OldEnum& value) {
@@ -48,12 +38,7 @@ namespace margelo::nitro {
   }
 
   bool JSIConverter<NitroTest::OldEnum>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isNumber()) { return false; }
-    const double number = value.getNumber();
-    if (!(number >= 0 && number <= 2)) { return false; }
-    const auto integer = static_cast<int32_t>(number);
-    if (number != integer) { return false; }
-    return true;
+    return JSIConverter<margelo::nitro::test::OldEnum>::canConvert(runtime, value);
   }
 
 } // namespace margelo::nitro

@@ -10,7 +10,6 @@
 #include <NitroModules/SwiftConverter.hpp>
 #include <NitroTestExternal/SizeUnit.hpp>
 #include <NitroModules/NitroDefines.hpp>
-#include <NitroModules/NitroHash.hpp>
 #include <NitroModules/JSIString.hpp>
 
 namespace margelo::nitro {
@@ -30,16 +29,8 @@ namespace margelo::nitro {
   }
 
   NitroTestExternal::SizeUnit JSIConverter<NitroTestExternal::SizeUnit>::fromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isNumber()) { throw std::invalid_argument("Invalid value for SizeUnit"); }
-    const double number = value.getNumber();
-    if (!(number >= 10 && number <= 20)) { throw std::invalid_argument("Invalid value for SizeUnit"); }
-    const auto integer = static_cast<int32_t>(number);
-    if (number != integer) { throw std::invalid_argument("Invalid value for SizeUnit"); }
-    switch (integer) {
-      case 10: return NitroTestExternal::SizeUnit::fromRawValue(10);
-      case 20: return NitroTestExternal::SizeUnit::fromRawValue(20);
-      default: throw std::invalid_argument("Invalid value for SizeUnit");
-    }
+    const auto nativeValue = JSIConverter<margelo::nitro::test::external::SizeUnit>::fromJSI(runtime, value);
+    return NitroTestExternal::SizeUnit::fromRawValue(static_cast<int32_t>(nativeValue));
   }
 
   jsi::Value JSIConverter<NitroTestExternal::SizeUnit>::toJSI(jsi::Runtime& runtime, const NitroTestExternal::SizeUnit& value) {
@@ -47,16 +38,7 @@ namespace margelo::nitro {
   }
 
   bool JSIConverter<NitroTestExternal::SizeUnit>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isNumber()) { return false; }
-    const double number = value.getNumber();
-    if (!(number >= 10 && number <= 20)) { return false; }
-    const auto integer = static_cast<int32_t>(number);
-    if (number != integer) { return false; }
-    switch (integer) {
-      case 10: return true;
-      case 20: return true;
-      default: return false;
-    }
+    return JSIConverter<margelo::nitro::test::external::SizeUnit>::canConvert(runtime, value);
   }
 
 } // namespace margelo::nitro

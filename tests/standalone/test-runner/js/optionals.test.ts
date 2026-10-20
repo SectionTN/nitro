@@ -3,7 +3,6 @@ import { casesForTestObjects, recordCallback, waitFor } from "./utils/cases";
 
 import { OldEnum } from "nitro-test";
 import { debugOnly } from "./utils/helpers";
-import { isSwift } from "./utils/testObjects";
 
 const TRUCK_POWERTRAINS = ["electric", "gas", "hybrid", "diesel"] as const;
 export const cases = {
@@ -100,6 +99,36 @@ export const cases = {
       testObject.optionalOldEnum = OldEnum.SECOND;
       expect(Object.is(testObject.optionalOldEnum, OldEnum.SECOND)).to.equal(
         true,
+      );
+    },
+
+    "optionalOldEnum rejects an unknown integer": (testObject) => {
+      expect(() => {
+        // @ts-expect-error passing an unknown OldEnum value
+        testObject.optionalOldEnum = 9999;
+      }).to.throw(
+        `${testObject.constructor.name}.optionalOldEnum: Cannot convert 9999 to enum OldEnum - invalid value!`,
+      );
+    },
+
+    "optionalOldEnum rejects fractional and out-of-range numbers": (
+      testObject,
+    ) => {
+      for (const value of [1.5, 2147483648]) {
+        expect(() => {
+          testObject.optionalOldEnum = value;
+        }).to.throw(
+          `${testObject.constructor.name}.optionalOldEnum: Cannot convert ${value.toFixed(6)} to int - expected an integer within the int range!`,
+        );
+      }
+    },
+
+    "optionalOldEnum rejects a string": (testObject) => {
+      expect(() => {
+        // @ts-expect-error passing a string instead of a numeric enum
+        testObject.optionalOldEnum = "1";
+      }).to.throw(
+        `${testObject.constructor.name}.optionalOldEnum: Value is a string, expected a number`,
       );
     },
 
@@ -221,9 +250,7 @@ export const cases = {
     "tryOptionalEnum(...) throws for an invalid enum value": (testObject) => {
       // @ts-expect-error
       expect(() => testObject.tryOptionalEnum("diesel")).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.tryOptionalEnum(...): Invalid value for Powertrain`
-          : `${testObject.constructor.name}.tryOptionalEnum(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        `${testObject.constructor.name}.tryOptionalEnum(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
       );
     },
 
@@ -291,9 +318,7 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnumPlusOne = "petrol";
       }).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.optionalEnumPlusOne: Invalid value for TruckPowertrain`
-          : `${testObject.constructor.name}.optionalEnumPlusOne: Cannot convert "petrol" to enum TruckPowertrain - invalid value!`,
+        `${testObject.constructor.name}.optionalEnumPlusOne: Cannot convert "petrol" to enum TruckPowertrain - invalid value!`,
       );
     },
 
@@ -302,9 +327,7 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnumPlusOne = "Diesel";
       }).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.optionalEnumPlusOne: Invalid value for TruckPowertrain`
-          : `${testObject.constructor.name}.optionalEnumPlusOne: Cannot convert "Diesel" to enum TruckPowertrain - invalid value!`,
+        `${testObject.constructor.name}.optionalEnumPlusOne: Cannot convert "Diesel" to enum TruckPowertrain - invalid value!`,
       );
     },
 
@@ -315,9 +338,7 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnum = "diesel";
       }).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.optionalEnum: Invalid value for Powertrain`
-          : `${testObject.constructor.name}.optionalEnum: Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        `${testObject.constructor.name}.optionalEnum: Cannot convert "diesel" to enum Powertrain - invalid value!`,
       );
     },
   }),
@@ -354,9 +375,7 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnum = null;
       }).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.optionalEnum: Invalid value for Powertrain`
-          : `${testObject.constructor.name}.optionalEnum: Value is null, expected a String`,
+        `${testObject.constructor.name}.optionalEnum: Value is null, expected a String`,
       );
     },
 
@@ -365,9 +384,7 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalEnumPlusOne = null;
       }).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.optionalEnumPlusOne: Invalid value for TruckPowertrain`
-          : `${testObject.constructor.name}.optionalEnumPlusOne: Value is null, expected a String`,
+        `${testObject.constructor.name}.optionalEnumPlusOne: Value is null, expected a String`,
       );
     },
 
@@ -376,9 +393,7 @@ export const cases = {
         // @ts-expect-error
         testObject.optionalOldEnum = null;
       }).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.optionalOldEnum: Invalid value for OldEnum`
-          : `${testObject.constructor.name}.optionalOldEnum: Value is null, expected a number`,
+        `${testObject.constructor.name}.optionalOldEnum: Value is null, expected a number`,
       );
     },
 

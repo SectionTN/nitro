@@ -10,7 +10,6 @@
 #include <NitroModules/SwiftConverter.hpp>
 #include <NitroTest/HardwareBufferFormat.hpp>
 #include <NitroModules/NitroDefines.hpp>
-#include <NitroModules/NitroHash.hpp>
 #include <NitroModules/JSIString.hpp>
 
 namespace margelo::nitro {
@@ -30,16 +29,8 @@ namespace margelo::nitro {
   }
 
   NitroTest::HardwareBufferFormat JSIConverter<NitroTest::HardwareBufferFormat>::fromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isString()) { throw std::invalid_argument("Invalid value for HardwareBufferFormat"); }
-    const auto string = value.getString(runtime).utf8(runtime);
-    switch (hashString(string)) {
-      case hashString("rgba-8888"): return NitroTest::HardwareBufferFormat::fromRawValue(0);
-      case hashString("rgb-565"): return NitroTest::HardwareBufferFormat::fromRawValue(1);
-      case hashString("rgba-fp16"): return NitroTest::HardwareBufferFormat::fromRawValue(2);
-      case hashString("blob"): return NitroTest::HardwareBufferFormat::fromRawValue(3);
-      default: [[unlikely]]
-        throw std::invalid_argument("Invalid value for HardwareBufferFormat");
-    }
+    const auto nativeValue = JSIConverter<margelo::nitro::test::HardwareBufferFormat>::fromJSI(runtime, value);
+    return NitroTest::HardwareBufferFormat::fromRawValue(static_cast<int32_t>(nativeValue));
   }
 
   jsi::Value JSIConverter<NitroTest::HardwareBufferFormat>::toJSI(jsi::Runtime& runtime, const NitroTest::HardwareBufferFormat& value) {
@@ -54,15 +45,7 @@ namespace margelo::nitro {
   }
 
   bool JSIConverter<NitroTest::HardwareBufferFormat>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isString()) return false;
-    const auto string = value.getString(runtime).utf8(runtime);
-    switch (hashString(string)) {
-      case hashString("rgba-8888"): return true;
-      case hashString("rgb-565"): return true;
-      case hashString("rgba-fp16"): return true;
-      case hashString("blob"): return true;
-      default: return false;
-    }
+    return JSIConverter<margelo::nitro::test::HardwareBufferFormat>::canConvert(runtime, value);
   }
 
 } // namespace margelo::nitro

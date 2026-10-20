@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { casesForTestObjects, recordCallback, waitFor } from "./utils/cases";
 
 import { type Car, type OptionalWrapper } from "nitro-test";
-import { isSwift } from "./utils/testObjects";
 
 import {
   sumUpAllPassengers,
@@ -503,9 +502,33 @@ export const cases = {
         // @ts-expect-error passing an unknown Powertrain
         testObject.bounceCar({ ...TEST_CAR, powertrain: "diesel" }),
       ).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.bounceCar(...): Invalid value for Powertrain`
-          : `${testObject.constructor.name}.bounceCar(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        `${testObject.constructor.name}.bounceCar(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+      );
+    },
+
+    "bounceCar(...) rejects a missing powertrain": (testObject) => {
+      const car = withoutKey(TEST_CAR, "powertrain");
+      // @ts-expect-error passing a Car without its required enum field
+      expect(() => testObject.bounceCar(car)).to.throw(
+        `${testObject.constructor.name}.bounceCar(...): Value is undefined, expected a String`,
+      );
+    },
+
+    "bounceCar(...) rejects a null powertrain": (testObject) => {
+      expect(() =>
+        // @ts-expect-error passing null instead of a Powertrain
+        testObject.bounceCar({ ...TEST_CAR, powertrain: null }),
+      ).to.throw(
+        `${testObject.constructor.name}.bounceCar(...): Value is null, expected a String`,
+      );
+    },
+
+    "bounceCar(...) rejects a numeric powertrain": (testObject) => {
+      expect(() =>
+        // @ts-expect-error passing a number instead of a Powertrain
+        testObject.bounceCar({ ...TEST_CAR, powertrain: 55 }),
+      ).to.throw(
+        `${testObject.constructor.name}.bounceCar(...): Value is a number, expected a String`,
       );
     },
 
@@ -563,9 +586,25 @@ export const cases = {
       const wrapper = { tier: "diesel" };
       // @ts-expect-error passing an unknown Powertrain
       expect(() => testObject.bounceOptionalEnumStruct(wrapper)).to.throw(
-        isSwift(testObject)
-          ? `${testObject.constructor.name}.bounceOptionalEnumStruct(...): Invalid value for Powertrain`
-          : `${testObject.constructor.name}.bounceOptionalEnumStruct(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+        `${testObject.constructor.name}.bounceOptionalEnumStruct(...): Cannot convert "diesel" to enum Powertrain - invalid value!`,
+      );
+    },
+
+    "bounceOptionalEnumStruct(...) rejects a null enum field": (testObject) => {
+      expect(() =>
+        // @ts-expect-error optional enum fields accept undefined, not null
+        testObject.bounceOptionalEnumStruct({ tier: null }),
+      ).to.throw(
+        `${testObject.constructor.name}.bounceOptionalEnumStruct(...): Value is null, expected a String`,
+      );
+    },
+
+    "bounceOptionalEnumStruct(...) rejects a numeric enum field": (
+      testObject,
+    ) => {
+      // @ts-expect-error passing a number instead of an optional Powertrain
+      expect(() => testObject.bounceOptionalEnumStruct({ tier: 55 })).to.throw(
+        `${testObject.constructor.name}.bounceOptionalEnumStruct(...): Value is a number, expected a String`,
       );
     },
 

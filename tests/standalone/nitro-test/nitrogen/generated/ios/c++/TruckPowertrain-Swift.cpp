@@ -10,7 +10,6 @@
 #include <NitroModules/SwiftConverter.hpp>
 #include <NitroTest/TruckPowertrain.hpp>
 #include <NitroModules/NitroDefines.hpp>
-#include <NitroModules/NitroHash.hpp>
 #include <NitroModules/JSIString.hpp>
 
 namespace margelo::nitro {
@@ -30,16 +29,8 @@ namespace margelo::nitro {
   }
 
   NitroTest::TruckPowertrain JSIConverter<NitroTest::TruckPowertrain>::fromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isString()) { throw std::invalid_argument("Invalid value for TruckPowertrain"); }
-    const auto string = value.getString(runtime).utf8(runtime);
-    switch (hashString(string)) {
-      case hashString("electric"): return NitroTest::TruckPowertrain::fromRawValue(0);
-      case hashString("gas"): return NitroTest::TruckPowertrain::fromRawValue(1);
-      case hashString("hybrid"): return NitroTest::TruckPowertrain::fromRawValue(2);
-      case hashString("diesel"): return NitroTest::TruckPowertrain::fromRawValue(3);
-      default: [[unlikely]]
-        throw std::invalid_argument("Invalid value for TruckPowertrain");
-    }
+    const auto nativeValue = JSIConverter<margelo::nitro::test::TruckPowertrain>::fromJSI(runtime, value);
+    return NitroTest::TruckPowertrain::fromRawValue(static_cast<int32_t>(nativeValue));
   }
 
   jsi::Value JSIConverter<NitroTest::TruckPowertrain>::toJSI(jsi::Runtime& runtime, const NitroTest::TruckPowertrain& value) {
@@ -54,15 +45,7 @@ namespace margelo::nitro {
   }
 
   bool JSIConverter<NitroTest::TruckPowertrain>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (!value.isString()) return false;
-    const auto string = value.getString(runtime).utf8(runtime);
-    switch (hashString(string)) {
-      case hashString("electric"): return true;
-      case hashString("gas"): return true;
-      case hashString("hybrid"): return true;
-      case hashString("diesel"): return true;
-      default: return false;
-    }
+    return JSIConverter<margelo::nitro::test::TruckPowertrain>::canConvert(runtime, value);
   }
 
 } // namespace margelo::nitro
