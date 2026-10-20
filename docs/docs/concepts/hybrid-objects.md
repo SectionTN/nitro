@@ -29,7 +29,6 @@ export * from '#nitro/Math'
 ```swift title="HybridMath.swift"
 class HybridMath : HybridMathSpec {
   static let pi = Double.pi
-
   static func add(a: Double, b: Double) -> Double {
     return a + b
   }
