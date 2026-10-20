@@ -51,7 +51,9 @@ abstract class HybridPlatformObjectSpec: HybridObject() {
     return CxxPart(this)
   }
 
-  companion object {
+
+
+  companion object Bridge {
     protected const val TAG = "HybridPlatformObjectSpec"
 
     // Constructor

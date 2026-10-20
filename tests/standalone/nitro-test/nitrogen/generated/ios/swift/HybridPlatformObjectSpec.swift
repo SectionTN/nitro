@@ -9,6 +9,8 @@ public import NitroModules
 
 /// See ``HybridPlatformObjectSpec``
 public protocol HybridPlatformObjectSpec_protocol: HybridObject {
+  init() throws
+
   // Properties
 
 

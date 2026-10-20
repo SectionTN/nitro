@@ -60,7 +60,9 @@ abstract class HybridSomeExternalObjectSpec: HybridObject() {
     return CxxPart(this)
   }
 
-  companion object {
+
+
+  companion object Bridge {
     protected const val TAG = "HybridSomeExternalObjectSpec"
 
     // Constructor

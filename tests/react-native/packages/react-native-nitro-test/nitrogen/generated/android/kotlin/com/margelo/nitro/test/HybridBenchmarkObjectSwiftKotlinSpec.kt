@@ -122,7 +122,9 @@ abstract class HybridBenchmarkObjectSwiftKotlinSpec: HybridObject() {
     return CxxPart(this)
   }
 
-  companion object {
+
+
+  companion object Bridge {
     protected const val TAG = "HybridBenchmarkObjectSwiftKotlinSpec"
 
     // Constructor

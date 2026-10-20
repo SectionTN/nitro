@@ -10,6 +10,10 @@ public import NitroTestExternal
 
 /// See ``HybridBaseSpec``
 public protocol HybridBaseSpec_protocol: HybridObject {
+  init() throws
+  static func createAlternativeBase() throws -> (any HybridBaseSpec)
+  static func createInternalExternalObject() throws -> (any HybridSomeExternalObjectSpec)
+
   // Properties
   var baseValue: Double { get }
 

@@ -9,6 +9,8 @@ public import NitroModules
 
 /// See ``HybridSomeExternalObjectSpec``
 public protocol HybridSomeExternalObjectSpec_protocol: HybridObject {
+  init() throws
+
   // Properties
 
 

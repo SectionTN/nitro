@@ -9,6 +9,8 @@ public import NitroModules
 
 /// See ``HybridBaseSpec``
 public protocol HybridBaseSpec_protocol: HybridObject {
+  init() throws
+
   // Properties
   var baseValue: Double { get }
 

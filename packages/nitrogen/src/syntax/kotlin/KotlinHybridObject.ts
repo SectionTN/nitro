@@ -33,6 +33,7 @@ export function createKotlinHybridObject(publicSpec: HybridObjectSpec<'kotlin'>)
   const properties = spec.properties.map(getKotlinPropertyCode).join('\n\n')
   const methods = spec.methods.map(getKotlinMethodCode).join('\n\n')
   const companion = getKotlinCompanion(spec)
+  const companionContract = getKotlinCompanionInterface(spec)
 
   const extraImports: SourceImport[] = [
     ...spec.properties.flatMap((p) => p.getRequiredImports('kotlin')),
@@ -125,7 +126,9 @@ abstract class ${name.HybridTSpec}: ${supertypes} {
     return CxxPart(this)
   }
 
-  companion object {
+  ${indent(companionContract, '  ')}
+
+  companion object Bridge {
     ${indent(companion.code, '    ')}
   }
 }
@@ -193,6 +196,15 @@ protected const val TAG = "${name.HybridTSpec}"
     })
   }
   const sections = [tagCode]
+  if (spec.staticMethods.length > 0 || spec.staticProperties.length > 0) {
+    const implementation = getKotlinImplementation(spec)
+    // Check the configured companion's contract; forwarders still call it directly.
+    const companionRequirement = `
+private val implementationCompanion: Companion
+  get() = ${implementation.className}
+`.trim()
+    sections.push(companionRequirement)
+  }
   for (const group of groups) {
     const forwarders = group.callables
       .flatMap((callable) => callable.createBridge().kotlinMethods)
@@ -243,4 +255,19 @@ function getImplementedInterfaceImport(implementedInterface: KotlinImplementedIn
     name: `${implementedInterface.package}.${implementedInterface.interface}`,
     language: 'kotlin',
   }
+}
+
+function getKotlinCompanionInterface(spec: HybridObjectSpec<'kotlin'>): string {
+  const declarations = spec.staticProperties.map((property) => property.getCode('kotlin'))
+  const methods = spec.staticMethods.map((method) => {
+    const requirement = new InstanceMethod(method.name, method.returnType, method.parameters)
+    return requirement.getDeclaration('kotlin')
+  })
+  declarations.push(...methods)
+  if (declarations.length === 0) return ''
+  return `
+interface Companion {
+  ${indent(declarations.join('\n'), '  ')}
+}
+`.trim()
 }

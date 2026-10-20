@@ -9,6 +9,8 @@ public import NitroModules
 
 /// See ``HybridGrandchildSpec``
 public protocol HybridGrandchildSpec_protocol: HybridObject, HybridChildSpec_protocol {
+  init() throws
+
   // Properties
   var grandchildValue: Double { get }
 

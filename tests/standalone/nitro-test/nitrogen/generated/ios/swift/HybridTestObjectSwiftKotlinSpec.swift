@@ -10,6 +10,10 @@ public import NitroTestExternal
 
 /// See ``HybridTestObjectSwiftKotlinSpec``
 public protocol HybridTestObjectSwiftKotlinSpec_protocol: HybridObject {
+  init() throws
+  static var readonlyNumber: Double { get }
+  static var sharedNumber: Double { get set }
+
   // Properties
   var numberValue: Double { get set }
   var boolValue: Bool { get set }

@@ -9,6 +9,8 @@ public import NitroModules
 
 /// See ``HybridTestViewSpec``
 public protocol HybridTestViewSpec_protocol: HybridObject, HybridView {
+
+
   // Properties
   var isBlue: Bool { get set }
   var someCallback: any Callback<(), Void> { get set }

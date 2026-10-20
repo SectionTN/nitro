@@ -6,6 +6,7 @@ import { createFileMetadataString } from '../helpers.js'
 import type { HybridObjectSpec } from '../HybridObjectSpec.js'
 import type { SourceFile } from '../SourceFile.js'
 import { HybridObjectType } from '../types/HybridObjectType.js'
+import { StaticMethod } from '../StaticMethod.js'
 import { createSwiftHybridObjectCxxBridge } from './SwiftHybridObjectBridge.js'
 import { getImportsCode } from '../getImportCode.js'
 import { getAllTypes } from '../getAllTypes.js'
@@ -20,6 +21,7 @@ export function createSwiftHybridObject(spec: HybridObjectSpec<'swift'>): Source
   const protocolName = name.HybridTSpec
   const properties = spec.properties.map((p) => p.getCode('swift')).join('\n')
   const methods = spec.methods.map((method) => method.getDeclaration('swift')).join('\n')
+  const classMembers = getSwiftClassRequirements(spec)
   const extraImports = [
     ...spec.properties.flatMap((p) => p.getRequiredImports('swift')),
     ...spec.staticProperties.flatMap((p) => p.getRequiredImports('swift')),
@@ -86,6 +88,8 @@ ${imports}
 
 /// See \`\`${protocolName}\`\`
 public protocol ${protocolName}_protocol: ${protocolBaseClasses.join(', ')} {
+  ${indent(classMembers, '  ')}
+
   // Properties
   ${indent(properties, '  ')}
 
@@ -136,4 +140,21 @@ public typealias ${protocolName} = ${protocolName}_protocol & ${protocolName}_ba
   files.push(...swiftTypes.flatMap((type) => type.getExtraFiles()))
 
   return files
+}
+
+function getSwiftClassRequirements(spec: HybridObjectSpec<'swift'>): string {
+  const declarations: string[] = []
+  if (spec.constructor != null) {
+    declarations.push(spec.constructor.getDeclaration('swift'))
+  }
+  declarations.push(...spec.staticProperties.map((property) => property.getCode('swift')))
+  const staticMethods = spec.staticMethods.map((method) => {
+    const requirement = new StaticMethod(method.name, method.returnType, method.parameters, {
+      ...method.options,
+      protocolRequirement: true,
+    })
+    return requirement.getDeclaration('swift')
+  })
+  declarations.push(...staticMethods)
+  return declarations.join('\n')
 }

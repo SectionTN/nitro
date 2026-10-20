@@ -9,6 +9,8 @@ public import NitroModules
 
 /// See ``HybridRecyclableTestViewSpec``
 public protocol HybridRecyclableTestViewSpec_protocol: HybridObject, HybridView {
+
+
   // Properties
   var isBlue: Bool { get set }
   var nativeDefaultValue: Double? { get set }

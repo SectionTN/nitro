@@ -51,7 +51,9 @@ abstract class HybridGrandchildSpec: HybridChildSpec() {
     return CxxPart(this)
   }
 
-  companion object {
+
+
+  companion object Bridge {
     protected const val TAG = "HybridGrandchildSpec"
 
     // Constructor

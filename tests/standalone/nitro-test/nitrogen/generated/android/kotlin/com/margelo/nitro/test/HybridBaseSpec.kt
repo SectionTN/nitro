@@ -68,8 +68,16 @@ abstract class HybridBaseSpec: HybridObject() {
     return CxxPart(this)
   }
 
-  companion object {
+  interface Companion {
+    fun createAlternativeBase(): HybridBaseSpec
+    fun createInternalExternalObject(): com.margelo.nitro.test.external.HybridSomeExternalObjectSpec
+  }
+
+  companion object Bridge {
     protected const val TAG = "HybridBaseSpec"
+
+    private val implementationCompanion: Companion
+      get() = HybridBase
 
     // Constructor
     @JvmStatic

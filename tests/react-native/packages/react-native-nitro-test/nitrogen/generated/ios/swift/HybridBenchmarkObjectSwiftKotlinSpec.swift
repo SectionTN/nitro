@@ -9,6 +9,8 @@ public import NitroModules
 
 /// See ``HybridBenchmarkObjectSwiftKotlinSpec``
 public protocol HybridBenchmarkObjectSwiftKotlinSpec_protocol: HybridObject {
+  init() throws
+
   // Properties
   var numberValue: Double { get set }
   var thisObject: (any HybridBenchmarkObjectSwiftKotlinSpec) { get }
