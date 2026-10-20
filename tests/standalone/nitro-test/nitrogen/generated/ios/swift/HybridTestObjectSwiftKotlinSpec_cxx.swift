@@ -362,12 +362,12 @@ public final class HybridTestObjectSwiftKotlinSpec_cxx {
     }
   }
 
-  public final func bounceNull(value: NullType) -> bridge.Result_nitro__NullType {
+  public final func bounceNull(value: NullType) -> bridge.Result_NullType {
     do {
       let value = try __implementation.bounceNull(value: value)
-      return bridge.Result_nitro__NullType.withValue(value)
+      return bridge.Result_NullType.withValue(value)
     } catch {
-      return bridge.Result_nitro__NullType.withError(error.toCpp())
+      return bridge.Result_NullType.withError(error.toCpp())
     }
   }
 

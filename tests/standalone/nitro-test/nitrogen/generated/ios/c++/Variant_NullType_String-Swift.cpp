@@ -11,8 +11,8 @@
 namespace margelo::nitro {
 
   ::NitroTest::Variant_NullType_String_cxx JSIConverter<::NitroTest::Variant_NullType_String_cxx>::fromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    if (JSIConverter<nitro::NullType>::canConvert(runtime, value)) {
-      auto payload = JSIConverter<nitro::NullType>::fromJSI(runtime, value);
+    if (JSIConverter<NullType>::canConvert(runtime, value)) {
+      auto payload = JSIConverter<NullType>::fromJSI(runtime, value);
       return NitroModules::makeSwiftValue<::NitroTest::Variant_NullType_String_cxx>([&](void* result) {
         ::NitroTest::Variant_NullType_String_cxx::initializeFirst(payload, result);
       });
@@ -23,19 +23,19 @@ namespace margelo::nitro {
         ::NitroTest::Variant_NullType_String_cxx::initializeSecond(payload, result);
       });
     }
-    throw std::runtime_error("Cannot convert \"" + value.toString(runtime).utf8(runtime) + "\" to any type in variant<nitro::NullType, std::string>!");
+    throw std::runtime_error("Cannot convert \"" + value.toString(runtime).utf8(runtime) + "\" to any type in variant<::margelo::nitro::NullType, std::string>!");
   }
 
   jsi::Value JSIConverter<::NitroTest::Variant_NullType_String_cxx>::toJSI(jsi::Runtime& runtime, const ::NitroTest::Variant_NullType_String_cxx& value) {
     switch (value.getIndex()) {
-      case 0: return JSIConverter<nitro::NullType>::toJSI(runtime, value.getFirst());
+      case 0: return JSIConverter<NullType>::toJSI(runtime, value.getFirst());
       case 1: return JSIConverter<swift::String>::toJSI(runtime, value.getSecond());
       default: throw std::invalid_argument("Invalid variant index");
     }
   }
 
   bool JSIConverter<::NitroTest::Variant_NullType_String_cxx>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
-    return JSIConverter<nitro::NullType>::canConvert(runtime, value) || JSIConverter<swift::String>::canConvert(runtime, value);
+    return JSIConverter<NullType>::canConvert(runtime, value) || JSIConverter<swift::String>::canConvert(runtime, value);
   }
 
 } // namespace margelo::nitro

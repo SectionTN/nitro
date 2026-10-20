@@ -332,7 +332,7 @@ namespace margelo::nitro::test::swift_bridge {
   Promise<::NitroTestExternal::HybridSomeExternalObjectSpec_cxx> callAsync_Callback___NitroTestExternal__HybridSomeExternalObjectSpec_cxx(const Callback___NitroTestExternal__HybridSomeExternalObjectSpec_cxx& callback);
   void callAndForget_Callback___NitroTestExternal__HybridSomeExternalObjectSpec_cxx(const Callback___NitroTestExternal__HybridSomeExternalObjectSpec_cxx& callback);
   Callback___NitroTestExternal__HybridSomeExternalObjectSpec_cxx create_Callback___NitroTestExternal__HybridSomeExternalObjectSpec_cxx(std::function<Result<void, margelo::nitro::test::swift_bridge::ResultTag>(void* NON_NULL __outResult)> closure);
-  using Result_nitro__NullType = Result<nitro::NullType, margelo::nitro::test::swift_bridge::ResultTag>;
+  using Result_NullType = Result<NullType, margelo::nitro::test::swift_bridge::ResultTag>;
   using Result_Callback___NitroTest__SwiftContainer_swift__Array___NitroTest__Powertrain__const___NitroTest__SwiftContainer_swift__Array___NitroTest__Powertrain____ = Result<Callback<::NitroTest::SwiftContainer_swift__Array___NitroTest__Powertrain_(const ::NitroTest::SwiftContainer_swift__Array___NitroTest__Powertrain_&)>, margelo::nitro::test::swift_bridge::ResultTag>;
   using Result_bool = Result<bool, margelo::nitro::test::swift_bridge::ResultTag>;
   using Result_Promise_int64_t_ = Result<Promise<int64_t>, margelo::nitro::test::swift_bridge::ResultTag>;

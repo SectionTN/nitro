@@ -72,7 +72,8 @@ export class SwiftPromiseType extends PromiseType implements SwiftType {
           ...options,
           context: 'type-argument',
         })
-        const type = `Promise<${resultingCode}>`
+        const name = options.fullyQualified ? '::margelo::nitro::Promise' : 'Promise'
+        const type = `${name}<${resultingCode}>`
         return options.context === 'parameter' ? `const ${type}&` : type
       }
       case 'swift':

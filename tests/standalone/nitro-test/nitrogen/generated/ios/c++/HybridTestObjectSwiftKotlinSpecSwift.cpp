@@ -58,11 +58,11 @@ namespace margelo::nitro::test {
     return _swiftPart.setUint64Value(uint64Value);
   }
 
-  nitro::NullType HybridTestObjectSwiftKotlinSpecSwift::getNullValue_Swift() {
+  NullType HybridTestObjectSwiftKotlinSpecSwift::getNullValue_Swift() {
     return _swiftPart.getNullValue();
   }
 
-  void HybridTestObjectSwiftKotlinSpecSwift::setNullValue_Swift(nitro::NullType nullValue) {
+  void HybridTestObjectSwiftKotlinSpecSwift::setNullValue_Swift(NullType nullValue) {
     return _swiftPart.setNullValue(nullValue);
   }
 
@@ -224,7 +224,7 @@ namespace margelo::nitro::test {
     }
   }
 
-  nitro::NullType HybridTestObjectSwiftKotlinSpecSwift::bounceNull_Swift(nitro::NullType value) {
+  NullType HybridTestObjectSwiftKotlinSpecSwift::bounceNull_Swift(NullType value) {
     auto __result = _swiftPart.bounceNull(value);
     if (__result.hasError()) [[unlikely]] {
       std::rethrow_exception(__result.error());

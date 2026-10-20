@@ -31,7 +31,8 @@ export class PromiseType implements Type {
     })
     switch (language) {
       case 'c++': {
-        const type = `Promise<${resultingCode}>`
+        const name = options.fullyQualified ? '::margelo::nitro::Promise' : 'Promise'
+        const type = `${name}<${resultingCode}>`
         return options.context === 'parameter' ? `const ${type}&` : type
       }
       case 'swift':

@@ -66,8 +66,8 @@ namespace margelo::nitro::test {
     void setInt64Value_Swift(int64_t int64Value);
     uint64_t getUint64Value_Swift();
     void setUint64Value_Swift(uint64_t uint64Value);
-    nitro::NullType getNullValue_Swift();
-    void setNullValue_Swift(nitro::NullType nullValue);
+    NullType getNullValue_Swift();
+    void setNullValue_Swift(NullType nullValue);
     swift::Optional<swift::String> getOptionalString_Swift();
     void setOptionalString_Swift(const swift::Optional<swift::String>& optionalString);
     swift::Optional<swift::String> getStringOrUndefined_Swift();
@@ -104,7 +104,7 @@ namespace margelo::nitro::test {
     double addNumbers_Swift(double a, double b);
     swift::String addStrings_Swift(const swift::String& a, const swift::String& b);
     void multipleArguments_Swift(double num, const swift::String& str, bool boo);
-    nitro::NullType bounceNull_Swift(nitro::NullType value);
+    NullType bounceNull_Swift(NullType value);
     swift::Array<swift::String> bounceStrings_Swift(const swift::Array<swift::String>& array);
     swift::Array<double> bounceNumbers_Swift(const swift::Array<double>& array);
     swift::Array<::NitroTest::Person> bounceStructs_Swift(const swift::Array<::NitroTest::Person>& array);

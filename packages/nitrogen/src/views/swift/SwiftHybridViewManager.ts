@@ -52,13 +52,13 @@ export function createSwiftHybridViewManager(spec: HybridObjectSpec<'swift'>): S
   const propAssignments = viewProperties.map(({ property, swiftType }) => {
     const name = escapeCppName(property.name)
     const setter = property.getSetterName('other')
-    const converter = getSwiftConverter({ cppType: property.type, swiftType: swiftType })
+    const converter = getSwiftConverter({ cppType: property.type, swiftType: swiftType, fullyQualified: true })
     return `
 // ${property.jsSignature}
 if (oldViewProps == nullptr
       ? newViewProps.${name}.isProvided()
       : !newViewProps.${name}.hasSameValue(oldViewProps->${name})) {
-  _hybridView->${setter}_Swift(nitro::${converter}::toSwift(newViewProps.${name}.get()));
+  _hybridView->${setter}_Swift(${converter}::toSwift(newViewProps.${name}.get()));
 }
 `.trim()
   })

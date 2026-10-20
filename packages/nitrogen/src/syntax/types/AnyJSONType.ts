@@ -13,7 +13,7 @@ export class AnyJSONType implements Type {
   getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++': {
-        const type = 'AnyJSON'
+        const type = options.fullyQualified ? '::margelo::nitro::AnyJSON' : 'AnyJSON'
         return options.context === 'parameter' ? `const ${type}&` : type
       }
       case 'swift':

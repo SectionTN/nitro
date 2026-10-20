@@ -17,14 +17,14 @@ namespace margelo::nitro {
   margelo::nitro::test::OptionalWrapper JSIConverter<margelo::nitro::test::OptionalWrapper>::fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
     jsi::Object obj = arg.asObject(runtime);
     return margelo::nitro::test::OptionalWrapper(
-      JSIConverter<std::optional<ArrayBuffer>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer"))),
+      JSIConverter<std::optional<::margelo::nitro::ArrayBuffer>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer"))),
       JSIConverter<std::optional<std::string>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalString")))
     );
   }
 
   jsi::Value JSIConverter<margelo::nitro::test::OptionalWrapper>::toJSI(jsi::Runtime& runtime, const margelo::nitro::test::OptionalWrapper& arg) {
     jsi::Object obj(runtime);
-    obj.setProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer"), JSIConverter<std::optional<ArrayBuffer>>::toJSI(runtime, arg.optionalArrayBuffer));
+    obj.setProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer"), JSIConverter<std::optional<::margelo::nitro::ArrayBuffer>>::toJSI(runtime, arg.optionalArrayBuffer));
     obj.setProperty(runtime, PropNameIDCache::get(runtime, "optionalString"), JSIConverter<std::optional<std::string>>::toJSI(runtime, arg.optionalString));
     return obj;
   }
@@ -37,7 +37,7 @@ namespace margelo::nitro {
     if (!nitro::isPlainObject(runtime, obj)) {
       return false;
     }
-    if (!JSIConverter<std::optional<ArrayBuffer>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer")))) return false;
+    if (!JSIConverter<std::optional<::margelo::nitro::ArrayBuffer>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalArrayBuffer")))) return false;
     if (!JSIConverter<std::optional<std::string>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "optionalString")))) return false;
     return true;
   }

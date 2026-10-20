@@ -12,11 +12,13 @@ interface GetSwiftConverterOptions {
   cppType: Type
   context?: 'value' | 'parameter-type'
   swiftType?: SwiftType
+  fullyQualified?: boolean
 }
 
 export function getSwiftConverter({
   cppType: type,
   context = 'value',
+  fullyQualified = false,
   swiftType: swiftRepresentation = wrapSwiftType(type),
 }: GetSwiftConverterOptions): string {
   const cppType = type.getCode('c++', {
@@ -24,8 +26,9 @@ export function getSwiftConverter({
     context: context,
   })
   const swiftContext = context === 'parameter-type' ? 'parameter-type' : 'type-argument'
-  const swiftType = swiftRepresentation.getCode('c++', { context: swiftContext, fullyQualified: true })
-  return `SwiftConverter<${cppType}, ${swiftType}>`
+  const swiftType = swiftRepresentation.getCode('c++', { context: swiftContext, fullyQualified: fullyQualified })
+  const name = fullyQualified ? '::margelo::nitro::SwiftConverter' : 'SwiftConverter'
+  return `${name}<${cppType}, ${swiftType}>`
 }
 
 /** Native converter files and imports explicitly requested by a C++ consumer. */

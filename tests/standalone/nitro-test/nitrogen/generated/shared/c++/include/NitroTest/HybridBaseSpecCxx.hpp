@@ -36,7 +36,7 @@ namespace margelo::nitro::test {
     double getBaseValue() const;
     margelo::nitro::test::Size bounceSize(const Size& size) const;
     margelo::nitro::test::SizeUnit bounceSizeUnit(SizeUnit unit) const;
-    Promise<margelo::nitro::test::Size> mapSize(const Size& size, const Callback<Size(const Size& /* size */)>& callback) const;
+    ::margelo::nitro::Promise<margelo::nitro::test::Size> mapSize(const Size& size, const Callback<Size(const Size& /* size */)>& callback) const;
     static margelo::nitro::test::HybridBaseSpecCxx createAlternativeBase();
     static margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx createInternalExternalObject();
 

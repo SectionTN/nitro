@@ -10,10 +10,10 @@ export class NullType implements Type {
     return true
   }
 
-  getCode(language: Language, _options: GetCodeOptions): string {
+  getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        return 'nitro::NullType'
+        return options.fullyQualified ? '::margelo::nitro::NullType' : 'NullType'
       case 'swift':
         return 'NullType'
       case 'kotlin':
