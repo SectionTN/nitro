@@ -8,7 +8,7 @@ import TabItem from '@theme/TabItem';
 # Hybrid Objects
 
 A **Hybrid Object** is a native object that can also be used from JS.
-Similar to a JavaScript `class`, **Hybrid Objects** can have instance methods, properties (get + set), static methods, constructors (`new`) and inheritance chains via prototypes.
+Similar to a JavaScript `class`, **Hybrid Objects** can have instance methods, properties (get + set), static methods and properties, constructors (`new`) and inheritance chains via prototypes.
 
 <div className="side-by-side-container">
 <div className="side-by-side-block">
@@ -45,6 +45,26 @@ import { Math } from './Math.nitro'
 
 const result = Math.add(5, 7)
 ```
+
+Static properties also belong to the class. Use `readonly` for a getter without a setter:
+
+```ts title="Settings.nitro.ts"
+@iOS({ language: 'swift', implementation: { className: 'HybridSettings' } })
+export declare class Settings extends HybridObject {
+  static readonly version: string
+  static volume: number
+}
+export * from '#nitro/Settings'
+```
+
+```ts
+console.log(Settings.version)
+Settings.volume = 0.5
+```
+
+Implement these as Swift static properties, Kotlin companion properties, or C++ static `getVersion()`, `getVolume()` and `setVolume(value)` functions. Reads and writes access the native class state, which is shared across instances. Subclasses inherit static properties through the constructor's prototype chain.
+
+For manual C++ bindings, use `registerStaticHybridProperty("version", &HybridSettings::getVersion)` or `registerStaticHybridProperty("volume", &HybridSettings::getVolume, &HybridSettings::setVolume)`.
 
 Similarly, if a Hybrid Object has a `constructor(...)`, instances of the Hybrid Object can be created via `new`:
 

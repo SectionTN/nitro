@@ -43,6 +43,7 @@ jobs:
         with:
           bun-version-file: package.json
       - run: bun install --frozen-lockfile
+      - run: bun nitrogen test
       - run: bun specs
       - name: Verify generated bindings are committed
         shell: bash

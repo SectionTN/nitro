@@ -31,6 +31,7 @@ export function createKotlinHybridObject(
 
   const extraImports: SourceImport[] = [
     ...spec.properties.flatMap((p) => p.getRequiredImports('kotlin')),
+    ...spec.staticProperties.flatMap((p) => p.getRequiredImports('kotlin')),
     ...spec.methods.flatMap((m) => m.getRequiredImports('kotlin')),
     ...spec.staticMethods.flatMap((m) => m.getRequiredImports('kotlin')),
     ...(spec.constructor?.getRequiredImports('kotlin') ?? []),
@@ -177,13 +178,20 @@ function getKotlinCompanion(spec: HybridObjectSpec<'kotlin'>): KotlinCompanion {
   const tagCode = `
 protected const val TAG = "${name.HybridTSpec}"
 `.trim()
-  const { constructor, staticMethods } = getKotlinClassMembers(spec)
+  const { constructor, staticMethods, staticProperties } =
+    getKotlinClassMembers(spec)
   const groups: KotlinCompanionGroup[] = []
   if (constructor != null) {
     groups.push({ comment: 'Constructor', callables: [constructor] })
   }
   if (staticMethods.length > 0) {
     groups.push({ comment: 'Static methods', callables: staticMethods })
+  }
+  if (staticProperties.length > 0) {
+    groups.push({
+      comment: 'Static properties',
+      callables: staticProperties.flatMap(({ accessors }) => accessors),
+    })
   }
   const sections = [tagCode]
   for (const group of groups) {
