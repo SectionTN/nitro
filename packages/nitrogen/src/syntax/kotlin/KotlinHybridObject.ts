@@ -18,6 +18,7 @@ import {
 } from './KotlinInstanceMethod.js'
 import { getKotlinImplementation } from './KotlinMethodHelpers.js'
 import type { KotlinStaticMethod } from './KotlinStaticMethod.js'
+import type { KotlinStaticProperty } from './KotlinStaticProperty.js'
 import { wrapKotlinType } from './wrapKotlinType.js'
 import { getImportCode } from '../getImportCode.js'
 
@@ -163,7 +164,7 @@ interface KotlinCompanion {
 
 interface KotlinCompanionGroup {
   comment: string
-  callables: (KotlinConstructor | KotlinStaticMethod)[]
+  callables: (KotlinConstructor | KotlinStaticMethod | KotlinStaticProperty)[]
 }
 
 /**
@@ -190,7 +191,7 @@ protected const val TAG = "${name.HybridTSpec}"
   if (staticProperties.length > 0) {
     groups.push({
       comment: 'Static properties',
-      callables: staticProperties.flatMap(({ accessors }) => accessors),
+      callables: staticProperties,
     })
   }
   const sections = [tagCode]

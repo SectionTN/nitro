@@ -10,6 +10,7 @@ import { SwiftHybridObjectType } from './types/SwiftHybridObjectType.js'
 
 import { SwiftInstanceMethod } from './SwiftInstanceMethod.js'
 import { SwiftStaticMethod } from './SwiftStaticMethod.js'
+import { SwiftStaticProperty } from './SwiftStaticProperty.js'
 import { SwiftConstructor } from './SwiftConstructor.js'
 import { getImportCode, getImportsCode } from '../getImportCode.js'
 import {
@@ -159,17 +160,12 @@ self.__implementation = implementation
   if (staticProperties.length > 0) {
     callableGroups.push({
       name: 'Static properties',
-      bridges: staticProperties.flatMap(({ accessors }) =>
-        accessors.map(createClassMethodBridge)
+      bridges: staticProperties.flatMap((property) =>
+        property.createBridges(inheritedClassMethods)
       ),
     })
-    for (const { name, accessors } of staticProperties) {
-      const references = accessors.map(
-        (accessor) => `&${cppClassName}::${accessor.name}`
-      )
-      cppMethodRegistrations.push(
-        `clazz.registerStaticHybridProperty("${name}", ${references.join(', ')});`
-      )
+    for (const property of staticProperties) {
+      cppMethodRegistrations.push(property.getCppRegistration(cppClassName))
     }
   }
 
@@ -585,7 +581,7 @@ namespace ${cppNamespace} {
 interface SwiftClassMembers {
   constructor: SwiftConstructor | undefined
   staticMethods: SwiftStaticMethod[]
-  staticProperties: { name: string; accessors: SwiftStaticMethod[] }[]
+  staticProperties: SwiftStaticProperty[]
 }
 
 /** The constructor and static accessors and methods C++ calls on the spec's `_cxx` class. */
@@ -602,26 +598,9 @@ function getSwiftClassMembers(
   const staticMethods = spec.staticMethods.map(
     (method) => new SwiftStaticMethod({ spec: spec, method: method })
   )
-  const staticProperties = spec.staticProperties.map((property) => {
-    const [getter, setter] = property.getStaticMethods()
-    const accessors = [
-      new SwiftStaticMethod({
-        spec: spec,
-        method: getter,
-        accessor: { kind: 'getter', name: property.name },
-      }),
-    ]
-    if (setter != null) {
-      accessors.push(
-        new SwiftStaticMethod({
-          spec: spec,
-          method: setter,
-          accessor: { kind: 'setter', name: property.name },
-        })
-      )
-    }
-    return { name: property.name, accessors: accessors }
-  })
+  const staticProperties = spec.staticProperties.map(
+    (property) => new SwiftStaticProperty({ spec: spec, property: property })
+  )
   return {
     constructor: constructor,
     staticMethods: staticMethods,
@@ -658,13 +637,17 @@ function getSwiftClassMethodDeclarations(
     getSwiftClassMembers(spec)
   const callables: (SwiftConstructor | SwiftStaticMethod)[] = []
   if (constructor != null) callables.push(constructor)
-  callables.push(
-    ...staticMethods,
-    ...staticProperties.flatMap(({ accessors }) => accessors)
-  )
+  callables.push(...staticMethods)
   const { HybridTSpecSwift } = getHybridObjectName(spec.name)
   const ownDeclarations = callables.map((callable) =>
     getSwiftClassMethodDeclaration(callable, HybridTSpecSwift)
+  )
+  ownDeclarations.push(
+    ...staticProperties.flatMap((property) =>
+      property
+        .createBridges()
+        .map(({ swiftMethod }) => swiftMethod.method.getDeclaration('swift'))
+    )
   )
   const inheritedDeclarations = spec.baseTypes.flatMap((base) =>
     getSwiftClassMethodDeclarations(base, swiftModuleName)

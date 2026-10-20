@@ -14,7 +14,6 @@ import type { KotlinType } from './types/KotlinType.js'
 interface KotlinStaticMethodOptions {
   spec: HybridObjectSpec<'kotlin'>
   method: StaticMethod
-  accessor?: { kind: 'getter' | 'setter'; name: string }
 }
 
 /**
@@ -27,9 +26,8 @@ export class KotlinStaticMethod extends StaticMethod {
   private readonly implementationClassName: string
   private readonly jniClass: string
   private readonly callable: KotlinMethodInfo
-  private readonly accessor: KotlinStaticMethodOptions['accessor']
 
-  constructor({ spec, method, accessor }: KotlinStaticMethodOptions) {
+  constructor({ spec, method }: KotlinStaticMethodOptions) {
     const callable = prepareKotlinMethod(method)
     const parameters = callable.parameters.map((parameter) => parameter.kotlin)
     super(`${method.name}_cxx`, callable.returnType, parameters, {
@@ -39,7 +37,6 @@ export class KotlinStaticMethod extends StaticMethod {
     })
     this.returnType = callable.returnType
     this.nativeMethod = method
-    this.accessor = accessor
     this.implementationClassName = getKotlinImplementation(spec).className
     const { JHybridTSpec } = getHybridObjectName(spec.name)
     this.jniClass = `${JHybridTSpec}::JavaPart::javaClassStatic()`
@@ -62,20 +59,8 @@ export class KotlinStaticMethod extends StaticMethod {
     })
     const kotlinBody = createKotlinForwarderBody({
       callable: this.callable,
-      getKotlinInvocation: (args) => {
-        if (this.accessor != null) {
-          const property = `${this.implementationClassName}.${this.accessor.name}`
-          if (this.accessor.kind === 'getter') return property
-          const argument = args[0]
-          if (argument == null) {
-            throw new Error(
-              'A Kotlin static property setter requires a value parameter.'
-            )
-          }
-          return `${property} = ${argument}`
-        }
-        return `${this.implementationClassName}.${nativeMethod.name}(${args.join(', ')})`
-      },
+      getKotlinInvocation: (args) =>
+        `${this.implementationClassName}.${nativeMethod.name}(${args.join(', ')})`,
     })
     return {
       kotlinMethods: [{ method: this, body: kotlinBody }],
@@ -84,8 +69,7 @@ export class KotlinStaticMethod extends StaticMethod {
   }
 
   /** Registers the C++ method on the JavaScript class, from the helper `cppClassName`. */
-  getCppRegistration(cppClassName: string): string | undefined {
-    if (this.accessor != null) return undefined
+  getCppRegistration(cppClassName: string): string {
     const name = this.nativeMethod.name
     return `
 clazz.registerStaticHybridMethod("${name}", &${cppClassName}::${name});

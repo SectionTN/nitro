@@ -5,11 +5,12 @@ import type { SourceImport } from '../SourceFile.js'
 import { getHybridObjectName } from '../getHybridObjectName.js'
 import { KotlinConstructor } from './KotlinConstructor.js'
 import { KotlinStaticMethod } from './KotlinStaticMethod.js'
+import { KotlinStaticProperty } from './KotlinStaticProperty.js'
 
 export interface KotlinClassMembers {
   constructor: KotlinConstructor | undefined
   staticMethods: KotlinStaticMethod[]
-  staticProperties: { name: string; accessors: KotlinStaticMethod[] }[]
+  staticProperties: KotlinStaticProperty[]
 }
 
 /** The constructor and static accessors and methods JavaScript calls on the class. */
@@ -26,26 +27,9 @@ export function getKotlinClassMembers(
   const staticMethods = spec.staticMethods.map(
     (method) => new KotlinStaticMethod({ spec: spec, method: method })
   )
-  const staticProperties = spec.staticProperties.map((property) => {
-    const [getter, setter] = property.getStaticMethods()
-    const accessors = [
-      new KotlinStaticMethod({
-        spec: spec,
-        method: getter,
-        accessor: { kind: 'getter', name: property.name },
-      }),
-    ]
-    if (setter != null) {
-      accessors.push(
-        new KotlinStaticMethod({
-          spec: spec,
-          method: setter,
-          accessor: { kind: 'setter', name: property.name },
-        })
-      )
-    }
-    return { name: property.name, accessors: accessors }
-  })
+  const staticProperties = spec.staticProperties.map(
+    (property) => new KotlinStaticProperty({ spec: spec, property: property })
+  )
   return {
     constructor: constructor,
     staticMethods: staticMethods,
@@ -62,12 +46,13 @@ export function createKotlinHybridClassBindings(
   const registrations: string[] = []
   const { constructor, staticMethods, staticProperties } =
     getKotlinClassMembers(spec)
-  const callables: (KotlinConstructor | KotlinStaticMethod)[] = []
+  const callables: (
+    | KotlinConstructor
+    | KotlinStaticMethod
+    | KotlinStaticProperty
+  )[] = []
   if (constructor != null) callables.push(constructor)
-  callables.push(
-    ...staticMethods,
-    ...staticProperties.flatMap(({ accessors }) => accessors)
-  )
+  callables.push(...staticMethods, ...staticProperties)
   if (callables.length === 0) {
     return {
       imports: imports,
@@ -90,17 +75,8 @@ export function createKotlinHybridClassBindings(
         method.getDefinition('c++', { placement: 'in-class', body: body })
       )
     )
-    const registration = callable.getCppRegistration(helper)
-    if (registration != null) registrations.push(registration)
+    registrations.push(callable.getCppRegistration(helper))
     imports.push(...callable.getRequiredImports('c++'))
-  }
-  for (const property of spec.staticProperties) {
-    const references = property
-      .getStaticMethods()
-      .map((accessor) => `&${helper}::${accessor.name}`)
-    registrations.push(
-      `clazz.registerStaticHybridProperty("${property.name}", ${references.join(', ')});`
-    )
   }
   const helperDefinition = `
 namespace {
