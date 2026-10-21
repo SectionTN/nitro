@@ -58,10 +58,11 @@ To run AddressSanitizer on an API 33 x86_64 emulator:
 ASan instruments Core and the native fixtures/test host. The test APK includes the NDK's ASan runtime and startup wrapper; Hermes remains
 uninstrumented. Omit `-PnitroSanitizer` for a normal run. CI runs ASan on API 33.
 
-`HybridObjectTest` reads the generated `runtime-tests.json` manifest and runs each JavaScript case as a named JUnit parameter. Adding a
-shared JS test requires no Kotlin changes. Missing, empty, malformed, or duplicate manifest entries fail discovery. JavaScript failures
-become JUnit assertion failures with the case name and stack. Existing platform and release exclusions from `runtime-test-skips.json` become
-JUnit assumption skips.
+`HybridObjectTest` reads the generated `runtime-tests.json` manifest and runs each `.test.ts` file as a named JUnit parameter. Its cases run
+sequentially on one JSI runtime, which is destroyed after the suite finishes. Adding a shared JS test requires no Kotlin changes. Missing,
+empty, malformed, or duplicate manifest entries fail discovery. A JavaScript failure stops its suite and becomes a JUnit assertion failure
+with the case name and stack. Platform and release exclusions from `runtime-test-skips.json` remain individual JUnit assumption skips and
+are excluded from the suite's runtime.
 
 `NativeTestRuntimeTest` separately verifies rejected promises, synchronous exceptions, cached bytecode with fresh runtime state, per-case
 timeout overrides, independent setup and execution budgets, and timeouts for pending promises, infinite loops, and endless microtask chains.

@@ -15,7 +15,7 @@ const program = ts.createProgram(
 const checker = program.getTypeChecker()
 const imports = ['import { registerTests } from "../js/index";']
 const entries: string[] = []
-const names: string[] = []
+const suites: Record<string, string[]> = {}
 const skips: Record<string, Record<string, string>> = {}
 
 function requireTest(type: ts.Type, label: string): void {
@@ -32,12 +32,13 @@ function literalProperties(type: ts.Type, label: string): ts.Symbol[] {
 }
 
 for (const [index, file] of files.entries()) {
-  const source = program.getSourceFile(`${root}js/${file}`)!
+  const source = program.getSourceFile(`${root}js/${file}`)
+  if (source === undefined) throw new Error(`Could not read test suite ${file}`)
   const module = checker.getSymbolAtLocation(source)
   if (module === undefined) throw new Error(`No exported tests in ${file}`)
   imports.push(`import * as suite${index} from ${JSON.stringify(`../js/${file}`)};`)
   const exports = checker.getExportsOfModule(module).sort((a, b) => a.name.localeCompare(b.name))
-  let count = 0
+  const names: string[] = []
   const prefix = file.replace(/\.test\.ts$/, '')
   for (const symbol of exports) {
     const value = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
@@ -65,7 +66,6 @@ for (const [index, file] of files.entries()) {
         const name = `${prefix}.${test.name}`
         names.push(name)
         entries.push(`${JSON.stringify(name)}: suite${index}.cases[${JSON.stringify(test.name)}]`)
-        count++
       }
       continue
     }
@@ -74,10 +74,11 @@ for (const [index, file] of files.entries()) {
     const name = `${prefix}.${symbol.name}`
     names.push(name)
     entries.push(`${JSON.stringify(name)}: suite${index}[${JSON.stringify(symbol.name)}]`)
-    count++
   }
-  if (count === 0) throw new Error(`No exported tests in ${file}`)
+  if (names.length === 0) throw new Error(`No exported tests in ${file}`)
+  suites[prefix] = names
 }
+const names = Object.values(suites).flat()
 if (names.length === 0) throw new Error('No *.test.ts cases found')
 if (new Set(names).size !== names.length) throw new Error('Duplicate test names')
 const nameSet = new Set(names)
@@ -85,8 +86,8 @@ for (const name of Object.keys(skips)) {
   if (!nameSet.has(name)) throw new Error(`Exclusion refers to unknown test: ${name}`)
 }
 
-// Discovery reads exports without evaluating test modules in Bun. The same names
-// drive the JS dispatcher and the native runners' parameterized test cases.
+// Discovery reads exports without evaluating test modules in Bun. Each file is
+// one suite, and native runners execute its cases sequentially in one runtime.
 await Bun.write(`${root}build/runtime-entry.ts`, `${imports.join('\n')}\nregisterTests({\n${entries.join(',\n')}\n});\n`)
 const result = await Bun.build({
   entrypoints: [`${root}build/runtime-entry.ts`],
@@ -98,6 +99,6 @@ const result = await Bun.build({
   minify: false,
 })
 if (!result.success) throw new AggregateError(result.logs, 'Test bundle failed')
-await Bun.write(`${root}build/runtime-tests.json`, `${JSON.stringify(names, null, 2)}\n`)
+await Bun.write(`${root}build/runtime-tests.json`, `${JSON.stringify(suites, null, 2)}\n`)
 await Bun.write(`${root}build/runtime-test-skips.json`, `${JSON.stringify(skips, null, 2)}\n`)
-console.log(`Bundled ${names.length} shared runtime tests into build/runtime-tests.js`)
+console.log(`Bundled ${names.length} tests in ${files.length} runtime suites into build/runtime-tests.js`)

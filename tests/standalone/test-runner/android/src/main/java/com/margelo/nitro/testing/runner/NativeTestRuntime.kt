@@ -8,10 +8,10 @@ internal object NativeTestRuntime {
     System.loadLibrary("NitroTestRunner")
   }
 
-  /** Returns an empty string on success, or the JavaScript failure and its stack. */
-  external fun runTest(
+  /** Runs the cases sequentially in one runtime and returns the first failure, or an empty string. */
+  external fun runSuite(
     bundle: String,
-    name: String,
+    names: Array<String>,
     timeoutMs: Int = 10_000,
   ): String
 }

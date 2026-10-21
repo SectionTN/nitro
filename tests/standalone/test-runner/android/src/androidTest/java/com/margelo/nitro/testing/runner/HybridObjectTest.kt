@@ -12,13 +12,14 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class HybridObjectTest(
   private val name: String,
+  private val names: Array<String>,
   private val skipReason: String?,
 ) {
   @Test
-  fun runJavaScriptTest() {
+  fun runJavaScriptSuite() {
     assumeTrue(skipReason, skipReason == null)
-    val failure = NativeTestRuntime.runTest(readAsset("runtime-tests.js"), name)
-    if (failure.isNotEmpty()) throw AssertionError(failure)
+    val failure = NativeTestRuntime.runSuite(readAsset("runtime-tests.js"), names)
+    if (failure.isNotEmpty()) throw AssertionError("$name\n$failure")
   }
 
   companion object {
@@ -27,8 +28,8 @@ class HybridObjectTest(
     fun cases(): List<Array<Any?>> {
       val parser = JSONTokener(readAsset("runtime-tests.json"))
       val manifest = parser.nextValue()
-      require(manifest is JSONArray && parser.nextClean() == '\u0000') {
-        "runtime-tests.json must contain an array of test names"
+      require(manifest is JSONObject && parser.nextClean() == '\u0000') {
+        "runtime-tests.json must contain an object of test suites"
       }
       require(manifest.length() > 0) { "runtime-tests.json contains no tests" }
 
@@ -39,11 +40,18 @@ class HybridObjectTest(
       }
 
       val names = mutableSetOf<String>()
-      val cases =
-        (0 until manifest.length()).map { index ->
-          val name = manifest.get(index)
+      val cases = mutableListOf<Array<Any?>>()
+      manifest.keys().forEach { suite ->
+        require(suite.isNotBlank()) { "runtime-tests.json contains a blank suite name" }
+        val suiteNames = manifest.get(suite)
+        require(suiteNames is JSONArray && suiteNames.length() > 0) {
+          "runtime-tests.json suite $suite must contain a nonempty array of test names"
+        }
+        val enabledNames = mutableListOf<String>()
+        for (index in 0 until suiteNames.length()) {
+          val name = suiteNames.get(index)
           require(name is String && name.isNotBlank()) {
-            "runtime-tests.json entry $index must be a nonblank string"
+            "runtime-tests.json suite $suite entry $index must be a nonblank string"
           }
           require(names.add(name)) { "runtime-tests.json contains duplicate test: $name" }
           val rules = if (skips.has(name)) skips.getJSONObject(name) else null
@@ -58,8 +66,14 @@ class HybridObjectTest(
               !BuildConfig.DEBUG && rules?.has("release") == true -> rules.getString("release")
               else -> null
             }
-          arrayOf<Any?>(name, reason)
+          if (reason == null) {
+            enabledNames.add(name)
+          } else {
+            cases.add(arrayOf(name, emptyArray<String>(), reason))
+          }
         }
+        if (enabledNames.isNotEmpty()) cases.add(arrayOf(suite, enabledNames.toTypedArray(), null))
+      }
       require(skips.keys().asSequence().all { it in names }) { "Exclusions contain an unknown test name" }
       return cases
     }
