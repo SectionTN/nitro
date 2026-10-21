@@ -62,35 +62,82 @@ jobs:
           ninja --version
           xcodebuild -version
           xcrun swift --version
-      - name: Read Hermes build cache inputs
+      - name: Read native build cache inputs
         id: hermes
         run: |
           echo "revision=$(git -C tests/standalone/hermes/hermes rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          toolchain=$({ xcodebuild -version; xcrun --sdk iphonesimulator --show-sdk-version; cmake --version; ninja --version; echo "$GITHUB_WORKSPACE"; } | shasum -a 256 | cut -d ' ' -f 1)
+          toolchain=$({ xcodebuild -version; cmake --version; ninja --version; } | shasum -a 256 | cut -d ' ' -f 1)
           echo "toolchain=$toolchain" >> "$GITHUB_OUTPUT"
-      - name: Cache Hermes simulator XCFramework
+          bun -e '
+            const config = require("./tests/standalone/test-runner/ios/config.json")
+            const arch = config.arch === "auto" ? { arm64: "arm64", x64: "x86_64" }[process.arch] : config.arch
+            console.log(`arch=${arch}\njobs=${config.jobs}\ndeployment-target=${config.deploymentTarget}`)
+          ' >> "$GITHUB_OUTPUT"
+      - name: Restore Hermes simulator XCFramework
         id: hermes-cache
-        uses: actions/cache@v6
+        uses: actions/cache/restore@v6
         with:
           path: tests/standalone/.build/hermes/NitroTestHermes.xcframework
           key:
             hermes-ios-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.revision }}-${{ steps.hermes.outputs.toolchain }}-${{
             hashFiles('tests/standalone/hermes/build.mjs', 'tests/standalone/hermes/options.cmake',
             'tests/standalone/test-runner/ios/config.json') }}
+      - name: Build Hermes simulator XCFramework
+        if: steps.hermes-cache.outputs.cache-hit != 'true'
+        env:
+          HERMES_ARCH: ${{ steps.hermes.outputs.arch }}
+          HERMES_JOBS: ${{ steps.hermes.outputs.jobs }}
+          HERMES_DEPLOYMENT_TARGET: ${{ steps.hermes.outputs.deployment-target }}
+        run: |
+          bun tests/standalone/hermes/build.mjs ios \
+            --arch "$HERMES_ARCH" --jobs "$HERMES_JOBS" --deployment-target "$HERMES_DEPLOYMENT_TARGET"
+      - name: Save Hermes simulator XCFramework
+        if: >-
+          steps.hermes-cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/v1')
+        uses: actions/cache/save@v6
+        with:
+          path: tests/standalone/.build/hermes/NitroTestHermes.xcframework
+          key: ${{ steps.hermes-cache.outputs.cache-primary-key }}
       - name: Install workspace
         run: bun install --frozen-lockfile --ignore-scripts
       - name: Prepare runtime test fixtures
         run: bun test:prepare
-      - name: Test Swift HybridObjects in Hermes
-        env:
-          HERMES_CACHE_HIT: ${{ steps.hermes-cache.outputs.cache-hit }}
-          SANITIZER: ${{ matrix.sanitizer.value }}
+      - name: Enable Xcode compilation caching
         run: |
-          if [ "$HERMES_CACHE_HIT" = 'true' ]; then
-            bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" --skip-hermes-build
-          else
-            bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER"
-          fi
+          cat > "$RUNNER_TEMP/nitro-cache.xcconfig" <<'EOF'
+          COMPILATION_CACHE_ENABLE_CACHING = YES
+          COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS = YES
+          COMPILATION_CACHE_LIMIT_SIZE = 512M
+          EOF
+          echo "XCODE_XCCONFIG_FILE=$RUNNER_TEMP/nitro-cache.xcconfig" >> "$GITHUB_ENV"
+      - name: Restore compilation cache
+        id: native-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            tests/standalone/.build/ios/${{ matrix.sanitizer.value }}/DerivedData/CompilationCache.noindex
+            tests/standalone/.build/ios/${{ matrix.sanitizer.value }}/DerivedData/SourcePackages
+          key:
+            standalone-ios-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.toolchain }}-${{ matrix.sanitizer.value }}-${{
+            inputs.ref || github.sha }}
+          restore-keys: |
+            standalone-ios-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.toolchain }}-${{ matrix.sanitizer.value }}-
+      - name: Test Swift HybridObjects in Hermes
+        id: runtime-tests
+        env:
+          SANITIZER: ${{ matrix.sanitizer.value }}
+        run: bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" --skip-hermes-build
+      - name: Save compilation cache
+        if: >-
+          !cancelled() && steps.runtime-tests.outcome != 'skipped' && steps.native-cache.outputs.cache-hit != 'true' && github.event_name !=
+          'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1')
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            tests/standalone/.build/ios/${{ matrix.sanitizer.value }}/DerivedData/CompilationCache.noindex
+            tests/standalone/.build/ios/${{ matrix.sanitizer.value }}/DerivedData/SourcePackages
+          key: ${{ steps.native-cache.outputs.cache-primary-key }}
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
