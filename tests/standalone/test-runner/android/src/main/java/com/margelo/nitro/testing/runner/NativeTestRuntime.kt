@@ -1,6 +1,7 @@
 package com.margelo.nitro.testing.runner
 
 import com.margelo.nitro.core.NullType
+import com.margelo.nitro.core.Promise
 import com.margelo.nitro.test.NitroTest
 
 internal object NativeTestRuntime {
@@ -10,6 +11,8 @@ internal object NativeTestRuntime {
   }
 
   external fun singletonNull(): NullType
+
+  external fun resolvedVoidPromise(): Promise<Unit>
 
   external fun checkConcurrentSingletons()
 

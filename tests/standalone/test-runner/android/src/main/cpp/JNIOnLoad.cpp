@@ -1,12 +1,14 @@
 #include "TestRuntime.hpp"
+#include <NitroModules/JNIConverter+Promise.hpp>
 #include <NitroModules/JNull.hpp>
+#include <NitroModules/JUnit.hpp>
 #include <barrier>
 #include <exception>
-#include <fbjni/fbjni.h>
-#include <jni.h>
 #include <mutex>
 #include <thread>
 #include <vector>
+#include <fbjni/fbjni.h>
+#include <jni.h>
 
 namespace {
 using namespace facebook;
@@ -24,6 +26,11 @@ public:
     return jni::make_local(margelo::nitro::JNull::null());
   }
 
+  static jni::local_ref<margelo::nitro::JTypedPromise<void>> resolvedVoidPromise(jni::alias_ref<JNativeTestRuntime>) {
+    using namespace margelo::nitro;
+    return JNIConverter<Promise<void>, jni::local_ref<JTypedPromise<void>>>::toJNI(Promise<void>::resolved());
+  }
+
   static void checkConcurrentSingletons(jni::alias_ref<JNativeTestRuntime>) {
     constexpr size_t count = 8;
     std::barrier start(count);
@@ -38,11 +45,14 @@ public:
             for (size_t iteration = 0; iteration < 100; ++iteration) {
               jni::JniLocalScope frame(jni::Environment::current(), 8);
               const auto nullValue = margelo::nitro::JNull::null();
+              const auto unitValue = margelo::nitro::JUnit::instance();
               auto* env = jni::Environment::current();
-              if (env->GetObjectRefType(nullValue.get()) != JNIGlobalRefType) {
+              if (env->GetObjectRefType(nullValue.get()) != JNIGlobalRefType ||
+                  env->GetObjectRefType(unitValue.get()) != JNIGlobalRefType) {
                 throw std::runtime_error("JNI singletons must borrow an owning global reference.");
               }
               auto localNull = jni::make_local(nullValue);
+              auto localUnit = jni::make_local(unitValue);
             }
           });
         } catch (...) {
@@ -61,8 +71,9 @@ public:
 
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
-                                        makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
-                                        makeNativeMethod("checkConcurrentSingletons", JNativeTestRuntime::checkConcurrentSingletons)});
+                                      makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
+                                      makeNativeMethod("resolvedVoidPromise", JNativeTestRuntime::resolvedVoidPromise),
+                                      makeNativeMethod("checkConcurrentSingletons", JNativeTestRuntime::checkConcurrentSingletons)});
   }
 };
 } // namespace
