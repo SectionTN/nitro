@@ -128,12 +128,9 @@ export function createCppJniCallBody({
       })
     )
   )
-  const methodLookupCode = `
-static const auto __method = ${jniMethodLookup}<${jniSignature}>("${jvmName}");
-`.trim()
   if (callable.nativeMethod.returnType.kind === 'void') {
     return `
-${indent(methodLookupCode, '')}
+static const auto __method = ${jniMethodLookup}<${jniSignature}>("${jvmName}");
 __method(${jniArguments.join(', ')});
 `.trim()
   }
@@ -143,7 +140,7 @@ __method(${jniArguments.join(', ')});
     in: 'c++',
   })
   return `
-${indent(methodLookupCode, '')}
+static const auto __method = ${jniMethodLookup}<${jniSignature}>("${jvmName}");
 auto __result = __method(${jniArguments.join(', ')});
 return ${indent(cppResult, '')};
 `.trim()
