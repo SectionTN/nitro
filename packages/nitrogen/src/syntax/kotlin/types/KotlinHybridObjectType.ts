@@ -5,11 +5,11 @@ import type { SourceImport } from '../../SourceFile.js'
 import { HybridObjectType } from '../../types/HybridObjectType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { KotlinJSIType } from './KotlinJSIType.js'
-import { KotlinCxxHybridObjectReferenceType } from './KotlinCxxHybridObjectReferenceType.js'
+import { KotlinCxxHybridObjectType } from './KotlinCxxHybridObjectType.js'
 import { getJniReferenceCode, type JNINativeRegistration, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
 export class KotlinHybridObjectType extends HybridObjectType implements KotlinType {
-  readonly jniValueKind = 'wrapper'
+  readonly jniValueKind = 'object'
   readonly needsKotlinConversion = false
 
   constructor(readonly type: HybridObjectType) {
@@ -38,7 +38,7 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
-    return new KotlinCxxHybridObjectReferenceType(cppType, this).getConverter()
+    return new KotlinCxxHybridObjectType(cppType, this).getConverter()
   }
 
   override getCode(language: Language, options: GetCodeOptions): string {
@@ -56,8 +56,8 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
       case 'c++': {
         const name = getHybridObjectName(this.hybridObjectName)
         const fullyQualified = options.fullyQualified ?? this.sourceConfig.isExternalConfig
-        const jniName = fullyQualified ? this.sourceConfig.getCxxNamespace('c++', name.JHybridTSpec) : name.JHybridTSpec
-        return getJniReferenceCode(`${jniName}::JavaPart`, options.context)
+        const jniName = fullyQualified ? this.sourceConfig.getCxxNamespace('c++', name.JHybridTSpecJavaPart) : name.JHybridTSpecJavaPart
+        return getJniReferenceCode(jniName, options.context)
       }
       case 'kotlin':
       case 'swift':
@@ -103,7 +103,11 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
       case 'c++': {
         const name = getHybridObjectName(this.hybridObjectName)
         return [
-          { language: language, declaration: this.sourceConfig.getCxxHeader(`${name.JHybridTSpec}.hpp`, 'private') },
+          {
+            language: language,
+            declaration: this.sourceConfig.getCxxHeader(`${name.JHybridTSpecJavaPart}.hpp`, 'private'),
+            implementation: this.sourceConfig.getCxxHeader(`${name.JHybridTSpec}.hpp`, 'private'),
+          },
           { language: language, declaration: { header: 'NitroModules/JNIConverter+HybridObject.hpp', space: 'system' } },
           { language: language, declaration: { header: 'NitroModules/JSIConverter+JNIHybridObject.hpp', space: 'system' } },
         ]

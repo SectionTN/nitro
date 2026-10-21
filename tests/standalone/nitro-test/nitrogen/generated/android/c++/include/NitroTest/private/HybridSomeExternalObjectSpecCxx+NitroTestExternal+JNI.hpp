@@ -8,16 +8,16 @@
 #pragma once
 
 #include <NitroTest/HybridSomeExternalObjectSpecCxx+NitroTestExternal.hpp>
-#include <NitroTestExternal/private/JHybridSomeExternalObjectSpec.hpp>
+#include <NitroTestExternal/private/JHybridSomeExternalObjectSpecJavaPart.hpp>
 #include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 
 namespace margelo::nitro {
 
   template <>
-  struct JNIConverter<margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart>> final {
-    static jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart> toJNI(const margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx& value);
-    static margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx fromJNI(jni::alias_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart> value);
+  struct JNIConverter<margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart>> final {
+    static jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart> toJNI(const margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx& value);
+    static margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx fromJNI(jni::alias_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart> value);
   };
 
 } // namespace margelo::nitro

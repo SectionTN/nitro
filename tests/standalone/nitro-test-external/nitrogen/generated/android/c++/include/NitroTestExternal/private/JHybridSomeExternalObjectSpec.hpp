@@ -10,11 +10,10 @@
 #include <NitroModules/JHybridObject.hpp>
 #include <NitroModules/HybridClass.hpp>
 #include <fbjni/fbjni.h>
-#include <string>
-#include <NitroTestExternal/private/OptionalPrimitivesHolderKotlin.hpp>
-#include <optional>
+#include <NitroTestExternal/private/JHybridSomeExternalObjectSpecJavaPart.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
+#include <NitroTestExternal/private/JOptionalPrimitivesHolder.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroModules/JNIConverter+Optional.hpp>
@@ -39,11 +38,7 @@ namespace margelo::nitro::test::external {
     };
 
   public:
-    struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
-      using HybridType = JHybridSomeExternalObjectSpec;
-      static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/external/HybridSomeExternalObjectSpec;";
-      std::shared_ptr<JHybridSomeExternalObjectSpec> getJHybridSomeExternalObjectSpec();
-    };
+    using JavaPart = JHybridSomeExternalObjectSpecJavaPart;
     struct CxxPart : public jni::HybridClass<CxxPart, JHybridObject::CxxPart> {
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/external/HybridSomeExternalObjectSpec$CxxPart;";
       static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
@@ -73,7 +68,7 @@ namespace margelo::nitro::test::external {
   public:
     // Methods
     jni::local_ref<jni::JString> getValue();
-    OptionalPrimitivesHolderKotlin createOptionalPrimitivesHolder(const jni::local_ref<JOptional<jni::JDouble>>& optionalNumber, const jni::local_ref<JOptional<jni::JBoolean>>& optionalBoolean, const jni::local_ref<JOptional<JUInt64>>& optionalUInt64, const jni::local_ref<JOptional<jni::JLong>>& optionalInt64);
+    jni::local_ref<JOptionalPrimitivesHolder> createOptionalPrimitivesHolder(const jni::local_ref<JOptional<jni::JDouble>>& optionalNumber, const jni::local_ref<JOptional<jni::JBoolean>>& optionalBoolean, const jni::local_ref<JOptional<JUInt64>>& optionalUInt64, const jni::local_ref<JOptional<jni::JLong>>& optionalInt64);
 
   public:
     // Constructor and static members

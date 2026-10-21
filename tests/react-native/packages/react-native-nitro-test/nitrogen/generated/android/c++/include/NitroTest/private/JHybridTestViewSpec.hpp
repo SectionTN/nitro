@@ -10,19 +10,15 @@
 #include <NitroModules/JHybridObject.hpp>
 #include <NitroModules/HybridClass.hpp>
 #include <fbjni/fbjni.h>
-#include <NitroTest/ColorScheme.hpp>
-#include <NitroModules/Callback.hpp>
-#include <functional>
-#include <optional>
-#include <memory>
-#include <NitroModules/JNIConverter+HybridObject.hpp>
-// Forward declaration of `JHybridTestViewSpec` to properly resolve imports.
-namespace margelo::nitro::test { class JHybridTestViewSpec; }
+#include <NitroTest/private/JHybridTestViewSpecJavaPart.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroTest/private/JColorScheme.hpp>
+#include <NitroTest/private/JCallback_void.hpp>
+#include <NitroModules/JNIConverter+Callback.hpp>
 #include <NitroModules/JNIConverter+Optional.hpp>
 #include <NitroModules/JSIConverter+JNIOptional.hpp>
-#include <NitroTest/private/JHybridTestViewSpec.hpp>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 
 namespace margelo::nitro::test {
@@ -38,11 +34,7 @@ namespace margelo::nitro::test {
     };
 
   public:
-    struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
-      using HybridType = JHybridTestViewSpec;
-      static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridTestViewSpec;";
-      std::shared_ptr<JHybridTestViewSpec> getJHybridTestViewSpec();
-    };
+    using JavaPart = JHybridTestViewSpecJavaPart;
     struct CxxPart : public jni::HybridClass<CxxPart, JHybridObject::CxxPart> {
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridTestViewSpec$CxxPart;";
       static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
@@ -73,16 +65,16 @@ namespace margelo::nitro::test {
     void setHasBeenCalled(jboolean hasBeenCalled);
     jlong getInt64Value();
     void setInt64Value(jlong int64Value);
-    ColorScheme getColorScheme();
-    void setColorScheme(ColorScheme colorScheme);
-    Callback<void()> getSomeCallback();
-    void setSomeCallback(const Callback<void()>& someCallback);
+    jni::local_ref<JColorScheme> getColorScheme();
+    void setColorScheme(const jni::local_ref<JColorScheme>& colorScheme);
+    jni::local_ref<margelo::nitro::test::JCallback_void> getSomeCallback();
+    void setSomeCallback(const jni::local_ref<margelo::nitro::test::JCallback_void>& someCallback);
     jni::local_ref<JOptional<jni::JDouble>> getNativeDefaultValue();
     void setNativeDefaultValue(const jni::local_ref<JOptional<jni::JDouble>>& nativeDefaultValue);
 
   public:
     // Methods
-    jboolean getIsViewBlue(const jni::local_ref<JHybridTestViewSpec::JavaPart>& view);
+    jboolean getIsViewBlue(const jni::local_ref<JHybridTestViewSpecJavaPart>& view);
     jdouble getOnDropViewCount();
     jdouble getIsBlueSetterCallCount();
     jdouble getNativeDefaultValueSetterCallCount();

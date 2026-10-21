@@ -14,16 +14,16 @@
 
 namespace margelo::nitro {
 
-  jni::local_ref<margelo::nitro::test::JHybridChildSpec::JavaPart> JNIConverter<margelo::nitro::test::HybridChildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridChildSpec::JavaPart>>::toJNI(const margelo::nitro::test::HybridChildSpecCxx& value) {
+  jni::local_ref<margelo::nitro::test::JHybridChildSpecJavaPart> JNIConverter<margelo::nitro::test::HybridChildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridChildSpecJavaPart>>::toJNI(const margelo::nitro::test::HybridChildSpecCxx& value) {
     auto object = std::dynamic_pointer_cast<margelo::nitro::test::JHybridChildSpec>(value.getNativeObject());
     if (object == nullptr) [[unlikely]] {
       throw std::invalid_argument("Cannot convert Child to its Kotlin implementation.");
     }
-    return JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridChildSpec>, jni::local_ref<margelo::nitro::test::JHybridChildSpec::JavaPart>>::toJNI(object);
+    return JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridChildSpec>, jni::local_ref<margelo::nitro::test::JHybridChildSpecJavaPart>>::toJNI(object);
   }
 
-  margelo::nitro::test::HybridChildSpecCxx JNIConverter<margelo::nitro::test::HybridChildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridChildSpec::JavaPart>>::fromJNI(jni::alias_ref<margelo::nitro::test::JHybridChildSpec::JavaPart> value) {
-    return margelo::nitro::test::HybridChildSpecCxx::fromNative(JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridChildSpec>, jni::local_ref<margelo::nitro::test::JHybridChildSpec::JavaPart>>::fromJNI(value));
+  margelo::nitro::test::HybridChildSpecCxx JNIConverter<margelo::nitro::test::HybridChildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridChildSpecJavaPart>>::fromJNI(jni::alias_ref<margelo::nitro::test::JHybridChildSpecJavaPart> value) {
+    return margelo::nitro::test::HybridChildSpecCxx::fromNative(JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridChildSpec>, jni::local_ref<margelo::nitro::test::JHybridChildSpecJavaPart>>::fromJNI(value));
   }
 
 } // namespace margelo::nitro

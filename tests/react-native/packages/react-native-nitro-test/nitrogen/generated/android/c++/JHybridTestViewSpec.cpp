@@ -6,20 +6,15 @@
 ///
 
 #include <NitroTest/private/JHybridTestViewSpec.hpp>
-#include <NitroTest/ColorScheme.hpp>
-#include <NitroModules/Callback.hpp>
-#include <functional>
-#include <optional>
-#include <memory>
-#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
-#include <NitroModules/JNIConverter+Optional.hpp>
-#include <NitroModules/JSIConverter+JNIOptional.hpp>
-#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroTest/private/JColorScheme.hpp>
 #include <NitroTest/private/JCallback_void.hpp>
-#include <NitroModules/JNICallable.hpp>
+#include <NitroModules/JNIConverter+Callback.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 
 namespace margelo::nitro::test {
 
@@ -47,7 +42,7 @@ namespace margelo::nitro::test {
     return hybridClass;
   }
 
-  std::shared_ptr<JHybridTestViewSpec> JHybridTestViewSpec::JavaPart::getJHybridTestViewSpec() {
+  std::shared_ptr<JHybridTestViewSpec> JHybridTestViewSpecJavaPart::getJHybridTestViewSpec() {
     auto hybridObject = JHybridObject::JavaPart::getJHybridObject();
     auto castHybridObject = std::dynamic_pointer_cast<JHybridTestViewSpec>(hybridObject);
     if (castHybridObject == nullptr) [[unlikely]] {
@@ -108,31 +103,23 @@ namespace margelo::nitro::test {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jlong /* int64Value */)>("setInt64Value");
     __method(_javaPart, CxxPart::getClass(), int64Value);
   }
-  ColorScheme JHybridTestViewSpec::getColorScheme() {
+  jni::local_ref<JColorScheme> JHybridTestViewSpec::getColorScheme() {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JColorScheme>()>("getColorScheme");
     auto __result = __method(_javaPart, CxxPart::getClass());
-    return __result->toCpp();
+    return __result;
   }
-  void JHybridTestViewSpec::setColorScheme(ColorScheme colorScheme) {
+  void JHybridTestViewSpec::setColorScheme(const jni::local_ref<JColorScheme>& colorScheme) {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<JColorScheme> /* colorScheme */)>("setColorScheme");
-    __method(_javaPart, CxxPart::getClass(), JColorScheme::fromCpp(colorScheme));
+    __method(_javaPart, CxxPart::getClass(), colorScheme);
   }
-  Callback<void()> JHybridTestViewSpec::getSomeCallback() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JCallback_void::javaobject>()>("getSomeCallback_cxx");
+  jni::local_ref<margelo::nitro::test::JCallback_void> JHybridTestViewSpec::getSomeCallback() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<margelo::nitro::test::JCallback_void>()>("getSomeCallback_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass());
-    return [&]() -> Callback<void()> {
-      if (__result->isInstanceOf(JCallback_void_cxx::javaClassStatic())) [[likely]] {
-        auto downcast = jni::static_ref_cast<JCallback_void_cxx::javaobject>(__result);
-        return downcast->cthis()->getCallback();
-      } else {
-        auto __callbackRef = jni::make_global(__result);
-        return Callback<void()>::make(JNICallable<JCallback_void, void()>(std::move(__callbackRef)));
-      }
-    }();
+    return __result;
   }
-  void JHybridTestViewSpec::setSomeCallback(const Callback<void()>& someCallback) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<JCallback_void::javaobject> /* someCallback */)>("setSomeCallback_cxx");
-    __method(_javaPart, CxxPart::getClass(), JCallback_void_cxx::fromCpp(someCallback));
+  void JHybridTestViewSpec::setSomeCallback(const jni::local_ref<margelo::nitro::test::JCallback_void>& someCallback) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<margelo::nitro::test::JCallback_void> /* someCallback */)>("setSomeCallback_cxx");
+    __method(_javaPart, CxxPart::getClass(), someCallback);
   }
   jni::local_ref<JOptional<jni::JDouble>> JHybridTestViewSpec::getNativeDefaultValue() {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JOptional<jni::JDouble>>()>("getNativeDefaultValue");
@@ -145,8 +132,8 @@ namespace margelo::nitro::test {
   }
 
   // Methods
-  jboolean JHybridTestViewSpec::getIsViewBlue(const jni::local_ref<JHybridTestViewSpec::JavaPart>& view) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean(jni::alias_ref<JHybridTestViewSpec::JavaPart> /* view */)>("getIsViewBlue");
+  jboolean JHybridTestViewSpec::getIsViewBlue(const jni::local_ref<JHybridTestViewSpecJavaPart>& view) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean(jni::alias_ref<JHybridTestViewSpecJavaPart> /* view */)>("getIsViewBlue");
     auto __result = __method(_javaPart, CxxPart::getClass(), view);
     return __result;
   }

@@ -6,60 +6,36 @@
 ///
 
 #include <NitroTest/private/JVariant_HybridTestObjectSwiftKotlinSpec_Person.hpp>
-#include <memory>
-#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroTest/private/JHybridTestObjectSwiftKotlinSpec.hpp>
-#include <NitroTest/private/PersonKotlin.hpp>
-#include <variant>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroTest/private/JPerson.hpp>
-#include <NitroModules/JNIConverter+String.hpp>
-#include <NitroModules/JSIConverter+JString.hpp>
-#include <NitroModules/JNIConverter+Primitives.hpp>
-#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 
 namespace margelo::nitro::test {
-  jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> JVariant_HybridTestObjectSwiftKotlinSpec_Person::create_0(jni::alias_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart> value) {
-    static const auto method = javaClassStatic()->getStaticMethod<JVariant_HybridTestObjectSwiftKotlinSpec_Person(jni::alias_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart>)>("fromCpp_0");
-    return method(javaClassStatic(), value);
+
+  size_t JVariant_HybridTestObjectSwiftKotlinSpec_Person::getIndex() const {
+    static const auto field = javaClassStatic()->getField<jint>("index");
+    return static_cast<size_t>(getFieldValue(field));
   }
 
-  jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> JVariant_HybridTestObjectSwiftKotlinSpec_Person::create_1(jni::alias_ref<JPerson> value) {
-    static const auto method = javaClassStatic()->getStaticMethod<JVariant_HybridTestObjectSwiftKotlinSpec_Person(jni::alias_ref<JPerson>)>("fromCpp_1");
-    return method(javaClassStatic(), value);
+  jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::First::create(jni::alias_ref<JHybridTestObjectSwiftKotlinSpecJavaPart> value) {
+    static const auto method = JVariant_HybridTestObjectSwiftKotlinSpec_Person::javaClassStatic()->getStaticMethod<jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person>(jni::alias_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>)>("fromCpp_0");
+    return method(JVariant_HybridTestObjectSwiftKotlinSpec_Person::javaClassStatic(), value);
   }
 
-  jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> JVariant_HybridTestObjectSwiftKotlinSpec_Person::fromCpp(const std::variant<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, PersonKotlin>& variant) {
-    switch (variant.index()) {
-      case 0: return create_0(JNIConverter<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, jni::local_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart>>::toJNI(std::get<0>(variant)));
-      case 1: return create_1(JPerson::fromCpp(std::get<1>(variant)));
-      default: throw std::invalid_argument("Variant holds unknown index! (" + std::to_string(variant.index()) + ")");
-    }
-  }
-
-  jni::local_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart> JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::First::getValue() const {
-    static const auto field = javaClassStatic()->getField<JHybridTestObjectSwiftKotlinSpec::JavaPart>("value");
+  JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::First::Value JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::First::getValue() const {
+    static const auto field = javaClassStatic()->getField<JHybridTestObjectSwiftKotlinSpecJavaPart>("value");
     return getFieldValue(field);
   }
 
-  jni::local_ref<JPerson> JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::Second::getValue() const {
+  jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::Second::create(jni::alias_ref<JPerson> value) {
+    static const auto method = JVariant_HybridTestObjectSwiftKotlinSpec_Person::javaClassStatic()->getStaticMethod<jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person>(jni::alias_ref<JPerson>)>("fromCpp_1");
+    return method(JVariant_HybridTestObjectSwiftKotlinSpec_Person::javaClassStatic(), value);
+  }
+
+  JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::Second::Value JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::Second::getValue() const {
     static const auto field = javaClassStatic()->getField<JPerson>("value");
     return getFieldValue(field);
   }
 
-  /**
-   * Converts JVariant_HybridTestObjectSwiftKotlinSpec_Person to std::variant<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, PersonKotlin>
-   */
-  std::variant<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, PersonKotlin> JVariant_HybridTestObjectSwiftKotlinSpec_Person::toCpp() const {
-    if (isInstanceOf(JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::First::javaClassStatic())) {
-      // It's a `std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>`
-      auto jniValue = static_cast<const JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::First*>(this)->getValue();
-      return JNIConverter<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, jni::local_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart>>::fromJNI(jniValue);
-    } else if (isInstanceOf(JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::Second::javaClassStatic())) {
-      // It's a `PersonKotlin`
-      auto jniValue = static_cast<const JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::Second*>(this)->getValue();
-      return jniValue->toCpp();
-    }
-    throw std::invalid_argument("Variant is unknown Kotlin instance!");
-  }
 } // namespace margelo::nitro::test

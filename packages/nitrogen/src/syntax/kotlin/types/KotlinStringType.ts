@@ -9,7 +9,7 @@ import type { SourceImport } from '../../SourceFile.js'
 import { KotlinJSIType } from './KotlinJSIType.js'
 
 export class KotlinStringType extends StringType implements KotlinType {
-  readonly jniValueKind = 'wrapper'
+  readonly jniValueKind = 'object'
   readonly needsKotlinConversion = false
 
   getCppConverter(cppType: Type): KotlinCppConverter {

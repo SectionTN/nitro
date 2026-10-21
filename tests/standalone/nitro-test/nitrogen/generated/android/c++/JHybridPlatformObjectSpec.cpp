@@ -6,7 +6,6 @@
 ///
 
 #include <NitroTest/private/JHybridPlatformObjectSpec.hpp>
-#include <string>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
 #include <memory>
@@ -20,9 +19,9 @@ namespace margelo::nitro::test {
   }
 
   std::shared_ptr<JHybridPlatformObjectSpec> JHybridPlatformObjectSpec::constructor() {
-    static const auto __method = JHybridPlatformObjectSpec::JavaPart::javaClassStatic()->getStaticMethod<jni::local_ref<JHybridPlatformObjectSpec::JavaPart>()>("constructor_cxx");
+    static const auto __method = JHybridPlatformObjectSpec::JavaPart::javaClassStatic()->getStaticMethod<jni::local_ref<JHybridPlatformObjectSpecJavaPart>()>("constructor_cxx");
     auto __result = __method(JHybridPlatformObjectSpec::JavaPart::javaClassStatic());
-    return JNIConverter<std::shared_ptr<JHybridPlatformObjectSpec>, jni::local_ref<JHybridPlatformObjectSpec::JavaPart>>::fromJNI(__result);
+    return JNIConverter<std::shared_ptr<JHybridPlatformObjectSpec>, jni::local_ref<JHybridPlatformObjectSpecJavaPart>>::fromJNI(__result);
   }
 
   const std::shared_ptr<const HybridClass>& JHybridPlatformObjectSpec::Class::get() {
@@ -33,7 +32,7 @@ namespace margelo::nitro::test {
     return hybridClass;
   }
 
-  std::shared_ptr<JHybridPlatformObjectSpec> JHybridPlatformObjectSpec::JavaPart::getJHybridPlatformObjectSpec() {
+  std::shared_ptr<JHybridPlatformObjectSpec> JHybridPlatformObjectSpecJavaPart::getJHybridPlatformObjectSpec() {
     auto hybridObject = JHybridObject::JavaPart::getJHybridObject();
     auto castHybridObject = std::dynamic_pointer_cast<JHybridPlatformObjectSpec>(hybridObject);
     if (castHybridObject == nullptr) [[unlikely]] {

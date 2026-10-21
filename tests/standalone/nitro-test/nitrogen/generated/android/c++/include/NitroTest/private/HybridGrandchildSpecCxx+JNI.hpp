@@ -8,16 +8,16 @@
 #pragma once
 
 #include <NitroTest/HybridGrandchildSpecCxx.hpp>
-#include <NitroTest/private/JHybridGrandchildSpec.hpp>
+#include <NitroTest/private/JHybridGrandchildSpecJavaPart.hpp>
 #include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 
 namespace margelo::nitro {
 
   template <>
-  struct JNIConverter<margelo::nitro::test::HybridGrandchildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart>> final {
-    static jni::local_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart> toJNI(const margelo::nitro::test::HybridGrandchildSpecCxx& value);
-    static margelo::nitro::test::HybridGrandchildSpecCxx fromJNI(jni::alias_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart> value);
+  struct JNIConverter<margelo::nitro::test::HybridGrandchildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart>> final {
+    static jni::local_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart> toJNI(const margelo::nitro::test::HybridGrandchildSpecCxx& value);
+    static margelo::nitro::test::HybridGrandchildSpecCxx fromJNI(jni::alias_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart> value);
   };
 
 } // namespace margelo::nitro

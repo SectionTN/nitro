@@ -8,7 +8,7 @@ import { KotlinJSIType } from './KotlinJSIType.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
 export class KotlinErrorType extends ErrorType implements KotlinType {
-  readonly jniValueKind = 'wrapper'
+  readonly jniValueKind = 'object'
   readonly needsKotlinConversion = false
 
   getJSIType(): KotlinJSIType {

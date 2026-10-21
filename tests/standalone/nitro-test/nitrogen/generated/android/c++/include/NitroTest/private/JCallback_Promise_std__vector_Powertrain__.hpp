@@ -7,70 +7,42 @@
 
 #pragma once
 
-#include <fbjni/fbjni.h>
-#include <functional>
-
-#include <NitroTest/Powertrain.hpp>
-#include <vector>
-#include <NitroModules/Promise.hpp>
-#include <NitroModules/Callback.hpp>
-#include <NitroModules/InlineCallback.hpp>
-#include <functional>
-#include <optional>
-#include <NitroModules/JPromise.hpp>
-#include <NitroModules/JNISharedPtr.hpp>
+#include <NitroModules/JNICallback.hpp>
+#include <NitroModules/JSIConverter+JNICallback.hpp>
 #include <NitroTest/private/JPowertrain.hpp>
+#include <NitroModules/JNIConverter+Array.hpp>
+#include <NitroModules/JSIConverter+JNIArray.hpp>
+#include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JSIConverter+JNIPromise.hpp>
 
 namespace margelo::nitro::test {
 
   namespace jni = facebook::jni;
 
-  /**
-   * Represents the Java/Kotlin callback `() -> Promise<Array<Powertrain>>`.
-   * This can be passed around between C++ and Java/Kotlin.
-   */
-  struct JCallback_Promise_std__vector_Powertrain__ : public jni::JavaClass<JCallback_Promise_std__vector_Powertrain__> {
-  public:
-    static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/Callback_Promise_std__vector_Powertrain__;";
+  class JCallback_Promise_std__vector_Powertrain___cxx;
 
-  public:
-    /**
-     * Invokes the callback this `JCallback_Promise_std__vector_Powertrain__` instance holds through JNI.
-     */
-    Promise<std::vector<Powertrain>> invoke() const;
+  struct JCallback_Promise_std__vector_Powertrain__ : jni::JavaClass<JCallback_Promise_std__vector_Powertrain__> {
+    static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/Callback_Promise_std__vector_Powertrain__;";
+    using CxxPart = JCallback_Promise_std__vector_Powertrain___cxx;
+    using NativeSignature = JNICallbackState<jni::local_ref<JTypedPromise<jni::local_ref<jni::JArrayClass<margelo::nitro::test::JPowertrain>>>>()>::Signature;
+
+    JNIRetainedValue<jni::local_ref<JTypedPromise<jni::local_ref<jni::JArrayClass<margelo::nitro::test::JPowertrain>>>>>::Type invoke() const;
   };
 
-  /**
-   * An implementation of Callback_Promise_std__vector_Powertrain__ that is backed by a C++ implementation (using `Callback<...>`)
-   */
   class JCallback_Promise_std__vector_Powertrain___cxx final : public jni::HybridClass<JCallback_Promise_std__vector_Powertrain___cxx, JCallback_Promise_std__vector_Powertrain__> {
   public:
-    static jni::local_ref<JCallback_Promise_std__vector_Powertrain__::javaobject> fromCpp(const Callback<Promise<std::vector<Powertrain>>()>& callback);
-    static jni::local_ref<JCallback_Promise_std__vector_Powertrain__::javaobject> fromCpp(const InlineCallback<Promise<std::vector<Powertrain>>()>& callback);
-
-  public:
-    /**
-     * Invokes the C++ `Callback<...>` this `JCallback_Promise_std__vector_Powertrain___cxx` instance holds.
-     */
-    jni::local_ref<JPromise::JavaPart> invoke_cxx();
-
-  public:
-    [[nodiscard]]
-    inline const Callback<Promise<std::vector<Powertrain>>()>& getCallback() const {
-      return _callback;
-    }
-
-  public:
+    using CallbackType = Callback<JCallback_Promise_std__vector_Powertrain__::NativeSignature>;
     static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/Callback_Promise_std__vector_Powertrain___cxx;";
+
+    static jni::local_ref<JCallback_Promise_std__vector_Powertrain__> create(CallbackType callback, bool isInline);
+    jni::local_ref<JTypedPromise<jni::local_ref<jni::JArrayClass<JPowertrain>>>> invoke_cxx();
+    const CallbackType& getCallback() const { return _state.getCallback(); }
     static void registerNatives();
 
   private:
-    explicit JCallback_Promise_std__vector_Powertrain___cxx(const Callback<Promise<std::vector<Powertrain>>()>& callback, bool isInline);
-
-  private:
     friend HybridBase;
-    Callback<Promise<std::vector<Powertrain>>()> _callback;
-    bool _isInline;
+    explicit JCallback_Promise_std__vector_Powertrain___cxx(CallbackType callback, bool isInline);
+    JNICallbackState<jni::local_ref<JTypedPromise<jni::local_ref<jni::JArrayClass<margelo::nitro::test::JPowertrain>>>>()> _state;
   };
 
 } // namespace margelo::nitro::test

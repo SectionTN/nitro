@@ -10,11 +10,13 @@
 #include <NitroModules/JHybridObject.hpp>
 #include <NitroModules/HybridClass.hpp>
 #include <fbjni/fbjni.h>
-#include <string>
-#include <NitroTest/private/CarKotlin.hpp>
-#include <variant>
+#include <NitroTest/private/JHybridChildSpecJavaPart.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroTest/private/JNamedVariant.hpp>
+#include <NitroModules/JNIConverter+String.hpp>
+#include <NitroModules/JSIConverter+JString.hpp>
+#include <NitroTest/private/JCar.hpp>
 #include <NitroTest/private/JHybridChildSpec.hpp>
 #include <memory>
 #include <NitroModules/JNIConverter+HybridObject.hpp>
@@ -35,11 +37,7 @@ namespace margelo::nitro::test {
     };
 
   public:
-    struct JavaPart : public jni::JavaClass<JavaPart, margelo::nitro::test::JHybridBaseSpec::JavaPart> {
-      using HybridType = JHybridChildSpec;
-      static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridChildSpec;";
-      std::shared_ptr<JHybridChildSpec> getJHybridChildSpec();
-    };
+    using JavaPart = JHybridChildSpecJavaPart;
     struct CxxPart : public jni::HybridClass<CxxPart, margelo::nitro::test::JHybridBaseSpec::CxxPart> {
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridChildSpec$CxxPart;";
       static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
@@ -68,7 +66,7 @@ namespace margelo::nitro::test {
 
   public:
     // Methods
-    std::variant<std::string, CarKotlin> bounceVariant(const std::variant<std::string, CarKotlin>& variant);
+    jni::local_ref<JNamedVariant> bounceVariant(const jni::local_ref<JNamedVariant>& variant);
 
   public:
     // Constructor and static members

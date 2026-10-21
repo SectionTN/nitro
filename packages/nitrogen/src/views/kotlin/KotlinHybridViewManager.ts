@@ -1,5 +1,4 @@
 import { getKotlinJSIType } from '../../syntax/kotlin/getKotlinJSIType.js'
-import { getKotlinNativeType } from '../../syntax/kotlin/getKotlinNativeType.js'
 import type { SourceFile } from '../../syntax/SourceFile.js'
 import type { HybridObjectSpec } from '../../syntax/HybridObjectSpec.js'
 import {
@@ -225,7 +224,7 @@ public:
     const setter = property.getSetterName('other')
     const converter = getKotlinConverter({
       cppType: property.type,
-      kotlinType: getKotlinJSIType(getKotlinNativeType(property.type, config)),
+      kotlinType: getKotlinJSIType(property.type, { nativeConfig: config }),
     })
     return `
 if (oldProps == nullptr

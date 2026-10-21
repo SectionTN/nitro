@@ -14,16 +14,16 @@
 
 namespace margelo::nitro {
 
-  jni::local_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart> JNIConverter<margelo::nitro::test::HybridGrandchildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart>>::toJNI(const margelo::nitro::test::HybridGrandchildSpecCxx& value) {
+  jni::local_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart> JNIConverter<margelo::nitro::test::HybridGrandchildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart>>::toJNI(const margelo::nitro::test::HybridGrandchildSpecCxx& value) {
     auto object = std::dynamic_pointer_cast<margelo::nitro::test::JHybridGrandchildSpec>(value.getNativeObject());
     if (object == nullptr) [[unlikely]] {
       throw std::invalid_argument("Cannot convert Grandchild to its Kotlin implementation.");
     }
-    return JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridGrandchildSpec>, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart>>::toJNI(object);
+    return JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridGrandchildSpec>, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart>>::toJNI(object);
   }
 
-  margelo::nitro::test::HybridGrandchildSpecCxx JNIConverter<margelo::nitro::test::HybridGrandchildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart>>::fromJNI(jni::alias_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart> value) {
-    return margelo::nitro::test::HybridGrandchildSpecCxx::fromNative(JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridGrandchildSpec>, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpec::JavaPart>>::fromJNI(value));
+  margelo::nitro::test::HybridGrandchildSpecCxx JNIConverter<margelo::nitro::test::HybridGrandchildSpecCxx, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart>>::fromJNI(jni::alias_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart> value) {
+    return margelo::nitro::test::HybridGrandchildSpecCxx::fromNative(JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridGrandchildSpec>, jni::local_ref<margelo::nitro::test::JHybridGrandchildSpecJavaPart>>::fromJNI(value));
   }
 
 } // namespace margelo::nitro

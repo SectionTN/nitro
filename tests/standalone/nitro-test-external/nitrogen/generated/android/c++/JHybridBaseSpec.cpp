@@ -6,22 +6,16 @@
 ///
 
 #include <NitroTestExternal/private/JHybridBaseSpec.hpp>
-#include <NitroTestExternal/private/SizeKotlin.hpp>
-#include <NitroTestExternal/SizeUnit.hpp>
-#include <NitroModules/Promise.hpp>
-#include <NitroModules/Callback.hpp>
-#include <functional>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
-#include <memory>
-#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroTestExternal/private/JSize.hpp>
 #include <NitroTestExternal/private/JSizeUnit.hpp>
-#include <optional>
-#include <NitroModules/JPromise.hpp>
-#include <NitroModules/JNISharedPtr.hpp>
-#include <NitroTestExternal/private/JCallback_SizeKotlin_SizeKotlin.hpp>
-#include <NitroModules/JNICallable.hpp>
+#include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JSIConverter+JNIPromise.hpp>
+#include <NitroTestExternal/private/JCallback_Size_Size.hpp>
+#include <NitroModules/JNIConverter+Callback.hpp>
+#include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 
 namespace margelo::nitro::test::external {
 
@@ -31,9 +25,9 @@ namespace margelo::nitro::test::external {
   }
 
   std::shared_ptr<JHybridBaseSpec> JHybridBaseSpec::constructor() {
-    static const auto __method = JHybridBaseSpec::JavaPart::javaClassStatic()->getStaticMethod<jni::local_ref<JHybridBaseSpec::JavaPart>()>("constructor_cxx");
+    static const auto __method = JHybridBaseSpec::JavaPart::javaClassStatic()->getStaticMethod<jni::local_ref<JHybridBaseSpecJavaPart>()>("constructor_cxx");
     auto __result = __method(JHybridBaseSpec::JavaPart::javaClassStatic());
-    return JNIConverter<std::shared_ptr<JHybridBaseSpec>, jni::local_ref<JHybridBaseSpec::JavaPart>>::fromJNI(__result);
+    return JNIConverter<std::shared_ptr<JHybridBaseSpec>, jni::local_ref<JHybridBaseSpecJavaPart>>::fromJNI(__result);
   }
 
   const std::shared_ptr<const HybridClass>& JHybridBaseSpec::Class::get() {
@@ -47,7 +41,7 @@ namespace margelo::nitro::test::external {
     return hybridClass;
   }
 
-  std::shared_ptr<JHybridBaseSpec> JHybridBaseSpec::JavaPart::getJHybridBaseSpec() {
+  std::shared_ptr<JHybridBaseSpec> JHybridBaseSpecJavaPart::getJHybridBaseSpec() {
     auto hybridObject = JHybridObject::JavaPart::getJHybridObject();
     auto castHybridObject = std::dynamic_pointer_cast<JHybridBaseSpec>(hybridObject);
     if (castHybridObject == nullptr) [[unlikely]] {
@@ -88,38 +82,20 @@ namespace margelo::nitro::test::external {
   }
 
   // Methods
-  SizeKotlin JHybridBaseSpec::bounceSize(const SizeKotlin& size) {
+  jni::local_ref<JSize> JHybridBaseSpec::bounceSize(const jni::local_ref<JSize>& size) {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JSize>(jni::alias_ref<JSize> /* size */)>("bounceSize");
-    auto __result = __method(_javaPart, CxxPart::getClass(), JSize::fromCpp(size));
-    return __result->toCpp();
+    auto __result = __method(_javaPart, CxxPart::getClass(), size);
+    return __result;
   }
-  SizeUnit JHybridBaseSpec::bounceSizeUnit(SizeUnit unit) {
+  jni::local_ref<JSizeUnit> JHybridBaseSpec::bounceSizeUnit(const jni::local_ref<JSizeUnit>& unit) {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JSizeUnit>(jni::alias_ref<JSizeUnit> /* unit */)>("bounceSizeUnit");
-    auto __result = __method(_javaPart, CxxPart::getClass(), JSizeUnit::fromCpp(unit));
-    return __result->toCpp();
+    auto __result = __method(_javaPart, CxxPart::getClass(), unit);
+    return __result;
   }
-  Promise<SizeKotlin> JHybridBaseSpec::mapSize(const SizeKotlin& size, const Callback<SizeKotlin(const SizeKotlin& /* size */)>& callback) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JPromise::JavaPart>(jni::alias_ref<JSize> /* size */, jni::alias_ref<JCallback_SizeKotlin_SizeKotlin::javaobject> /* callback */)>("mapSize_cxx");
-    auto __result = __method(_javaPart, CxxPart::getClass(), JSize::fromCpp(size), JCallback_SizeKotlin_SizeKotlin_cxx::fromCpp(callback));
-    return [&]() {
-      auto __promise = Promise<SizeKotlin>::pending();
-      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
-        std::optional<SizeKotlin> __converted;
-        try {
-          auto __result = jni::static_ref_cast<JSize>(__boxedResult);
-          __converted.emplace(__result->toCpp());
-        } catch (...) {
-          __promise.reject(std::current_exception());
-          return;
-        }
-        __promise.resolve(std::move(*__converted));
-      });
-      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
-        jni::JniException __jniError(__throwable);
-        __promise.reject(std::make_exception_ptr(__jniError));
-      });
-      return __promise;
-    }();
+  jni::local_ref<JTypedPromise<jni::local_ref<JSize>>> JHybridBaseSpec::mapSize(const jni::local_ref<JSize>& size, const jni::local_ref<margelo::nitro::test::external::JCallback_Size_Size>& callback) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JTypedPromise<jni::local_ref<JSize>>>(jni::alias_ref<JSize> /* size */, jni::alias_ref<margelo::nitro::test::external::JCallback_Size_Size> /* callback */)>("mapSize_cxx");
+    auto __result = __method(_javaPart, CxxPart::getClass(), size, callback);
+    return __result;
   }
 
 } // namespace margelo::nitro::test::external

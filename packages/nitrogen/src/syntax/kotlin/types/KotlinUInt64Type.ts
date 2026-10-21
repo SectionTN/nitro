@@ -1,11 +1,18 @@
 import type { Language } from '../../../getPlatformSpecs.js'
 import type { SourceImport } from '../../SourceFile.js'
-import type { GetCodeOptions, Type } from '../../types/Type.js'
+import type { Type } from '../../types/Type.js'
 import { UInt64Type } from '../../types/UInt64Type.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { KotlinCxxPrimitiveType } from './KotlinCxxPrimitiveType.js'
 import { KotlinJSIType } from './KotlinJSIType.js'
-import { getJniPrimitiveCode, type JniValueKind, type KotlinConversion, type KotlinType, type KotlinTypeOptions } from './KotlinType.js'
+import {
+  getJniPrimitiveCode,
+  type GetKotlinCodeOptions,
+  type JniValueKind,
+  type KotlinConversion,
+  type KotlinType,
+  type KotlinTypeOptions,
+} from './KotlinType.js'
 
 /** JNI carries ULong bits as Long; the boxed facade preserves unsigned JS semantics. */
 export class KotlinUInt64Type extends UInt64Type implements KotlinType {
@@ -18,7 +25,7 @@ export class KotlinUInt64Type extends UInt64Type implements KotlinType {
   }
 
   get jniValueKind(): JniValueKind {
-    return this.boxed ? 'wrapper' : 'primitive'
+    return this.boxed ? 'object' : 'primitive'
   }
 
   getJSIType(): KotlinJSIType | undefined {
@@ -31,9 +38,10 @@ export class KotlinUInt64Type extends UInt64Type implements KotlinType {
     return new KotlinCxxPrimitiveType(cppType, this).getConverter()
   }
 
-  override getCode(language: Language, options: GetCodeOptions): string {
+  override getCode(language: Language, options: GetKotlinCodeOptions): string {
     switch (language) {
       case 'c++':
+        if (options.representation === 'jsi' && !this.boxed) return super.getCode(language, options)
         return getJniPrimitiveCode('jlong', options.context, { boxedType: 'JUInt64', boxed: this.boxed })
       case 'kotlin':
         return 'Long'

@@ -1,6 +1,8 @@
+import type { Language } from '../../../getPlatformSpecs.js'
+import type { NitroConfig } from '../../../config/NitroConfig.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import type { SourceImport } from '../../SourceFile.js'
-import type { Type, TypeContext } from '../../types/Type.js'
+import type { GetCodeOptions, Type, TypeContext } from '../../types/Type.js'
 
 /** A generated JNI class whose native methods must be registered by its module. */
 export interface JNINativeRegistration {
@@ -10,6 +12,8 @@ export interface JNINativeRegistration {
 }
 
 export interface KotlinTypeOptions {
+  /** The owning module for generated nested JNI facades, such as callbacks and variants. */
+  nativeConfig?: NitroConfig
   /**
    * Whether JNI holds the value as an object, as in optionals, records, promise
    * results and callback results. Only primitives box, e.g. `double` as `jni::JDouble`.
@@ -30,11 +34,14 @@ export type KotlinConversion = ({ from: 'c++'; to: 'kotlin' } | { from: 'kotlin'
 /**
  * How fbjni holds a value of a type, e.g. as an array element:
  * - `primitive`: a JNI primitive such as `double`.
- * - `wrapper`: a `jni::JavaClass` such as `jni::JString`. References give it with `*ref`.
- * - `pointer`: a raw `javaobject` pointer such as `JArrayBuffer::javaobject`.
- *   References give it with `ref.get()`.
+ * - `object`: a `jni::JavaClass` such as `jni::JString`. References give it with `*ref`.
  */
-export type JniValueKind = 'primitive' | 'wrapper' | 'pointer'
+export type JniValueKind = 'primitive' | 'object'
+
+export interface GetKotlinCodeOptions extends GetCodeOptions {
+  /** JNI signatures use their JVM ABI; JSI values preserve JavaScript semantics. */
+  representation?: 'jni' | 'jsi'
+}
 
 /**
  * A Kotlin representation that crosses JNI.
@@ -50,18 +57,14 @@ export type JniValueKind = 'primitive' | 'wrapper' | 'pointer'
  * the original type provides its C++ declarations.
  */
 export interface KotlinType extends Type {
+  getCode(language: Language, options: GetKotlinCodeOptions): string
   readonly jniValueKind: JniValueKind
-  /**
-   * The fbjni type a native method returns for a value converted from C++,
-   * if it is not `getCode('c++', { context: 'return' })`.
-   */
-  readonly fromCppReturnType?: string
   /** Whether the public Kotlin API needs conversion to this representation. */
   readonly needsKotlinConversion: boolean
   /** The owned JNI representation consumed by direct JSI conversions, when supported. */
   getJSIType?(): Type | undefined
   /** Native conversion requirements requested only by a C++ consumer. */
-  getCppConverter?(cppType: Type): KotlinCppConverter | undefined
+  getCppConverter(cppType: Type): KotlinCppConverter
   /** Native methods required by this type, owned by the module that declares them. */
   getJniNativeRegistrations?(): readonly JNINativeRegistration[]
   /** Converts `value` across JNI, see `KotlinConversion`. */

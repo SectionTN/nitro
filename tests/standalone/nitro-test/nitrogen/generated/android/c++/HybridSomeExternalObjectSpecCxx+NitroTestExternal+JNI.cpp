@@ -14,16 +14,16 @@
 
 namespace margelo::nitro {
 
-  jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart> JNIConverter<margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart>>::toJNI(const margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx& value) {
+  jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart> JNIConverter<margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart>>::toJNI(const margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx& value) {
     auto object = std::dynamic_pointer_cast<margelo::nitro::test::external::JHybridSomeExternalObjectSpec>(value.getNativeObject());
     if (object == nullptr) [[unlikely]] {
       throw std::invalid_argument("Cannot convert SomeExternalObject to its Kotlin implementation.");
     }
-    return JNIConverter<std::shared_ptr<margelo::nitro::test::external::JHybridSomeExternalObjectSpec>, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart>>::toJNI(object);
+    return JNIConverter<std::shared_ptr<margelo::nitro::test::external::JHybridSomeExternalObjectSpec>, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart>>::toJNI(object);
   }
 
-  margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx JNIConverter<margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart>>::fromJNI(jni::alias_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart> value) {
-    return margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx::fromNative(JNIConverter<std::shared_ptr<margelo::nitro::test::external::JHybridSomeExternalObjectSpec>, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart>>::fromJNI(value));
+  margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx JNIConverter<margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart>>::fromJNI(jni::alias_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart> value) {
+    return margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx::fromNative(JNIConverter<std::shared_ptr<margelo::nitro::test::external::JHybridSomeExternalObjectSpec>, jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart>>::fromJNI(value));
   }
 
 } // namespace margelo::nitro

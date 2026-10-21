@@ -14,16 +14,16 @@
 
 namespace margelo::nitro {
 
-  jni::local_ref<margelo::nitro::test::JHybridBaseSpec::JavaPart> JNIConverter<margelo::nitro::test::HybridBaseSpecCxx, jni::local_ref<margelo::nitro::test::JHybridBaseSpec::JavaPart>>::toJNI(const margelo::nitro::test::HybridBaseSpecCxx& value) {
+  jni::local_ref<margelo::nitro::test::JHybridBaseSpecJavaPart> JNIConverter<margelo::nitro::test::HybridBaseSpecCxx, jni::local_ref<margelo::nitro::test::JHybridBaseSpecJavaPart>>::toJNI(const margelo::nitro::test::HybridBaseSpecCxx& value) {
     auto object = std::dynamic_pointer_cast<margelo::nitro::test::JHybridBaseSpec>(value.getNativeObject());
     if (object == nullptr) [[unlikely]] {
       throw std::invalid_argument("Cannot convert Base to its Kotlin implementation.");
     }
-    return JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridBaseSpec>, jni::local_ref<margelo::nitro::test::JHybridBaseSpec::JavaPart>>::toJNI(object);
+    return JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridBaseSpec>, jni::local_ref<margelo::nitro::test::JHybridBaseSpecJavaPart>>::toJNI(object);
   }
 
-  margelo::nitro::test::HybridBaseSpecCxx JNIConverter<margelo::nitro::test::HybridBaseSpecCxx, jni::local_ref<margelo::nitro::test::JHybridBaseSpec::JavaPart>>::fromJNI(jni::alias_ref<margelo::nitro::test::JHybridBaseSpec::JavaPart> value) {
-    return margelo::nitro::test::HybridBaseSpecCxx::fromNative(JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridBaseSpec>, jni::local_ref<margelo::nitro::test::JHybridBaseSpec::JavaPart>>::fromJNI(value));
+  margelo::nitro::test::HybridBaseSpecCxx JNIConverter<margelo::nitro::test::HybridBaseSpecCxx, jni::local_ref<margelo::nitro::test::JHybridBaseSpecJavaPart>>::fromJNI(jni::alias_ref<margelo::nitro::test::JHybridBaseSpecJavaPart> value) {
+    return margelo::nitro::test::HybridBaseSpecCxx::fromNative(JNIConverter<std::shared_ptr<margelo::nitro::test::JHybridBaseSpec>, jni::local_ref<margelo::nitro::test::JHybridBaseSpecJavaPart>>::fromJNI(value));
   }
 
 } // namespace margelo::nitro

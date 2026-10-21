@@ -10,74 +10,90 @@
 #include <NitroModules/JHybridObject.hpp>
 #include <NitroModules/HybridClass.hpp>
 #include <fbjni/fbjni.h>
-#include <string>
-#include <NitroModules/Null.hpp>
-#include <optional>
-#include <variant>
-#include <vector>
-#include <NitroTest/Powertrain.hpp>
-#include <NitroTest/OldEnum.hpp>
-#include <NitroTest/TruckPowertrain.hpp>
-#include <NitroModules/Callback.hpp>
-#include <functional>
-#include <memory>
-#include <NitroModules/JNIConverter+HybridObject.hpp>
-// Forward declaration of `JHybridTestObjectSwiftKotlinSpec` to properly resolve imports.
-namespace margelo::nitro::test { class JHybridTestObjectSwiftKotlinSpec; }
-#include <NitroTest/private/PersonKotlin.hpp>
-#include <NitroTest/private/PartialPersonKotlin.hpp>
-#include <NitroModules/Promise.hpp>
-// Forward declaration of `JHybridChildSpec` to properly resolve imports.
-namespace margelo::nitro::test { class JHybridChildSpec; }
-#include <NitroModules/AnyJSON.hpp>
-#include <NitroModules/ArrayBuffer.hpp>
-#include <unordered_map>
-#include <NitroTest/private/CarKotlin.hpp>
-#include <NitroTest/private/WrappedJsStructKotlin.hpp>
-#include <NitroTest/private/OptionalWrapperKotlin.hpp>
-#include <NitroTest/private/OptionalCallbackKotlin.hpp>
-#include <NitroTest/private/OptionalEnumWrapperKotlin.hpp>
-#include <NitroTest/WeirdNumbersEnum.hpp>
-// Forward declaration of `JHybridBaseSpec` to properly resolve imports.
-namespace margelo::nitro::test { class JHybridBaseSpec; }
-// Forward declaration of `JHybridGrandchildSpec` to properly resolve imports.
-namespace margelo::nitro::test { class JHybridGrandchildSpec; }
-// Forward declaration of `JHybridSomeExternalObjectSpec` to properly resolve imports.
-namespace margelo::nitro::test::external { class JHybridSomeExternalObjectSpec; }
-#include <NitroTest/private/ExternalObjectStructKotlin.hpp>
-#include <NitroTest/private/CppOnlyValueKotlin.hpp>
-#include <NitroTest/private/MapWrapperKotlin.hpp>
-#include <exception>
-#include <NitroModules/InlineCallback.hpp>
-#include <NitroTest/private/JsStyleStructKotlin.hpp>
-#include <NitroTest/HardwareBufferFormat.hpp>
+#include <NitroTest/private/JHybridTestObjectSwiftKotlinSpecJavaPart.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
+#include <NitroModules/Null.hpp>
 #include <NitroModules/JNIConverter+Null.hpp>
 #include <NitroModules/JSIConverter+JNINull.hpp>
 #include <NitroModules/JNIConverter+Optional.hpp>
 #include <NitroModules/JSIConverter+JNIOptional.hpp>
+#include <NitroTest/private/JVariant_NullType_String.hpp>
 #include <NitroModules/JNIConverter+Array.hpp>
 #include <NitroModules/JSIConverter+JNIArray.hpp>
-#include <NitroTest/private/JHybridTestObjectSwiftKotlinSpec.hpp>
+#include <NitroTest/private/JPowertrain.hpp>
+#include <NitroTest/private/JOldEnum.hpp>
+#include <NitroTest/private/JTruckPowertrain.hpp>
+#include <NitroTest/private/JCallback_void_double.hpp>
+#include <NitroModules/JNIConverter+Callback.hpp>
+#include <NitroTest/private/JVariant_Double_String.hpp>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroModules/JSIConverter+JNIHybridObject.hpp>
-#include <NitroTest/private/JHybridChildSpec.hpp>
+#include <NitroTest/private/JPerson.hpp>
+#include <NitroTest/private/JPartialPerson.hpp>
+#include <NitroTest/private/JCallback_std__vector_Powertrain__std__vector_Powertrain_.hpp>
+#include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JSIConverter+JNIPromise.hpp>
+#include <NitroTest/private/JHybridChildSpecJavaPart.hpp>
+#include <NitroTest/private/JCallback_void.hpp>
+#include <NitroModules/AnyJSON.hpp>
 #include <NitroModules/JAnyJSON.hpp>
 #include <NitroModules/JNIConverter+AnyJSON.hpp>
 #include <NitroModules/JSIConverter+JNIAnyJSON.hpp>
-#include <NitroModules/JNIConverter+Promise.hpp>
-#include <NitroModules/JSIConverter+JNIPromise.hpp>
+#include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/JNIConverter+ArrayBuffer.hpp>
 #include <NitroModules/JSIConverter+JNIArrayBuffer.hpp>
+#include <NitroTest/private/JVariant_Boolean_Double.hpp>
 #include <NitroModules/JNIConverter+Map.hpp>
 #include <NitroModules/JSIConverter+JNIMap.hpp>
+#include <NitroTest/private/JCar.hpp>
+#include <NitroTest/private/JWrappedJsStruct.hpp>
+#include <NitroTest/private/JOptionalWrapper.hpp>
+#include <NitroTest/private/JOptionalCallback.hpp>
+#include <NitroTest/private/JOptionalEnumWrapper.hpp>
+#include <NitroTest/private/JVariant_OldEnum_Boolean.hpp>
+#include <NitroTest/private/JVariant_Powertrain_Car.hpp>
+#include <NitroTest/private/JVariant_WeirdNumbersEnum_Boolean.hpp>
+#include <NitroTest/private/JWeirdNumbersEnum.hpp>
+#include <NitroTest/private/JVariant_Person_Car.hpp>
+#include <NitroTest/private/JNamedVariant.hpp>
+#include <NitroTest/private/JVariant_HybridBaseSpec_OptionalWrapper.hpp>
+#include <NitroTest/private/JHybridBaseSpecJavaPart.hpp>
+#include <NitroTest/private/JCoreTypesVariant.hpp>
+#include <NitroTest/private/JHybridGrandchildSpecJavaPart.hpp>
+#include <NitroTest/private/JCallback_double.hpp>
+#include <NitroTest/private/JCallback_int64_t_int64_t.hpp>
+#include <NitroTestExternal/private/JHybridSomeExternalObjectSpecJavaPart.hpp>
+#include <NitroTest/private/JExternalObjectStruct.hpp>
+#include <NitroTest/private/JStringOrExternal.hpp>
+#include <NitroTest/private/JCppOnlyValue.hpp>
+#include <NitroTest/private/JVariant_HybridTestObjectSwiftKotlinSpec_Person.hpp>
+#include <NitroTest/private/JCallback_void_std__vector_Powertrain_.hpp>
+#include <NitroTest/private/JCallback_Promise_std__vector_Powertrain__.hpp>
+#include <NitroTest/private/JCallback_std__vector_std__vector_std__optional_Person____std__vector_std__vector_std__optional_Person___.hpp>
+#include <NitroTest/private/JMapWrapper.hpp>
+#include <exception>
 #include <NitroModules/JNIConverter+Error.hpp>
 #include <NitroModules/JSIConverter+JNIError.hpp>
-#include <NitroTest/private/JHybridBaseSpec.hpp>
-#include <NitroTest/private/JHybridGrandchildSpec.hpp>
-#include <NitroTestExternal/private/JHybridSomeExternalObjectSpec.hpp>
+#include <NitroModules/JSIConverter+JNIInlineCallback.hpp>
+#include <NitroTest/private/JCallback_double_double.hpp>
+#include <NitroTest/private/JCallback_Promise_void_.hpp>
+#include <NitroTest/private/JCallback_void_std__optional_double_.hpp>
+#include <NitroTest/private/JCallback_Promise_double_.hpp>
+#include <NitroTest/private/JCallback_Promise_ArrayBuffer_.hpp>
+#include <NitroTest/private/JCallback_void_std__string.hpp>
+#include <NitroTest/private/JCallback_void_std__exception_ptr.hpp>
+#include <NitroTest/private/JCallback_std__string.hpp>
+#include <NitroTest/private/JJsStyleStruct.hpp>
+#include <NitroTest/private/JHardwareBufferFormat.hpp>
+#include <NitroTest/private/JVariant_Boolean_DoubleArray_Array_String__Double_String.hpp>
+#include <NitroTest/private/JCallback_std__shared_ptr_margelo__nitro__test__external__HybridSomeExternalObjectSpec_.hpp>
+#include <NitroTest/private/JHybridTestObjectSwiftKotlinSpec.hpp>
+#include <memory>
+// Forward declaration of `JHybridTestObjectSwiftKotlinSpec` to properly resolve imports.
+namespace margelo::nitro::test { class JHybridTestObjectSwiftKotlinSpec; }
 
 namespace margelo::nitro::test {
 
@@ -92,11 +108,7 @@ namespace margelo::nitro::test {
     };
 
   public:
-    struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
-      using HybridType = JHybridTestObjectSwiftKotlinSpec;
-      static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridTestObjectSwiftKotlinSpec;";
-      std::shared_ptr<JHybridTestObjectSwiftKotlinSpec> getJHybridTestObjectSwiftKotlinSpec();
-    };
+    using JavaPart = JHybridTestObjectSwiftKotlinSpecJavaPart;
     struct CxxPart : public jni::HybridClass<CxxPart, JHybridObject::CxxPart> {
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridTestObjectSwiftKotlinSpec$CxxPart;";
       static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
@@ -137,18 +149,18 @@ namespace margelo::nitro::test {
     void setOptionalString(const jni::local_ref<JOptional<jni::JString>>& optionalString);
     jni::local_ref<JOptional<jni::JString>> getStringOrUndefined();
     void setStringOrUndefined(const jni::local_ref<JOptional<jni::JString>>& stringOrUndefined);
-    std::variant<nitro::NullType, std::string> getStringOrNull();
-    void setStringOrNull(const std::variant<nitro::NullType, std::string>& stringOrNull);
+    jni::local_ref<JVariant_NullType_String> getStringOrNull();
+    void setStringOrNull(const jni::local_ref<JVariant_NullType_String>& stringOrNull);
     jni::local_ref<JOptional<jni::JArrayClass<jni::JString>>> getOptionalArray();
     void setOptionalArray(const jni::local_ref<JOptional<jni::JArrayClass<jni::JString>>>& optionalArray);
-    std::optional<Powertrain> getOptionalEnum();
-    void setOptionalEnum(const std::optional<Powertrain>& optionalEnum);
-    std::optional<OldEnum> getOptionalOldEnum();
-    void setOptionalOldEnum(const std::optional<OldEnum>& optionalOldEnum);
-    std::optional<TruckPowertrain> getOptionalEnumPlusOne();
-    void setOptionalEnumPlusOne(const std::optional<TruckPowertrain>& optionalEnumPlusOne);
-    std::optional<Callback<void(double /* value */)>> getOptionalCallback();
-    void setOptionalCallback(const std::optional<Callback<void(double /* value */)>>& optionalCallback);
+    jni::local_ref<JOptional<JPowertrain>> getOptionalEnum();
+    void setOptionalEnum(const jni::local_ref<JOptional<JPowertrain>>& optionalEnum);
+    jni::local_ref<JOptional<JOldEnum>> getOptionalOldEnum();
+    void setOptionalOldEnum(const jni::local_ref<JOptional<JOldEnum>>& optionalOldEnum);
+    jni::local_ref<JOptional<JTruckPowertrain>> getOptionalEnumPlusOne();
+    void setOptionalEnumPlusOne(const jni::local_ref<JOptional<JTruckPowertrain>>& optionalEnumPlusOne);
+    jni::local_ref<JOptional<margelo::nitro::test::JCallback_void_double>> getOptionalCallback();
+    void setOptionalCallback(const jni::local_ref<JOptional<margelo::nitro::test::JCallback_void_double>>& optionalCallback);
     jboolean getHasBoolean();
     jboolean getIsBoolean();
     jboolean getHasBooleanWritable();
@@ -159,11 +171,11 @@ namespace margelo::nitro::test {
     void setIsolatedBoolean(jboolean isolatedBoolean);
     jni::local_ref<jni::JString> getIsTextValue();
     void setIsTextValue(const jni::local_ref<jni::JString>& isTextValue);
-    std::variant<double, std::string> getSomeVariant();
-    void setSomeVariant(const std::variant<double, std::string>& someVariant);
-    jni::local_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart> getThisObject();
-    jni::local_ref<JOptional<JHybridTestObjectSwiftKotlinSpec::JavaPart>> getOptionalHybrid();
-    void setOptionalHybrid(const jni::local_ref<JOptional<JHybridTestObjectSwiftKotlinSpec::JavaPart>>& optionalHybrid);
+    jni::local_ref<JVariant_Double_String> getSomeVariant();
+    void setSomeVariant(const jni::local_ref<JVariant_Double_String>& someVariant);
+    jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart> getThisObject();
+    jni::local_ref<JOptional<JHybridTestObjectSwiftKotlinSpecJavaPart>> getOptionalHybrid();
+    void setOptionalHybrid(const jni::local_ref<JOptional<JHybridTestObjectSwiftKotlinSpecJavaPart>>& optionalHybrid);
 
   public:
     // Methods
@@ -174,42 +186,42 @@ namespace margelo::nitro::test {
     jni::local_ref<JNull> bounceNull(const jni::local_ref<JNull>& value);
     jni::local_ref<jni::JArrayClass<jni::JString>> bounceStrings(const jni::local_ref<jni::JArrayClass<jni::JString>>& array);
     jni::local_ref<jni::JArrayDouble> bounceNumbers(const jni::local_ref<jni::JArrayDouble>& array);
-    std::vector<PersonKotlin> bounceStructs(const std::vector<PersonKotlin>& array);
-    std::vector<std::vector<PersonKotlin>> bounceNestedArray(const std::vector<std::vector<PersonKotlin>>& array);
-    PartialPersonKotlin bouncePartialStruct(const PartialPersonKotlin& person);
-    jni::local_ref<jni::JString> sumUpAllPassengers(const std::vector<CarKotlin>& cars);
-    std::vector<Powertrain> bounceEnums(const std::vector<Powertrain>& array);
-    void complexEnumCallback(const std::vector<Powertrain>& array, const Callback<void(const std::vector<Powertrain>& /* array */)>& callback);
-    std::vector<Powertrain> callEnumArrayCallback(const std::vector<Powertrain>& array, const Callback<std::vector<Powertrain>(const std::vector<Powertrain>& /* array */)>& callback);
-    Callback<std::vector<Powertrain>(const std::vector<Powertrain>& /* array */)> getEnumArrayCallback();
-    Promise<std::vector<Powertrain>> callEnumArrayPromiseCallback(const Callback<Promise<std::vector<Powertrain>>()>& callback);
-    Promise<std::vector<Powertrain>> awaitEnumArrayPromise(const Promise<std::vector<Powertrain>>& promise);
-    std::vector<std::vector<std::optional<PersonKotlin>>> callNestedStructCallback(const std::vector<std::vector<std::optional<PersonKotlin>>>& value, const Callback<std::vector<std::vector<std::optional<PersonKotlin>>>(const std::vector<std::vector<std::optional<PersonKotlin>>>& /* value */)>& callback);
-    jni::local_ref<jni::JArrayClass<JHybridChildSpec::JavaPart>> bounceHybridObjects(const jni::local_ref<jni::JArrayClass<JHybridChildSpec::JavaPart>>& array);
-    std::vector<Callback<void()>> bounceFunctions(const std::vector<Callback<void()>>& functions);
+    jni::local_ref<jni::JArrayClass<JPerson>> bounceStructs(const jni::local_ref<jni::JArrayClass<JPerson>>& array);
+    jni::local_ref<jni::JArrayClass<jni::JArrayClass<JPerson>>> bounceNestedArray(const jni::local_ref<jni::JArrayClass<jni::JArrayClass<JPerson>>>& array);
+    jni::local_ref<JPartialPerson> bouncePartialStruct(const jni::local_ref<JPartialPerson>& person);
+    jni::local_ref<jni::JString> sumUpAllPassengers(const jni::local_ref<jni::JArrayClass<JCar>>& cars);
+    jni::local_ref<jni::JArrayClass<JPowertrain>> bounceEnums(const jni::local_ref<jni::JArrayClass<JPowertrain>>& array);
+    void complexEnumCallback(const jni::local_ref<jni::JArrayClass<JPowertrain>>& array, const jni::local_ref<margelo::nitro::test::JCallback_void_std__vector_Powertrain_>& callback);
+    jni::local_ref<jni::JArrayClass<JPowertrain>> callEnumArrayCallback(const jni::local_ref<jni::JArrayClass<JPowertrain>>& array, const jni::local_ref<margelo::nitro::test::JCallback_std__vector_Powertrain__std__vector_Powertrain_>& callback);
+    jni::local_ref<margelo::nitro::test::JCallback_std__vector_Powertrain__std__vector_Powertrain_> getEnumArrayCallback();
+    jni::local_ref<JTypedPromise<jni::local_ref<jni::JArrayClass<JPowertrain>>>> callEnumArrayPromiseCallback(const jni::local_ref<margelo::nitro::test::JCallback_Promise_std__vector_Powertrain__>& callback);
+    jni::local_ref<JTypedPromise<jni::local_ref<jni::JArrayClass<JPowertrain>>>> awaitEnumArrayPromise(const jni::local_ref<JTypedPromise<jni::local_ref<jni::JArrayClass<JPowertrain>>>>& promise);
+    jni::local_ref<jni::JArrayClass<jni::JArrayClass<JOptional<JPerson>>>> callNestedStructCallback(const jni::local_ref<jni::JArrayClass<jni::JArrayClass<JOptional<JPerson>>>>& value, const jni::local_ref<margelo::nitro::test::JCallback_std__vector_std__vector_std__optional_Person____std__vector_std__vector_std__optional_Person___>& callback);
+    jni::local_ref<jni::JArrayClass<JHybridChildSpecJavaPart>> bounceHybridObjects(const jni::local_ref<jni::JArrayClass<JHybridChildSpecJavaPart>>& array);
+    jni::local_ref<jni::JArrayClass<margelo::nitro::test::JCallback_void>> bounceFunctions(const jni::local_ref<jni::JArrayClass<margelo::nitro::test::JCallback_void>>& functions);
     jni::local_ref<jni::JArrayClass<JAnyJSON>> bounceMaps(const jni::local_ref<jni::JArrayClass<JAnyJSON>>& maps);
     jni::local_ref<jni::JArrayClass<JTypedPromise<jni::local_ref<jni::JDouble>>>> bouncePromises(const jni::local_ref<jni::JArrayClass<JTypedPromise<jni::local_ref<jni::JDouble>>>>& promises);
     jni::local_ref<jni::JArrayClass<JArrayBuffer::JavaPart>> bounceArrayBuffers(const jni::local_ref<jni::JArrayClass<JArrayBuffer::JavaPart>>& arrayBuffers);
     jni::local_ref<jni::JArrayClass<JOptional<jni::JString>>> bounceOptionals(const jni::local_ref<jni::JArrayClass<JOptional<jni::JString>>>& strings, const jni::local_ref<jni::JArrayClass<JOptional<JArrayBuffer::JavaPart>>>& arrayBuffers);
-    std::vector<std::variant<nitro::NullType, std::string>> bounceNulls(const std::vector<std::variant<nitro::NullType, std::string>>& strings);
-    std::vector<std::optional<std::variant<nitro::NullType, std::string>>> bounceOptionalNulls(const std::vector<std::optional<std::variant<nitro::NullType, std::string>>>& strings);
+    jni::local_ref<jni::JArrayClass<JVariant_NullType_String>> bounceNulls(const jni::local_ref<jni::JArrayClass<JVariant_NullType_String>>& strings);
+    jni::local_ref<jni::JArrayClass<JOptional<JVariant_NullType_String>>> bounceOptionalNulls(const jni::local_ref<jni::JArrayClass<JOptional<JVariant_NullType_String>>>& strings);
     jni::local_ref<JAnyJSON> createMap();
     jni::local_ref<JAnyJSON> mapRoundtrip(const jni::local_ref<JAnyJSON>& map);
     jni::local_ref<jni::JArrayClass<jni::JString>> getMapKeys(const jni::local_ref<JAnyJSON>& map);
     jni::local_ref<JAnyJSON> mergeMaps(const jni::local_ref<JAnyJSON>& a, const jni::local_ref<JAnyJSON>& b);
     jni::local_ref<JAnyJSON> copyAnyMap(const jni::local_ref<JAnyJSON>& map);
-    std::unordered_map<std::string, std::variant<bool, double>> bounceMap(const std::unordered_map<std::string, std::variant<bool, double>>& map);
+    jni::local_ref<jni::JMap<jni::JString, JVariant_Boolean_Double>> bounceMap(const jni::local_ref<jni::JMap<jni::JString, JVariant_Boolean_Double>>& map);
     jni::local_ref<jni::JMap<jni::JString, jni::JDouble>> bounceSimpleMap(const jni::local_ref<jni::JMap<jni::JString, jni::JDouble>>& map);
     jni::local_ref<jni::JMap<jni::JString, JOptional<jni::JString>>> bounceOptionalMap(const jni::local_ref<jni::JMap<jni::JString, JOptional<jni::JString>>>& map);
-    std::unordered_map<std::string, std::variant<nitro::NullType, std::string>> bounceNullMap(const std::unordered_map<std::string, std::variant<nitro::NullType, std::string>>& map);
-    std::unordered_map<std::string, std::optional<std::variant<nitro::NullType, std::string>>> bounceOptionalNullMap(const std::unordered_map<std::string, std::optional<std::variant<nitro::NullType, std::string>>>& map);
-    jni::local_ref<jni::JMap<jni::JString, jni::JString>> extractMap(const MapWrapperKotlin& mapWrapper);
+    jni::local_ref<jni::JMap<jni::JString, JVariant_NullType_String>> bounceNullMap(const jni::local_ref<jni::JMap<jni::JString, JVariant_NullType_String>>& map);
+    jni::local_ref<jni::JMap<jni::JString, JOptional<JVariant_NullType_String>>> bounceOptionalNullMap(const jni::local_ref<jni::JMap<jni::JString, JOptional<JVariant_NullType_String>>>& map);
+    jni::local_ref<jni::JMap<jni::JString, jni::JString>> extractMap(const jni::local_ref<JMapWrapper>& mapWrapper);
     jdouble funcThatThrows();
     jni::local_ref<JTypedPromise<void>> funcThatThrowsBeforePromise();
     void throwError(const jni::local_ref<jni::JThrowable>& error);
     jni::local_ref<jni::JString> tryOptionalParams(jdouble num, jboolean boo, const jni::local_ref<JOptional<jni::JString>>& str);
     jni::local_ref<jni::JString> tryMiddleParam(jdouble num, const jni::local_ref<JOptional<jni::JBoolean>>& boo, const jni::local_ref<jni::JString>& str);
-    std::optional<Powertrain> tryOptionalEnum(const std::optional<Powertrain>& value);
+    jni::local_ref<JOptional<JPowertrain>> tryOptionalEnum(const jni::local_ref<JOptional<JPowertrain>>& value);
     jboolean tryTrailingOptional(jdouble num, const jni::local_ref<jni::JString>& str, const jni::local_ref<JOptional<jni::JBoolean>>& boo);
     jlong calculateFibonacciSync(jdouble value);
     jni::local_ref<JTypedPromise<jni::local_ref<jni::JLong>>> calculateFibonacciAsync(jdouble value);
@@ -223,72 +235,72 @@ namespace margelo::nitro::test {
     jni::local_ref<JTypedPromise<jni::local_ref<JOptional<jni::JDouble>>>> promiseThatResolvesToUndefined();
     jni::local_ref<JTypedPromise<jni::local_ref<JOptional<jni::JDouble>>>> awaitNullablePromise();
     jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> awaitAndGetPromise(const jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>>& promise);
-    Promise<CarKotlin> awaitAndGetComplexPromise(const Promise<CarKotlin>& promise);
+    jni::local_ref<JTypedPromise<jni::local_ref<JCar>>> awaitAndGetComplexPromise(const jni::local_ref<JTypedPromise<jni::local_ref<JCar>>>& promise);
     jni::local_ref<JTypedPromise<void>> awaitPromise(const jni::local_ref<JTypedPromise<void>>& promise);
-    void callCallback(const Callback<void()>& callback);
-    void callInlineCallback(const InlineCallback<void()>& callback);
-    jdouble callInlineCallbackWithValue(jdouble value, const InlineCallback<double(double /* value */)>& callback);
-    jni::local_ref<JTypedPromise<void>> callCallbackThatReturnsPromiseVoid(const Callback<Promise<void>()>& callback);
-    void callAll(const Callback<void()>& first, const Callback<void()>& second, const Callback<void()>& third);
-    void callWithOptional(const jni::local_ref<JOptional<jni::JDouble>>& value, const Callback<void(const std::optional<double>& /* maybe */)>& callback);
-    jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> callSumUpNTimes(const Callback<double()>& callback, jdouble n);
-    jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> callbackAsyncPromise(const Callback<Promise<double>()>& callback);
-    jni::local_ref<JTypedPromise<jni::local_ref<JArrayBuffer::JavaPart>>> callbackAsyncPromiseBuffer(const Callback<Promise<ArrayBuffer>()>& callback);
-    Callback<void(double /* value */)> getComplexCallback();
-    void twoOptionalCallbacks(jdouble value, const std::optional<Callback<void(double /* value */)>>& first, const std::optional<Callback<void(const std::string& /* value */)>>& second);
-    void errorCallback(const Callback<void(const std::exception_ptr& /* error */)>& onError);
-    Callback<void(double /* num */)> createNativeCallback(const Callback<void(double /* num */)>& wrappingJsCallback);
-    jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> getValueFromJSCallbackAndWait(const Callback<double()>& getValue);
-    jni::local_ref<JTypedPromise<void>> getValueFromJsCallback(const Callback<std::string()>& callback, const Callback<void(const std::string& /* valueFromJs */)>& andThenCall);
-    CarKotlin getCar();
-    jboolean isCarElectric(const CarKotlin& car);
-    jboolean areCarsEqual(const CarKotlin& a, const CarKotlin& b);
-    std::optional<PersonKotlin> getDriver(const CarKotlin& car);
-    CarKotlin bounceCar(const CarKotlin& car);
-    void jsStyleObjectAsParameters(const JsStyleStructKotlin& params);
-    WrappedJsStructKotlin bounceWrappedJsStyleStruct(const WrappedJsStructKotlin& value);
-    OptionalWrapperKotlin bounceOptionalWrapper(const OptionalWrapperKotlin& wrapper);
-    OptionalCallbackKotlin bounceOptionalCallback(const OptionalCallbackKotlin& value);
-    std::optional<OptionalEnumWrapperKotlin> bounceOptionalEnumStruct(const std::optional<OptionalEnumWrapperKotlin>& value);
+    void callCallback(const jni::local_ref<margelo::nitro::test::JCallback_void>& callback);
+    void callInlineCallback(const jni::local_ref<margelo::nitro::JInlineCallback<margelo::nitro::test::JCallback_void>>& callback);
+    jdouble callInlineCallbackWithValue(jdouble value, const jni::local_ref<margelo::nitro::JInlineCallback<margelo::nitro::test::JCallback_double_double>>& callback);
+    jni::local_ref<JTypedPromise<void>> callCallbackThatReturnsPromiseVoid(const jni::local_ref<margelo::nitro::test::JCallback_Promise_void_>& callback);
+    void callAll(const jni::local_ref<margelo::nitro::test::JCallback_void>& first, const jni::local_ref<margelo::nitro::test::JCallback_void>& second, const jni::local_ref<margelo::nitro::test::JCallback_void>& third);
+    void callWithOptional(const jni::local_ref<JOptional<jni::JDouble>>& value, const jni::local_ref<margelo::nitro::test::JCallback_void_std__optional_double_>& callback);
+    jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> callSumUpNTimes(const jni::local_ref<margelo::nitro::test::JCallback_double>& callback, jdouble n);
+    jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> callbackAsyncPromise(const jni::local_ref<margelo::nitro::test::JCallback_Promise_double_>& callback);
+    jni::local_ref<JTypedPromise<jni::local_ref<JArrayBuffer::JavaPart>>> callbackAsyncPromiseBuffer(const jni::local_ref<margelo::nitro::test::JCallback_Promise_ArrayBuffer_>& callback);
+    jni::local_ref<margelo::nitro::test::JCallback_void_double> getComplexCallback();
+    void twoOptionalCallbacks(jdouble value, const jni::local_ref<JOptional<margelo::nitro::test::JCallback_void_double>>& first, const jni::local_ref<JOptional<margelo::nitro::test::JCallback_void_std__string>>& second);
+    void errorCallback(const jni::local_ref<margelo::nitro::test::JCallback_void_std__exception_ptr>& onError);
+    jni::local_ref<margelo::nitro::test::JCallback_void_double> createNativeCallback(const jni::local_ref<margelo::nitro::test::JCallback_void_double>& wrappingJsCallback);
+    jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> getValueFromJSCallbackAndWait(const jni::local_ref<margelo::nitro::test::JCallback_double>& getValue);
+    jni::local_ref<JTypedPromise<void>> getValueFromJsCallback(const jni::local_ref<margelo::nitro::test::JCallback_std__string>& callback, const jni::local_ref<margelo::nitro::test::JCallback_void_std__string>& andThenCall);
+    jni::local_ref<JCar> getCar();
+    jboolean isCarElectric(const jni::local_ref<JCar>& car);
+    jboolean areCarsEqual(const jni::local_ref<JCar>& a, const jni::local_ref<JCar>& b);
+    jni::local_ref<JOptional<JPerson>> getDriver(const jni::local_ref<JCar>& car);
+    jni::local_ref<JCar> bounceCar(const jni::local_ref<JCar>& car);
+    void jsStyleObjectAsParameters(const jni::local_ref<JJsStyleStruct>& params);
+    jni::local_ref<JWrappedJsStruct> bounceWrappedJsStyleStruct(const jni::local_ref<JWrappedJsStruct>& value);
+    jni::local_ref<JOptionalWrapper> bounceOptionalWrapper(const jni::local_ref<JOptionalWrapper>& wrapper);
+    jni::local_ref<JOptionalCallback> bounceOptionalCallback(const jni::local_ref<JOptionalCallback>& value);
+    jni::local_ref<JOptional<JOptionalEnumWrapper>> bounceOptionalEnumStruct(const jni::local_ref<JOptional<JOptionalEnumWrapper>>& value);
     jni::local_ref<JArrayBuffer::JavaPart> createArrayBuffer();
     jni::local_ref<JArrayBuffer::JavaPart> createArrayBufferFromNativeBuffer(jboolean copy);
-    jni::local_ref<JArrayBuffer::JavaPart> createHardwareBuffer(jdouble width, jdouble height, jdouble layers, HardwareBufferFormat format);
+    jni::local_ref<JArrayBuffer::JavaPart> createHardwareBuffer(jdouble width, jdouble height, jdouble layers, const jni::local_ref<JHardwareBufferFormat>& format);
     jni::local_ref<JArrayBuffer::JavaPart> copyBuffer(const jni::local_ref<JArrayBuffer::JavaPart>& buffer);
     jdouble getBufferLastItem(const jni::local_ref<JArrayBuffer::JavaPart>& buffer);
     void setAllValuesTo(const jni::local_ref<JArrayBuffer::JavaPart>& buffer, jdouble value);
     jni::local_ref<JTypedPromise<jni::local_ref<JArrayBuffer::JavaPart>>> createArrayBufferAsync();
     jni::local_ref<JArrayBuffer::JavaPart> bounceArrayBuffer(const jni::local_ref<JArrayBuffer::JavaPart>& buffer);
-    std::variant<double, std::string> passVariant(const std::variant<bool, std::vector<double>, std::vector<std::string>, double, std::string>& either);
-    std::variant<OldEnum, bool> getVariantEnum(const std::variant<OldEnum, bool>& variant);
-    std::variant<Powertrain, CarKotlin> bounceVariantUnionEnum(const std::variant<Powertrain, CarKotlin>& variant);
-    std::variant<WeirdNumbersEnum, bool> getVariantWeirdNumbersEnum(const std::variant<WeirdNumbersEnum, bool>& variant);
-    std::variant<PersonKotlin, CarKotlin> getVariantObjects(const std::variant<PersonKotlin, CarKotlin>& variant);
-    std::variant<std::string, CarKotlin> passNamedVariant(const std::variant<std::string, CarKotlin>& variant);
-    std::variant<std::shared_ptr<JHybridBaseSpec>, OptionalWrapperKotlin> passAllEmptyObjectVariant(const std::variant<std::shared_ptr<JHybridBaseSpec>, OptionalWrapperKotlin>& variant);
-    std::variant<ArrayBuffer, Callback<void(double /* value */)>, WrappedJsStructKotlin, Promise<double>, AnyJSON> bounceComplexVariant(const std::variant<ArrayBuffer, Callback<void(double /* value */)>, WrappedJsStructKotlin, Promise<double>, AnyJSON>& variant);
-    jni::local_ref<JHybridChildSpec::JavaPart> createChild();
-    jni::local_ref<JHybridBaseSpec::JavaPart> createBase();
-    jni::local_ref<JHybridBaseSpec::JavaPart> createBaseActualChild();
-    jni::local_ref<JHybridGrandchildSpec::JavaPart> createGrandchild();
-    jni::local_ref<JHybridChildSpec::JavaPart> createChildActualGrandchild();
-    jni::local_ref<JHybridBaseSpec::JavaPart> createBaseActualGrandchild();
-    jni::local_ref<JHybridGrandchildSpec::JavaPart> bounceGrandchild(const jni::local_ref<JHybridGrandchildSpec::JavaPart>& grandchild);
-    jni::local_ref<JHybridChildSpec::JavaPart> bounceChild(const jni::local_ref<JHybridChildSpec::JavaPart>& child);
-    jni::local_ref<JHybridBaseSpec::JavaPart> bounceBase(const jni::local_ref<JHybridBaseSpec::JavaPart>& base);
-    jni::local_ref<JHybridBaseSpec::JavaPart> bounceChildBase(const jni::local_ref<JHybridChildSpec::JavaPart>& child);
-    jni::local_ref<JHybridChildSpec::JavaPart> castBase(const jni::local_ref<JHybridBaseSpec::JavaPart>& base);
-    jdouble callbackSync(const Callback<double()>& callback);
-    Callback<double()> getSyncNumberCallback();
-    Callback<int64_t(int64_t /* value */)> bounceSyncInt64Callback(const Callback<int64_t(int64_t /* value */)>& callback);
-    jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart> bounceExternalHybrid(const jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart>& externalObject);
-    jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart> createInternalObject();
-    ExternalObjectStructKotlin bounceExternalStruct(const ExternalObjectStructKotlin& externalStruct);
-    std::variant<std::shared_ptr<margelo::nitro::test::external::JHybridSomeExternalObjectSpec>, std::string> bounceExternalVariant(const std::variant<std::shared_ptr<margelo::nitro::test::external::JHybridSomeExternalObjectSpec>, std::string>& variant);
-    jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart> createExternalVariantFromFunc(const Callback<std::shared_ptr<margelo::nitro::test::external::JHybridSomeExternalObjectSpec>()>& factory);
-    CppOnlyValueKotlin bounceCppOnlyValue(const CppOnlyValueKotlin& value);
-    jni::local_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart> newTestObject();
-    jni::local_ref<JTypedPromise<jni::local_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart>>> newTestObjectAsync();
-    std::variant<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, PersonKotlin> getVariantHybrid(const std::variant<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, PersonKotlin>& variant);
+    jni::local_ref<JVariant_Double_String> passVariant(const jni::local_ref<JVariant_Boolean_DoubleArray_Array_String__Double_String>& either);
+    jni::local_ref<JVariant_OldEnum_Boolean> getVariantEnum(const jni::local_ref<JVariant_OldEnum_Boolean>& variant);
+    jni::local_ref<JVariant_Powertrain_Car> bounceVariantUnionEnum(const jni::local_ref<JVariant_Powertrain_Car>& variant);
+    jni::local_ref<JVariant_WeirdNumbersEnum_Boolean> getVariantWeirdNumbersEnum(const jni::local_ref<JVariant_WeirdNumbersEnum_Boolean>& variant);
+    jni::local_ref<JVariant_Person_Car> getVariantObjects(const jni::local_ref<JVariant_Person_Car>& variant);
+    jni::local_ref<JNamedVariant> passNamedVariant(const jni::local_ref<JNamedVariant>& variant);
+    jni::local_ref<JVariant_HybridBaseSpec_OptionalWrapper> passAllEmptyObjectVariant(const jni::local_ref<JVariant_HybridBaseSpec_OptionalWrapper>& variant);
+    jni::local_ref<JCoreTypesVariant> bounceComplexVariant(const jni::local_ref<JCoreTypesVariant>& variant);
+    jni::local_ref<JHybridChildSpecJavaPart> createChild();
+    jni::local_ref<JHybridBaseSpecJavaPart> createBase();
+    jni::local_ref<JHybridBaseSpecJavaPart> createBaseActualChild();
+    jni::local_ref<JHybridGrandchildSpecJavaPart> createGrandchild();
+    jni::local_ref<JHybridChildSpecJavaPart> createChildActualGrandchild();
+    jni::local_ref<JHybridBaseSpecJavaPart> createBaseActualGrandchild();
+    jni::local_ref<JHybridGrandchildSpecJavaPart> bounceGrandchild(const jni::local_ref<JHybridGrandchildSpecJavaPart>& grandchild);
+    jni::local_ref<JHybridChildSpecJavaPart> bounceChild(const jni::local_ref<JHybridChildSpecJavaPart>& child);
+    jni::local_ref<JHybridBaseSpecJavaPart> bounceBase(const jni::local_ref<JHybridBaseSpecJavaPart>& base);
+    jni::local_ref<JHybridBaseSpecJavaPart> bounceChildBase(const jni::local_ref<JHybridChildSpecJavaPart>& child);
+    jni::local_ref<JHybridChildSpecJavaPart> castBase(const jni::local_ref<JHybridBaseSpecJavaPart>& base);
+    jdouble callbackSync(const jni::local_ref<margelo::nitro::test::JCallback_double>& callback);
+    jni::local_ref<margelo::nitro::test::JCallback_double> getSyncNumberCallback();
+    jni::local_ref<margelo::nitro::test::JCallback_int64_t_int64_t> bounceSyncInt64Callback(const jni::local_ref<margelo::nitro::test::JCallback_int64_t_int64_t>& callback);
+    jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart> bounceExternalHybrid(const jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart>& externalObject);
+    jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart> createInternalObject();
+    jni::local_ref<JExternalObjectStruct> bounceExternalStruct(const jni::local_ref<JExternalObjectStruct>& externalStruct);
+    jni::local_ref<JStringOrExternal> bounceExternalVariant(const jni::local_ref<JStringOrExternal>& variant);
+    jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpecJavaPart> createExternalVariantFromFunc(const jni::local_ref<margelo::nitro::test::JCallback_std__shared_ptr_margelo__nitro__test__external__HybridSomeExternalObjectSpec_>& factory);
+    jni::local_ref<JCppOnlyValue> bounceCppOnlyValue(const jni::local_ref<JCppOnlyValue>& value);
+    jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart> newTestObject();
+    jni::local_ref<JTypedPromise<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>>> newTestObjectAsync();
+    jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> getVariantHybrid(const jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person>& variant);
 
   public:
     // Constructor and static members

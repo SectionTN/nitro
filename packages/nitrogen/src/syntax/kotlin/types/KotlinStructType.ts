@@ -1,22 +1,36 @@
 import { NitroConfig } from '../../../config/NitroConfig.js'
 import type { Language } from '../../../getPlatformSpecs.js'
-import type { GetCodeOptions } from '../../types/Type.js'
+import type { GetCodeOptions, Type } from '../../types/Type.js'
 import type { SourceFile, SourceImport } from '../../SourceFile.js'
 import { StructType } from '../../types/StructType.js'
 import { createKotlinStruct } from '../KotlinStruct.js'
 import { wrapKotlinType } from '../wrapKotlinType.js'
 import { KotlinNamedType } from './KotlinNamedType.js'
+import { KotlinCxxStructType } from './KotlinCxxStructType.js'
+import { KotlinJSIType } from './KotlinJSIType.js'
+import { getKotlinConverter, type KotlinCppConverter } from '../KotlinConverter.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
 export class KotlinStructType extends StructType implements KotlinType {
   override readonly properties: KotlinNamedType[]
-  readonly jniValueKind = 'wrapper'
+  readonly jniValueKind = 'object'
   readonly needsKotlinConversion = false
 
-  constructor(readonly type: StructType) {
-    const properties = type.properties.map((p) => new KotlinNamedType(p.name, wrapKotlinType(p)))
+  constructor(
+    readonly type: StructType,
+    readonly config: NitroConfig = NitroConfig.current
+  ) {
+    const properties = type.properties.map((p) => new KotlinNamedType(p.name, wrapKotlinType(p, { nativeConfig: config })))
     super(type.structName, properties, type.sourceConfig)
     this.properties = properties
+  }
+
+  getCppConverter(cppType: Type): KotlinCppConverter {
+    return new KotlinCxxStructType(cppType, this).getConverter()
+  }
+
+  getJSIType(): KotlinJSIType {
+    return new KotlinJSIType(this)
   }
 
   get jniName(): string {
@@ -30,37 +44,41 @@ export class KotlinStructType extends StructType implements KotlinType {
       case 'c++':
         switch (from) {
           case 'c++':
-            return `${this.jniName}::fromCpp(${value})`
+            return `${getKotlinConverter({ cppType: this.type, kotlinType: this })}::toJNI(${value})`
           case 'kotlin':
-            return `${value}->toCpp()`
+            return `${getKotlinConverter({ cppType: this.type, kotlinType: this })}::fromJNI(${value})`
         }
     }
   }
 
   override getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
-      case 'c++':
-        return getJniReferenceCode(this.jniName, options.context)
+      case 'c++': {
+        let name = this.jniName
+        if (options.fullyQualified || this.config.isExternalConfig) name = this.config.getCxxNamespace('c++', name)
+        return getJniReferenceCode(name, options.context)
+      }
       default:
         return super.getCode(language, options)
     }
   }
 
   override getExtraFiles(): SourceFile[] {
+    if (this.config.isExternalConfig) return []
     return [...this.properties.flatMap((p) => p.getExtraFiles()), ...createKotlinStruct(this)]
   }
 
   override getRequiredImports(language: Language): SourceImport[] {
-    const imports = this.type.getRequiredImports(language)
     switch (language) {
       case 'c++':
-        imports.push({
-          language: language,
-          declaration: NitroConfig.current.getCxxHeader(`${this.jniName}.hpp`, 'private'),
-        })
-        break
+        return [{ language: 'c++', declaration: this.config.getCxxHeader(`${this.jniName}.hpp`, 'private') }]
+      case 'kotlin':
+        if (this.config.isExternalConfig) {
+          return [{ language: 'kotlin', name: `${this.config.getAndroidPackage('java/kotlin')}.${this.structName}` }]
+        }
+        return []
+      default:
+        return super.getRequiredImports(language)
     }
-    imports.push(...this.properties.flatMap((p) => p.getRequiredImports(language)))
-    return imports
   }
 }

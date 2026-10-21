@@ -18,7 +18,7 @@ export class KotlinJSIType implements Type {
   getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++': {
-        const valueType = this.type.getCode(language, { ...options, context: 'value' })
+        const valueType = this.type.getCode(language, { ...options, context: 'value', representation: 'jsi' })
         if (options.context === 'parameter' && this.type.jniValueKind !== 'primitive') {
           return `const ${valueType}&`
         }
