@@ -47,7 +47,6 @@ jobs:
             flag: address
             api-level: 33
     env:
-      CMAKE_BUILD_PARALLEL_LEVEL: 2
       CMAKE_C_COMPILER_LAUNCHER: ccache
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
     steps:
@@ -100,17 +99,16 @@ jobs:
             hashFiles('tests/standalone/hermes/build.mjs', 'tests/standalone/hermes/options.cmake') }}
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun test:prepare
-      - name: Build test APK
+      - name: Build JUnit Test Runner
         working-directory: tests/standalone/test-runner/android
-        run:
-          ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --no-daemon --build-cache
+        run: ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --build-cache
       - name: Save Hermes host compiler
         if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1') && steps.hermes-cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v6
         with:
           path: tests/standalone/.build/hermes/host
           key: ${{ steps.hermes-cache.outputs.cache-primary-key }}
-      - name: Run JUnit tests
+      - name: Run JUnit Test Suites
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.sanitizer.api-level }}
@@ -119,7 +117,10 @@ jobs:
           disable-animations: true
           script:
             cd tests/standalone/test-runner/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{
-            matrix.sanitizer.flag }} --no-daemon --build-cache
+            matrix.sanitizer.flag }} --build-cache
+      - name: Summarize JUnit results
+        if: always()
+        run: bun tests/standalone/test-runner/android/report-results.mjs
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

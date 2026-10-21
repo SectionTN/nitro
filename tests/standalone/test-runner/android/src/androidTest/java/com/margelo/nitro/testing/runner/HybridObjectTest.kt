@@ -35,7 +35,10 @@ class HybridObjectTest(
   ) {
     lateinit var result: Future<String>
 
-    override fun toString(): String = name
+    // TODO: Remove after upgrading to AGP 9, which escapes slashes in logcat filenames.
+    // https://issuetracker.google.com/issues/223643506
+    // https://android.googlesource.com/platform/tools/base/+/e001560f772e0685e24b5becb56861caa8498e69
+    override fun toString(): String = name.replace('/', '-')
   }
 
   companion object {
