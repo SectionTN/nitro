@@ -161,7 +161,7 @@ func addFixtureTargets(
     }
   }
   let bridgeSources = [
-    "c++", "\(name)-Swift-Cxx-Bridge.cpp", "\(name)Autolinking.cpp",
+    "c++", "\(name)-Swift-Cxx-Bridge.cpp", "\(name)Autolinking.cpp", "\(name)Autolinking.mm",
   ]
 
   package.targets += [
