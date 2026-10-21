@@ -6,7 +6,7 @@
 ///
 
 #include <NitroTest/private/JPowertrain.hpp>
-#include <NitroModules/NitroHash.hpp>
+#include <NitroModules/JSIStringHash.hpp>
 #include <NitroModules/NumberUtils.hpp>
 #include <NitroModules/JSIString.hpp>
 
@@ -21,13 +21,13 @@ namespace margelo::nitro {
   }
 
   int32_t JSIConverter<jni::local_ref<margelo::nitro::test::JPowertrain>>::valueFromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    const auto string = value.asString(runtime).utf8(runtime);
-    switch (hashString(string)) {
+    const auto string = value.asString(runtime);
+    switch (hashJSIString(runtime, string)) {
       case hashString("electric"): return 0;
       case hashString("gas"): return 1;
       case hashString("hybrid"): return 2;
       default: [[unlikely]]
-        throw std::invalid_argument("Cannot convert \"" + string + "\" to enum Powertrain - invalid value!");
+        throw std::invalid_argument("Cannot convert \"" + string.utf8(runtime) + "\" to enum Powertrain - invalid value!");
     }
   }
 
@@ -43,8 +43,8 @@ namespace margelo::nitro {
 
   bool JSIConverter<jni::local_ref<margelo::nitro::test::JPowertrain>>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
     if (!value.isString()) return false;
-    const auto string = value.getString(runtime).utf8(runtime);
-    switch (hashString(string)) {
+    const auto string = value.getString(runtime);
+    switch (hashJSIString(runtime, string)) {
       case hashString("electric"): return true;
       case hashString("gas"): return true;
       case hashString("hybrid"): return true;

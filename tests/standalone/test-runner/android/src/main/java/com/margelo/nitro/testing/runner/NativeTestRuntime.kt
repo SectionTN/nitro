@@ -33,6 +33,8 @@ internal object NativeTestRuntime {
 
   external fun checkRetainedEnums()
 
+  external fun checkStringHashes()
+
   external fun singletonNull(): NullType
 
   external fun resolvedVoidPromise(): Promise<Unit>

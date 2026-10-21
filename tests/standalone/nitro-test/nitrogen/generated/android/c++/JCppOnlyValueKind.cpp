@@ -6,7 +6,7 @@
 ///
 
 #include <NitroTest/private/JCppOnlyValueKind.hpp>
-#include <NitroModules/NitroHash.hpp>
+#include <NitroModules/JSIStringHash.hpp>
 #include <NitroModules/NumberUtils.hpp>
 #include <NitroModules/JSIString.hpp>
 
