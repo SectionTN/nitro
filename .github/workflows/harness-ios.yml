@@ -77,20 +77,6 @@ jobs:
       - name: Generate test bindings
         run: bun specs
 
-      - name: Install Ccache
-        uses: hendrikmuhs/ccache-action@v1.2.24
-        with:
-          max-size: 1.5G
-          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-Default-ccache-example-ios
-      - name: Setup ccache behavior
-        run: |
-          {
-            echo "CCACHE_SLOPPINESS=clang_index_store,file_stat_matches,include_file_ctime,include_file_mtime,ivfsoverlay,pch_defines,modules,system_headers,time_macros"
-            echo "CCACHE_FILECLONE=true"
-            echo "CCACHE_DEPEND=true"
-            echo "CCACHE_INODECACHE=true"
-          } >> "$GITHUB_ENV"
-
       - name: Select Xcode
         run: |
           if [ "$XCODE_VERSION" = "default" ]; then
@@ -101,27 +87,51 @@ jobs:
           xcodebuild -version
           xcrun swift --version
 
+      - name: Read native build cache inputs
+        id: native
+        run: |
+          toolchain=$(xcodebuild -version | shasum -a 256 | cut -d ' ' -f 1)
+          echo "toolchain=$toolchain" >> "$GITHUB_OUTPUT"
+
+      - name: Restore React Native and Hermes downloads
+        id: downloads-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/Library/Caches/ReactNative
+          key: react-native-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock') }}
+
+      - name: Restore compilation cache
+        id: native-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            tests/react-native/apps/example/ios/build/CompilationCache.noindex
+            tests/react-native/apps/example/ios/build/SourcePackages
+          key: react-native-ios-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.native.outputs.toolchain }}-${{ inputs.ref || github.sha }}
+          restore-keys: |
+            react-native-ios-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.native.outputs.toolchain }}-
+
       - name: Resolve Swift packages
         working-directory: tests/react-native/apps/example
         run: bun spm
 
-      - name: Restore DerivedData cache
-        uses: actions/cache@v6
+      - name: Save React Native and Hermes downloads
+        if: >-
+          steps.downloads-cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/v1')
+        uses: actions/cache/save@v6
         with:
-          path: tests/react-native/apps/example/ios/build
-          key:
-            ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-Default-dd-${{ hashFiles('bun.lock', '**/Package.swift',
-            '**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-Default-dd-
+          path: ~/Library/Caches/ReactNative
+          key: ${{ steps.downloads-cache.outputs.cache-primary-key }}
 
       - name: Build React Native iOS app
         working-directory: tests/react-native/apps/example/ios
         run: |
           set -o pipefail
           xcodebuild \
-            C_COMPILER_LAUNCHER="$(command -v ccache)" \
-            CLANG_ENABLE_EXPLICIT_MODULES_WITH_COMPILER_LAUNCHER=YES \
+            COMPILATION_CACHE_ENABLE_CACHING=YES \
+            COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS=YES \
+            COMPILATION_CACHE_LIMIT_SIZE=512M \
             -derivedDataPath build -UseModernBuildSystem=YES \
             -project NitroExample.xcodeproj \
             -scheme NitroExample \
@@ -132,6 +142,17 @@ jobs:
             ARCHS=arm64 \
             build \
             CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
+
+      - name: Save compilation cache
+        if: >-
+          steps.native-cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/v1')
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            tests/react-native/apps/example/ios/build/CompilationCache.noindex
+            tests/react-native/apps/example/ios/build/SourcePackages
+          key: ${{ steps.native-cache.outputs.cache-primary-key }}
 
       - name: Install Watchman
         run: brew install watchman
