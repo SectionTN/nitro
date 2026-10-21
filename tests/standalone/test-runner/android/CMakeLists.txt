@@ -8,6 +8,7 @@ find_package(fbjni REQUIRED CONFIG)
 find_package(hermes REQUIRED CONFIG)
 find_package(nitro-core REQUIRED CONFIG)
 find_package(nitro-test REQUIRED CONFIG)
+find_package(nitro-test-external REQUIRED CONFIG)
 
 add_library(NitroTestRunner SHARED
   ../cpp/TestRuntime.cpp
@@ -16,7 +17,7 @@ target_compile_features(NitroTestRunner PRIVATE cxx_std_20)
 target_compile_options(NitroTestRunner PRIVATE -frtti -fexceptions -Wall -Wextra)
 target_include_directories(NitroTestRunner PRIVATE ../cpp)
 target_link_libraries(NitroTestRunner PRIVATE
-  nitro-test::NitroTest nitro-core::NitroModules hermes::hermesvm fbjni::fbjni android log)
+  nitro-test::NitroTest nitro-test-external::NitroTestExternal nitro-core::NitroModules hermes::hermesvm fbjni::fbjni android log)
 
 include("${CMAKE_CURRENT_LIST_DIR}/sanitizer.cmake")
 nitro_apply_test_sanitizer(NitroTestRunner)

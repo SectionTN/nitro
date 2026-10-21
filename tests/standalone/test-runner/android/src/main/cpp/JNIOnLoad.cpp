@@ -5,7 +5,9 @@
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JNull.hpp>
 #include <NitroModules/JUnit.hpp>
+#include <NitroTest/private/JHybridGrandchildSpec.hpp>
 #include <android/hardware_buffer_jni.h>
+#include <array>
 #include <barrier>
 #include <exception>
 #include <fbjni/fbjni.h>
@@ -141,8 +143,60 @@ public:
     }
   }
 
+  static void checkHybridObjectCache(jni::alias_ref<JNativeTestRuntime>, jni::alias_ref<margelo::nitro::JHybridObject::JavaPart> value,
+                                     bool dispose) {
+    using namespace margelo::nitro;
+    constexpr size_t count = 8;
+    auto owner = jni::make_global(value);
+    std::barrier start(count);
+    std::array<std::shared_ptr<JHybridObject>, count> objects;
+    std::mutex errorMutex;
+    std::exception_ptr error;
+    std::vector<std::thread> workers;
+    for (size_t i = 0; i < count; ++i) {
+      workers.emplace_back([&, i] {
+        start.arrive_and_wait();
+        try {
+          jni::ThreadScope::WithClassLoader([&] {
+            for (size_t iteration = 0; iteration < 100; ++iteration) {
+              auto object = owner->getJHybridObject();
+              auto grandchild = std::dynamic_pointer_cast<test::JHybridGrandchildSpec>(object);
+              if (!grandchild) {
+                throw std::runtime_error("Cross-module HybridObject conversion lost its derived type.");
+              }
+              const jobject root = object->getJavaPart().get();
+              if (static_cast<jobject>(grandchild->getJavaPart().get()) != root ||
+                  static_cast<jobject>(grandchild->test::JHybridChildSpec::getJavaPart().get()) != root) {
+                throw std::runtime_error("HybridObject inheritance must borrow one owning global reference.");
+              }
+              objects[i] = object;
+              if (dispose && i == 0) {
+                object->dispose();
+              }
+            }
+          });
+        } catch (...) {
+          std::lock_guard lock(errorMutex);
+          error = std::current_exception();
+        }
+      });
+    }
+    for (auto& worker : workers)
+      worker.join();
+    if (error)
+      std::rethrow_exception(error);
+    if (!dispose) {
+      for (const auto& object : objects) {
+        if (object != objects.front()) {
+          throw std::runtime_error("Concurrent conversions created different HybridObject facades.");
+        }
+      }
+    }
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                        makeNativeMethod("checkHybridObjectCache", JNativeTestRuntime::checkHybridObjectCache),
                                         makeNativeMethod("checkGlobalRefCleanup", JNativeTestRuntime::checkGlobalRefCleanup),
                                         makeNativeMethod("roundtripStringMap", JNativeTestRuntime::roundtripStringMap),
                                         makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
