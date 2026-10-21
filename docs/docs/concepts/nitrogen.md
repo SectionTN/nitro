@@ -301,16 +301,16 @@ To implement `Math` now, you just need to implement the spec:
 <Tabs groupId="native-language">
   <TabItem value="swift" label="Swift" default>
     ```swift title="HybridMath.swift"
-    import NitroModules
+    public import NitroModules
 
-    final class HybridMath : HybridMathSpec {
-      static func add(a: Double, b: Double) throws -> Double {
+    public final class HybridMath : HybridMathSpec {
+      public static func add(a: Double, b: Double) throws -> Double {
         return a + b
       }
 
-      var pi: Double { Double.pi }
+      public var pi: Double { Double.pi }
 
-      func multiply(a: Double, b: Double) throws -> Double {
+      public func multiply(a: Double, b: Double) throws -> Double {
         return a * b
       }
     }
