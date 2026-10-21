@@ -4,7 +4,6 @@ import type { SourceImport } from '../../SourceFile.js'
 import { RecordType } from '../../types/RecordType.js'
 import { wrapKotlinType } from '../wrapKotlinType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { KotlinCxxRecordType } from './KotlinCxxRecordType.js'
 import { getTypeAs } from '../../types/getTypeAs.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType, type KotlinTypeOptions } from './KotlinType.js'
@@ -29,8 +28,8 @@ export class KotlinRecordType extends RecordType implements KotlinType {
     this.valueType = valueType
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -69,7 +68,7 @@ ${value}.mapValues { (_, __value) -> ${item} }
         const keyType = this.keyType.getCode(language, { ...options, context: 'type-argument' })
         const valueType = this.valueType.getCode(language, { ...options, context: 'type-argument' })
         const mapType = `jni::JMap<${keyType}, ${valueType}>`
-        return getJniReferenceCode(mapType, options.context)
+        return getJniReferenceCode(mapType, options)
       }
       case 'kotlin':
         return super.getCode(language, options)

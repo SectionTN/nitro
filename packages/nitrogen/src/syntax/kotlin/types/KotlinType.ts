@@ -2,7 +2,7 @@ import type { Language } from '../../../getPlatformSpecs.js'
 import type { NitroConfig } from '../../../config/NitroConfig.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import type { SourceImport } from '../../SourceFile.js'
-import type { GetCodeOptions, Type, TypeContext } from '../../types/Type.js'
+import type { GetCodeOptions, Type } from '../../types/Type.js'
 
 /** A generated JNI class whose native methods must be registered by its module. */
 export interface JNINativeRegistration {
@@ -41,6 +41,8 @@ export type JniValueKind = 'primitive' | 'object'
 export interface GetKotlinCodeOptions extends GetCodeOptions {
   /** JNI signatures use their JVM ABI; JSI values preserve JavaScript semantics. */
   representation?: 'jni' | 'jsi'
+  /** Whether a parameter borrows a JNI input or owns a freshly decoded JS value. */
+  ownership?: 'owned' | 'borrowed'
 }
 
 /**
@@ -76,9 +78,10 @@ export interface KotlinType extends Type {
 }
 
 /** Renders an fbjni object reference for the context it is used in. */
-export function getJniReferenceCode(jniType: string, context: TypeContext): string {
+export function getJniReferenceCode(jniType: string, { context, ownership }: GetKotlinCodeOptions): string {
   switch (context) {
     case 'parameter':
+      if (ownership === 'owned') return `const jni::local_ref<${jniType}>&`
       return `jni::alias_ref<${jniType}>`
     case 'return':
     case 'value':
@@ -97,7 +100,7 @@ interface JniPrimitive {
 }
 
 /** Renders a JNI primitive, or the object that boxes it. */
-export function getJniPrimitiveCode(jniType: string, context: TypeContext, { boxedType, boxed }: JniPrimitive): string {
-  if (boxed) return getJniReferenceCode(boxedType, context)
+export function getJniPrimitiveCode(jniType: string, options: GetKotlinCodeOptions, { boxedType, boxed }: JniPrimitive): string {
+  if (boxed) return getJniReferenceCode(boxedType, options)
   return jniType
 }

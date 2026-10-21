@@ -4,15 +4,14 @@ import type { SourceImport } from '../../SourceFile.js'
 import { ArrayBufferType } from '../../types/ArrayBufferType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { KotlinCxxArrayBufferType } from './KotlinCxxArrayBufferType.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
 export class KotlinArrayBufferType extends ArrayBufferType implements KotlinType {
   readonly jniValueKind = 'object'
   readonly needsKotlinConversion = false
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -22,7 +21,7 @@ export class KotlinArrayBufferType extends ArrayBufferType implements KotlinType
   override getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        return getJniReferenceCode('JArrayBuffer::JavaPart', options.context)
+        return getJniReferenceCode('JArrayBuffer::JavaPart', options)
       case 'kotlin':
       case 'swift':
         return super.getCode(language, options)

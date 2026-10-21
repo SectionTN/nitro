@@ -3,7 +3,7 @@ import type { Method } from '../Method.js'
 import { Parameter } from '../Parameter.js'
 import type { SourceImport } from '../SourceFile.js'
 import { wrapKotlinType } from './wrapKotlinType.js'
-import type { KotlinType } from './types/KotlinType.js'
+import type { GetKotlinCodeOptions, KotlinType } from './types/KotlinType.js'
 import { indent } from '../../utils.js'
 import type { Type } from '../types/Type.js'
 
@@ -44,11 +44,12 @@ interface PrepareKotlinMethodOptions {
 
 export function prepareKotlinMethod(nativeMethod: Method, { directReturn = true }: PrepareKotlinMethodOptions = {}): KotlinMethodInfo {
   const returnType = wrapKotlinType(nativeMethod.returnType)
+  const cppParameterOptions: GetKotlinCodeOptions = { context: 'parameter', representation: 'jsi', ownership: 'owned' }
   const parameters = nativeMethod.parameters.map((parameter) => {
     const kotlinType = wrapKotlinType(parameter.type)
     return {
       native: parameter,
-      cpp: new Parameter(parameter.name, kotlinType.getJSIType?.() ?? parameter.type),
+      cpp: new Parameter(parameter.name, kotlinType.getJSIType?.() ?? parameter.type, { codeOptions: cppParameterOptions }),
       kotlin: new Parameter(parameter.name, kotlinType),
       type: kotlinType,
     }

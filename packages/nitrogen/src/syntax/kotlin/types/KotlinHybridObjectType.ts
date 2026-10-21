@@ -4,7 +4,6 @@ import { getHybridObjectName } from '../../getHybridObjectName.js'
 import type { SourceImport } from '../../SourceFile.js'
 import { HybridObjectType } from '../../types/HybridObjectType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { KotlinCxxHybridObjectType } from './KotlinCxxHybridObjectType.js'
 import { getJniReferenceCode, type JNINativeRegistration, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
@@ -33,8 +32,8 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
     }
     return name.JHybridTSpec
   }
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -57,7 +56,7 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
         const name = getHybridObjectName(this.hybridObjectName)
         const fullyQualified = options.fullyQualified ?? this.sourceConfig.isExternalConfig
         const jniName = fullyQualified ? this.sourceConfig.getCxxNamespace('c++', name.JHybridTSpecJavaPart) : name.JHybridTSpecJavaPart
-        return getJniReferenceCode(jniName, options.context)
+        return getJniReferenceCode(jniName, options)
       }
       case 'kotlin':
       case 'swift':

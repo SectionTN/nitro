@@ -4,7 +4,6 @@ import type { SourceImport } from '../../SourceFile.js'
 import { ArrayType } from '../../types/ArrayType.js'
 import { wrapKotlinType } from '../wrapKotlinType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { KotlinCxxArrayType } from './KotlinCxxArrayType.js'
 import { getTypeAs } from '../../types/getTypeAs.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType, type KotlinTypeOptions } from './KotlinType.js'
@@ -22,8 +21,8 @@ export class KotlinArrayType extends ArrayType implements KotlinType {
     this.itemType = itemType
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -91,7 +90,7 @@ ${value}.${conversionFunction} { __item -> ${item} }
             break
           }
         }
-        return getJniReferenceCode(jniType, options.context)
+        return getJniReferenceCode(jniType, options)
       }
       case 'kotlin':
         switch (this.itemType.kind) {

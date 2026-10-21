@@ -4,7 +4,6 @@ import type { SourceImport } from '../../SourceFile.js'
 import { OptionalType } from '../../types/OptionalType.js'
 import { wrapKotlinType } from '../wrapKotlinType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { KotlinCxxOptionalType } from './KotlinCxxOptionalType.js'
 import { getTypeAs } from '../../types/getTypeAs.js'
 import { getJniReferenceCode, type JniValueKind, type KotlinConversion, type KotlinType, type KotlinTypeOptions } from './KotlinType.js'
@@ -29,8 +28,8 @@ export class KotlinOptionalType extends OptionalType implements KotlinType {
   get jniValueKind(): JniValueKind {
     return this.wrappingType.jniValueKind
   }
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -70,7 +69,7 @@ export class KotlinOptionalType extends OptionalType implements KotlinType {
     switch (language) {
       case 'c++': {
         const wrapping = this.wrappingType.getCode(language, { ...options, context: 'type-argument' })
-        return getJniReferenceCode(`JOptional<${wrapping}>`, options.context)
+        return getJniReferenceCode(`JOptional<${wrapping}>`, options)
       }
       default:
         return super.getCode(language, options)

@@ -4,15 +4,14 @@ import type { SourceImport } from '../../SourceFile.js'
 import { NullType } from '../../types/NullType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { KotlinCxxNullType } from './KotlinCxxNullType.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
 export class KotlinNullType extends NullType implements KotlinType {
   readonly jniValueKind = 'object'
   readonly needsKotlinConversion = false
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -22,7 +21,7 @@ export class KotlinNullType extends NullType implements KotlinType {
   override getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        return getJniReferenceCode('JNull', options.context)
+        return getJniReferenceCode('JNull', options)
       case 'kotlin':
       case 'swift':
         return super.getCode(language, options)

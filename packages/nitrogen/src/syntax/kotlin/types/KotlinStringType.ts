@@ -6,7 +6,6 @@ import type { GetCodeOptions } from '../../types/Type.js'
 import { StringType } from '../../types/StringType.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './KotlinType.js'
 import type { SourceImport } from '../../SourceFile.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 
 export class KotlinStringType extends StringType implements KotlinType {
   readonly jniValueKind = 'object'
@@ -16,14 +15,14 @@ export class KotlinStringType extends StringType implements KotlinType {
     return new KotlinCxxStringType(cppType, this).getConverter()
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   override getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        return getJniReferenceCode('jni::JString', options.context)
+        return getJniReferenceCode('jni::JString', options)
       default:
         return super.getCode(language, options)
     }

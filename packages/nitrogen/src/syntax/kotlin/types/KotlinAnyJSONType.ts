@@ -6,7 +6,6 @@ import type { SourceImport } from '../../SourceFile.js'
 import { AnyJSONType } from '../../types/AnyJSONType.js'
 import type { GetCodeOptions } from '../../types/Type.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './KotlinType.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 
 /** JSON crosses JNI as its serialized representation. */
 export class KotlinAnyJSONType extends AnyJSONType implements KotlinType {
@@ -17,14 +16,14 @@ export class KotlinAnyJSONType extends AnyJSONType implements KotlinType {
     return new KotlinCxxAnyJSONType(cppType, this).getConverter()
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   override getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        return getJniReferenceCode('JAnyJSON', options.context)
+        return getJniReferenceCode('JAnyJSON', options)
       case 'swift':
       case 'kotlin':
         return super.getCode(language, options)

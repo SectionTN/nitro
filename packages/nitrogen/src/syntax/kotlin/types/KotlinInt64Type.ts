@@ -2,7 +2,6 @@ import type { Language } from '../../../getPlatformSpecs.js'
 import type { SourceImport } from '../../SourceFile.js'
 import type { GetCodeOptions, Type } from '../../types/Type.js'
 import { Int64Type } from '../../types/Int64Type.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { KotlinCxxPrimitiveType } from './KotlinCxxPrimitiveType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { getJniPrimitiveCode, type JniValueKind, type KotlinConversion, type KotlinType, type KotlinTypeOptions } from './KotlinType.js'
@@ -24,14 +23,14 @@ export class KotlinInt64Type extends Int64Type implements KotlinType {
     return new KotlinCxxPrimitiveType(cppType, this).getConverter()
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   override getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        return getJniPrimitiveCode('jlong', options.context, { boxedType: 'jni::JLong', boxed: this.boxed })
+        return getJniPrimitiveCode('jlong', options, { boxedType: 'jni::JLong', boxed: this.boxed })
       case 'kotlin':
       case 'swift':
         return super.getCode(language, options)

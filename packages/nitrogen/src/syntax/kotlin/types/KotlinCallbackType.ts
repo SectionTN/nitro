@@ -2,7 +2,6 @@ import { NitroConfig } from '../../../config/NitroConfig.js'
 import type { Language } from '../../../getPlatformSpecs.js'
 import type { SourceFile, SourceImport } from '../../SourceFile.js'
 import type { Type } from '../../types/Type.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { KotlinCxxCallbackType } from './KotlinCxxCallbackType.js'
 import { getTypeAs } from '../../types/getTypeAs.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
@@ -71,7 +70,7 @@ export class KotlinCallbackType extends CallbackType implements KotlinType {
   }
 
   getJSIType(): Type {
-    return new KotlinJSIType(this)
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -84,9 +83,9 @@ export class KotlinCallbackType extends CallbackType implements KotlinType {
         const jniClass = this.config.getCxxNamespace('c++', this.jniName)
         if (options.representation === 'jsi' && this.isInline) {
           // Kotlin can retain the callback, but JS Inline calls must stay synchronous.
-          return getJniReferenceCode(`margelo::nitro::JInlineCallback<${jniClass}>`, options.context)
+          return getJniReferenceCode(`margelo::nitro::JInlineCallback<${jniClass}>`, options)
         }
-        return getJniReferenceCode(jniClass, options.context)
+        return getJniReferenceCode(jniClass, options)
       }
       case 'kotlin':
         return this.specializationName

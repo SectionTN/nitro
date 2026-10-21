@@ -8,7 +8,6 @@ import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { wrapKotlinType } from '../wrapKotlinType.js'
 import { getTypeAs } from '../../types/getTypeAs.js'
 import { KotlinCxxVariantType } from './KotlinCxxVariantType.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
 export interface KotlinVariantCase {
@@ -48,8 +47,8 @@ export class KotlinVariantType extends VariantType implements KotlinType {
     return `J${this.name}`
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -83,7 +82,7 @@ export class KotlinVariantType extends VariantType implements KotlinType {
         } else {
           name = this.jniName
         }
-        return getJniReferenceCode(name, options.context)
+        return getJniReferenceCode(name, options)
       }
       case 'kotlin':
       case 'swift':

@@ -4,7 +4,6 @@ import type { Type } from '../../types/Type.js'
 import { UInt64Type } from '../../types/UInt64Type.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { KotlinCxxPrimitiveType } from './KotlinCxxPrimitiveType.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import {
   getJniPrimitiveCode,
   type GetKotlinCodeOptions,
@@ -32,10 +31,10 @@ export class KotlinUInt64Type extends UInt64Type implements KotlinType {
     return this.boxed ? 'object' : 'primitive'
   }
 
-  getJSIType(): KotlinJSIType | undefined {
+  getJSIType(): this | undefined {
     // A raw jlong also represents signed Int64. Keep UInt64 as a native scalar.
     if (!this.boxed) return undefined
-    return new KotlinJSIType(this)
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -46,7 +45,7 @@ export class KotlinUInt64Type extends UInt64Type implements KotlinType {
     switch (language) {
       case 'c++':
         if (options.representation === 'jsi' && !this.boxed) return super.getCode(language, options)
-        return getJniPrimitiveCode('jlong', options.context, { boxedType: 'JUInt64', boxed: this.boxed })
+        return getJniPrimitiveCode('jlong', options, { boxedType: 'JUInt64', boxed: this.boxed })
       case 'kotlin':
         return 'Long'
       case 'swift':

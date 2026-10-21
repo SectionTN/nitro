@@ -2,7 +2,6 @@ import type { Language } from '../../../getPlatformSpecs.js'
 import type { SourceImport } from '../../SourceFile.js'
 import type { GetCodeOptions, Type } from '../../types/Type.js'
 import { BooleanType } from '../../types/BooleanType.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { KotlinCxxPrimitiveType } from './KotlinCxxPrimitiveType.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { getJniPrimitiveCode, type JniValueKind, type KotlinConversion, type KotlinType, type KotlinTypeOptions } from './KotlinType.js'
@@ -24,14 +23,14 @@ export class KotlinBooleanType extends BooleanType implements KotlinType {
     return new KotlinCxxPrimitiveType(cppType, this).getConverter()
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   override getCode(language: Language, options: GetCodeOptions): string {
     switch (language) {
       case 'c++':
-        return getJniPrimitiveCode('jboolean', options.context, { boxedType: 'jni::JBoolean', boxed: this.boxed })
+        return getJniPrimitiveCode('jboolean', options, { boxedType: 'jni::JBoolean', boxed: this.boxed })
       case 'kotlin':
       case 'swift':
         return super.getCode(language, options)

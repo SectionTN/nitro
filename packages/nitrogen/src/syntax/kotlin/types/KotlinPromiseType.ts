@@ -5,7 +5,6 @@ import { PromiseType } from '../../types/PromiseType.js'
 import { getTypeAs } from '../../types/getTypeAs.js'
 import type { KotlinCppConverter } from '../KotlinConverter.js'
 import { KotlinCxxPromiseType } from './KotlinCxxPromiseType.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { wrapKotlinType } from '../wrapKotlinType.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType, type KotlinTypeOptions } from './KotlinType.js'
 
@@ -26,8 +25,8 @@ export class KotlinPromiseType extends PromiseType implements KotlinType {
     this.resultingType = resultingType
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {
@@ -63,7 +62,7 @@ export class KotlinPromiseType extends PromiseType implements KotlinType {
     switch (language) {
       case 'c++': {
         const result = this.resultingType.getCode(language, { ...options, context: 'value' })
-        return getJniReferenceCode(`JTypedPromise<${result}>`, options.context)
+        return getJniReferenceCode(`JTypedPromise<${result}>`, options)
       }
       case 'kotlin':
         return super.getCode(language, options)

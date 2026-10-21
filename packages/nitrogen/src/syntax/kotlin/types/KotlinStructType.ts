@@ -7,7 +7,6 @@ import { createKotlinStruct } from '../KotlinStruct.js'
 import { wrapKotlinType } from '../wrapKotlinType.js'
 import { KotlinNamedType } from './KotlinNamedType.js'
 import { KotlinCxxStructType } from './KotlinCxxStructType.js'
-import { KotlinJSIType } from './KotlinJSIType.js'
 import { getKotlinConverter, type KotlinCppConverter } from '../KotlinConverter.js'
 import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
@@ -29,8 +28,8 @@ export class KotlinStructType extends StructType implements KotlinType {
     return new KotlinCxxStructType(cppType, this).getConverter()
   }
 
-  getJSIType(): KotlinJSIType {
-    return new KotlinJSIType(this)
+  getJSIType(): this {
+    return this
   }
 
   get jniName(): string {
@@ -56,7 +55,7 @@ export class KotlinStructType extends StructType implements KotlinType {
       case 'c++': {
         let name = this.jniName
         if (options.fullyQualified || this.config.isExternalConfig) name = this.config.getCxxNamespace('c++', name)
-        return getJniReferenceCode(name, options.context)
+        return getJniReferenceCode(name, options)
       }
       default:
         return super.getCode(language, options)
