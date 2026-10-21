@@ -108,16 +108,26 @@ jobs:
         with:
           path: tests/standalone/.build/hermes/host
           key: ${{ steps.hermes-cache.outputs.cache-primary-key }}
+      - name: Prepare Android emulator
+        run: |
+          sdkmanager emulator 'system-images;android-${{ matrix.sanitizer.api-level }};google_apis;x86_64'
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/android-avd"
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | avdmanager create avd --force --name nitro-tests \
+            --package 'system-images;android-${{ matrix.sanitizer.api-level }};google_apis;x86_64'
+      - name: Boot Android emulator
+        timeout-minutes: 10
+        run: bash tests/standalone/test-runner/android/boot-emulator.sh
       - name: Run JUnit Test Suites
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.sanitizer.api-level }}
-          arch: x86_64
-          target: google_apis
-          disable-animations: true
-          script:
-            cd tests/standalone/test-runner/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{
-            matrix.sanitizer.flag }} --build-cache
+        working-directory: tests/standalone/test-runner/android
+        run: ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --build-cache
+      - name: Stop Android emulator
+        if: always()
+        run: |
+          if [ -n "${NITRO_EMULATOR_PID:-}" ]; then
+            kill "$NITRO_EMULATOR_PID" 2>/dev/null || true
+          fi
       - name: Summarize JUnit results
         if: always()
         run: bun tests/standalone/test-runner/android/report-results.mjs
@@ -127,6 +137,7 @@ jobs:
         with:
           name: runtime-android-results-${{ matrix.sanitizer.name }}
           path: |
+            emulator.log
             tests/standalone/test-runner/android/build/reports/androidTests
             tests/standalone/test-runner/android/build/outputs/androidTest-results
             tests/standalone/test-runner/build/runtime-tests.js
