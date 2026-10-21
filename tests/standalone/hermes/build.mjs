@@ -76,6 +76,9 @@ if (target === 'ios') {
     '-G',
     'Ninja',
     '-DCMAKE_BUILD_TYPE=Debug',
+    // Optimize the Debug engine with ordinary and slow assertions enabled.
+    '-DCMAKE_C_FLAGS_DEBUG=-g -O1',
+    '-DCMAKE_CXX_FLAGS_DEBUG=-g -O1',
     '-DCMAKE_SYSTEM_NAME=iOS',
     '-DHERMES_APPLE_TARGET_PLATFORM=iphonesimulator',
     '-DCMAKE_OSX_SYSROOT=iphonesimulator',
