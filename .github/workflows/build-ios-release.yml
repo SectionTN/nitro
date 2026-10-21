@@ -52,15 +52,53 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_27.1.app/Contents/Developer
           xcodebuild -version
           xcrun swift --version
+      - name: Read native build cache inputs
+        id: native
+        run: |
+          toolchain=$(xcodebuild -version | shasum -a 256 | cut -d ' ' -f 1)
+          echo "toolchain=$toolchain" >> "$GITHUB_OUTPUT"
+
+      - name: Restore React Native and Hermes downloads
+        id: downloads-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/Library/Caches/ReactNative
+          key: react-native-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock') }}
+
+      - name: Restore compilation cache
+        id: native-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            tests/react-native/apps/example/ios/build/CompilationCache.noindex
+            tests/react-native/apps/example/ios/build/SourcePackages
+          key:
+            react-native-ios-release-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.native.outputs.toolchain }}-${{ inputs.release-tag ||
+            github.sha }}
+          restore-keys: |
+            react-native-ios-release-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.native.outputs.toolchain }}-
+
       - name: Resolve Swift packages
         working-directory: tests/react-native/apps/example
         run: bun spm
+
+      - name: Save React Native and Hermes downloads
+        if: >-
+          steps.downloads-cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/v1')
+        uses: actions/cache/save@v6
+        with:
+          path: ~/Library/Caches/ReactNative
+          key: ${{ steps.downloads-cache.outputs.cache-primary-key }}
 
       - name: Build App (Release, Simulator)
         working-directory: tests/react-native/apps/example/ios
         run: |
           set -o pipefail
           xcodebuild \
+            COMPILATION_CACHE_ENABLE_CACHING=YES \
+            COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS=YES \
+            COMPILATION_CACHE_LIMIT_SIZE=512M \
             -derivedDataPath build \
             -project NitroExample.xcodeproj \
             -scheme NitroExample \
@@ -68,9 +106,19 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS Simulator' \
             -showBuildTimingSummary \
-            clean \
             build \
             CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
+
+      - name: Save compilation cache
+        if: >-
+          steps.native-cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/v1')
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            tests/react-native/apps/example/ios/build/CompilationCache.noindex
+            tests/react-native/apps/example/ios/build/SourcePackages
+          key: ${{ steps.native-cache.outputs.cache-primary-key }}
 
       - name: Package .app for Simulator
         run: |

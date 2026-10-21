@@ -31,6 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    env:
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
     steps:
       - uses: actions/checkout@v7
         with:
@@ -52,10 +55,18 @@ jobs:
           java-version: 17
           java-package: jdk
 
+      - uses: gradle/actions/setup-gradle@v6.4.0
+        with:
+          cache-provider: enhanced
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/v1' }}
+      - uses: hendrikmuhs/ccache-action@v1.2.24
+        with:
+          key: android-release
+          max-size: 256M
+          save: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1' }}
       - name: Run Gradle Build for tests/react-native/apps/example/android/
         working-directory: tests/react-native/apps/example/android
-        run: |
-          ./gradlew clean :app:assembleRelease --no-daemon --no-build-cache
+        run: ./gradlew :app:assembleRelease --build-cache
 
       - name: Upload APK to Release
         if: inputs.release-tag != '' || github.event_name == 'release'
@@ -71,8 +82,3 @@ jobs:
             mv tests/react-native/apps/example/android/app/build/outputs/apk/release/app-release.apk "$ASSET_NAME"
             gh release upload "$RELEASE_TAG" "$ASSET_NAME" --repo "$GITHUB_REPOSITORY"
           fi
-
-      # Gradle cache doesn't like daemons
-      - name: Stop Gradle Daemon
-        working-directory: tests/react-native/apps/example/android
-        run: ./gradlew --stop
