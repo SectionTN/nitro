@@ -5,5 +5,11 @@
     <application
         android:usesCleartextTraffic="true"
         tools:targetApi="28"
-        tools:ignore="GoogleAppIndexingWarning"/>
+        tools:ignore="GoogleAppIndexingWarning">
+        <!-- Harness asserts view reuse within one surface, so overlays must not recreate the debug host. -->
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|assetsPaths"
+            tools:replace="android:configChanges"/>
+    </application>
 </manifest>
