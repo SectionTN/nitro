@@ -358,13 +358,6 @@ To implement `Math` now, you just need to implement the spec:
 
 </Tabs>
 
-The Swift protocol requires the declared constructors, static methods, and static properties. A non-final Swift implementation must mark
-required initializers with `required`; when overriding the generated base initializer, use `required override init(...)`.
-
-For Kotlin specs with static members, the implementation's companion must implement `HybridMathSpec.Companion`. Missing companion
-conformance or missing members fails compilation. Constructors are checked separately by the generated Kotlin factories, which call the
-configured implementation directly. JNI calls generated `@JvmStatic` entry points on the spec.
-
 ### 5. Use the Hybrid Objects
 
 Static methods are directly callable on the `Math` type:

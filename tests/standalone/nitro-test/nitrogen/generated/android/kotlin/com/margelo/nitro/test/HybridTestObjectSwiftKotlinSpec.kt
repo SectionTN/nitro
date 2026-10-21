@@ -805,11 +805,16 @@ abstract class HybridTestObjectSwiftKotlinSpec: HybridObject() {
   }
 
   interface Companion {
+    // Static Properties
     val readonlyNumber: Double
+
     var sharedNumber: Double
+
+    // Static Methods
+
   }
 
-  companion object Bridge {
+  protected companion object Bridge {
     protected const val TAG = "HybridTestObjectSwiftKotlinSpec"
 
     private val implementationCompanion: Companion

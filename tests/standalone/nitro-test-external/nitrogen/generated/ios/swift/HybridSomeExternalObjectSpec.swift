@@ -9,6 +9,7 @@ public import NitroModules
 
 /// See ``HybridSomeExternalObjectSpec``
 public protocol HybridSomeExternalObjectSpec_protocol: HybridObject {
+  // Constructor
   init() throws
 
   // Properties
@@ -17,6 +18,12 @@ public protocol HybridSomeExternalObjectSpec_protocol: HybridObject {
   // Methods
   func getValue() throws -> String
   func createOptionalPrimitivesHolder(optionalNumber: Double?, optionalBoolean: Bool?, optionalUInt64: UInt64?, optionalInt64: Int64?) throws -> OptionalPrimitivesHolder
+
+  // Static Properties
+
+
+  // Static Methods
+
 }
 
 public extension HybridSomeExternalObjectSpec_protocol {

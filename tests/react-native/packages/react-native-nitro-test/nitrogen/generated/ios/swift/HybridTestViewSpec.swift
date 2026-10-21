@@ -9,6 +9,7 @@ public import NitroModules
 
 /// See ``HybridTestViewSpec``
 public protocol HybridTestViewSpec_protocol: HybridObject, HybridView {
+  // Constructor
 
 
   // Properties
@@ -25,6 +26,12 @@ public protocol HybridTestViewSpec_protocol: HybridObject, HybridView {
   func getIsBlueSetterCallCount() throws -> Double
   func getNativeDefaultValueSetterCallCount() throws -> Double
   func someMethod() throws -> Void
+
+  // Static Properties
+
+
+  // Static Methods
+
 }
 
 public extension HybridTestViewSpec_protocol {

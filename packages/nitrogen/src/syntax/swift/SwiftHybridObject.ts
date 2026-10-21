@@ -19,9 +19,19 @@ export function createSwiftHybridObject(spec: HybridObjectSpec<'swift'>): Source
   const conformances = swiftType.getProtocolConformances()
   const name = getHybridObjectName(spec.name)
   const protocolName = name.HybridTSpec
+  const constructor = spec.constructor?.getDeclaration('swift') ?? ''
   const properties = spec.properties.map((p) => p.getCode('swift')).join('\n')
   const methods = spec.methods.map((method) => method.getDeclaration('swift')).join('\n')
-  const classMembers = getSwiftClassRequirements(spec)
+  const staticProperties = spec.staticProperties.map((property) => property.getCode('swift')).join('\n')
+  const staticMethods = spec.staticMethods
+    .map((method) => {
+      const requirement = new StaticMethod(method.name, method.returnType, method.parameters, {
+        ...method.options,
+        protocolRequirement: true,
+      })
+      return requirement.getDeclaration('swift')
+    })
+    .join('\n')
   const extraImports = [
     ...spec.properties.flatMap((p) => p.getRequiredImports('swift')),
     ...spec.staticProperties.flatMap((p) => p.getRequiredImports('swift')),
@@ -88,13 +98,20 @@ ${imports}
 
 /// See \`\`${protocolName}\`\`
 public protocol ${protocolName}_protocol: ${protocolBaseClasses.join(', ')} {
-  ${indent(classMembers, '  ')}
+  // Constructor
+  ${indent(constructor, '  ')}
 
   // Properties
   ${indent(properties, '  ')}
 
   // Methods
   ${indent(methods, '  ')}
+
+  // Static Properties
+  ${indent(staticProperties, '  ')}
+
+  // Static Methods
+  ${indent(staticMethods, '  ')}
 }
 
 public extension ${protocolName}_protocol {
@@ -140,21 +157,4 @@ public typealias ${protocolName} = ${protocolName}_protocol & ${protocolName}_ba
   files.push(...swiftTypes.flatMap((type) => type.getExtraFiles()))
 
   return files
-}
-
-function getSwiftClassRequirements(spec: HybridObjectSpec<'swift'>): string {
-  const declarations: string[] = []
-  if (spec.constructor != null) {
-    declarations.push(spec.constructor.getDeclaration('swift'))
-  }
-  declarations.push(...spec.staticProperties.map((property) => property.getCode('swift')))
-  const staticMethods = spec.staticMethods.map((method) => {
-    const requirement = new StaticMethod(method.name, method.returnType, method.parameters, {
-      ...method.options,
-      protocolRequirement: true,
-    })
-    return requirement.getDeclaration('swift')
-  })
-  declarations.push(...staticMethods)
-  return declarations.join('\n')
 }

@@ -9,6 +9,7 @@ public import NitroModules
 
 /// See ``HybridRecyclableTestViewSpec``
 public protocol HybridRecyclableTestViewSpec_protocol: HybridObject, HybridView {
+  // Constructor
 
 
   // Properties
@@ -20,6 +21,12 @@ public protocol HybridRecyclableTestViewSpec_protocol: HybridObject, HybridView 
   func getOnDropViewCount() throws -> Double
   func getPrepareForRecycleCount() throws -> Double
   func getNativeDefaultValueSetterCallCount() throws -> Double
+
+  // Static Properties
+
+
+  // Static Methods
+
 }
 
 public extension HybridRecyclableTestViewSpec_protocol {

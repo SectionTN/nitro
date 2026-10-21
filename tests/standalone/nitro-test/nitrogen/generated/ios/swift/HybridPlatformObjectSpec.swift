@@ -9,6 +9,7 @@ public import NitroModules
 
 /// See ``HybridPlatformObjectSpec``
 public protocol HybridPlatformObjectSpec_protocol: HybridObject {
+  // Constructor
   init() throws
 
   // Properties
@@ -16,6 +17,12 @@ public protocol HybridPlatformObjectSpec_protocol: HybridObject {
 
   // Methods
   func getOSVersion() throws -> String
+
+  // Static Properties
+
+
+  // Static Methods
+
 }
 
 public extension HybridPlatformObjectSpec_protocol {

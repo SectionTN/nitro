@@ -32,8 +32,14 @@ export function createKotlinHybridObject(publicSpec: HybridObjectSpec<'kotlin'>)
   const name = getHybridObjectName(spec.name)
   const properties = spec.properties.map(getKotlinPropertyCode).join('\n\n')
   const methods = spec.methods.map(getKotlinMethodCode).join('\n\n')
-  const companion = getKotlinCompanion(spec)
-  const companionContract = getKotlinCompanionInterface(spec)
+  const companionProperties = spec.staticProperties.map((property) => property.getCode('kotlin')).join('\n\n')
+  const companionMethods = spec.staticMethods
+    .map((method) => {
+      const requirement = new InstanceMethod(method.name, method.returnType, method.parameters)
+      return requirement.getDeclaration('kotlin')
+    })
+    .join('\n\n')
+  const bridgeCompanion = getKotlinCompanion(spec)
 
   const extraImports: SourceImport[] = [
     ...spec.properties.flatMap((p) => p.getRequiredImports('kotlin')),
@@ -41,7 +47,7 @@ export function createKotlinHybridObject(publicSpec: HybridObjectSpec<'kotlin'>)
     ...spec.methods.flatMap((m) => m.getRequiredImports('kotlin')),
     ...spec.staticMethods.flatMap((m) => m.getRequiredImports('kotlin')),
     ...(spec.constructor?.getRequiredImports('kotlin') ?? []),
-    ...companion.imports,
+    ...bridgeCompanion.imports,
     ...spec.baseTypes.flatMap((b) => new HybridObjectType(b).getRequiredImports('kotlin')),
     {
       name: 'com.margelo.nitro.core.HybridObject',
@@ -126,10 +132,16 @@ abstract class ${name.HybridTSpec}: ${supertypes} {
     return CxxPart(this)
   }
 
-  ${indent(companionContract, '  ')}
+  interface Companion {
+    // Static Properties
+    ${indent(companionProperties, '    ')}
 
-  companion object Bridge {
-    ${indent(companion.code, '    ')}
+    // Static Methods
+    ${indent(companionMethods, '    ')}
+  }
+
+  protected companion object Bridge {
+    ${indent(bridgeCompanion.code, '    ')}
   }
 }
   `.trim()
@@ -196,6 +208,7 @@ protected const val TAG = "${name.HybridTSpec}"
     })
   }
   const sections = [tagCode]
+  // Only static members require a companion; instance-only specs may have no configured implementation.
   if (spec.staticMethods.length > 0 || spec.staticProperties.length > 0) {
     const implementation = getKotlinImplementation(spec)
     // Check the configured companion's contract; forwarders still call it directly.
@@ -255,19 +268,4 @@ function getImplementedInterfaceImport(implementedInterface: KotlinImplementedIn
     name: `${implementedInterface.package}.${implementedInterface.interface}`,
     language: 'kotlin',
   }
-}
-
-function getKotlinCompanionInterface(spec: HybridObjectSpec<'kotlin'>): string {
-  const declarations = spec.staticProperties.map((property) => property.getCode('kotlin'))
-  const methods = spec.staticMethods.map((method) => {
-    const requirement = new InstanceMethod(method.name, method.returnType, method.parameters)
-    return requirement.getDeclaration('kotlin')
-  })
-  declarations.push(...methods)
-  if (declarations.length === 0) return ''
-  return `
-interface Companion {
-  ${indent(declarations.join('\n'), '  ')}
-}
-`.trim()
 }
