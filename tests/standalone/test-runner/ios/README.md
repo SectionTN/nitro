@@ -58,7 +58,8 @@ reports its file-qualified name and JS stack. Missing, invalid, empty or duplica
 
 The Swift tests await an operation queue limited to two concurrent suites. Each file creates one fresh Hermes runtime and executes its cases
 in order, with JavaScript and callbacks on its owning worker. The runtime is destroyed after the file finishes or fails. This keeps Swift's
-cooperative executor available for `Promise.async` completions. The shared Xcode scheme and command-line runner set
+cooperative executor available for `Promise.async` completions. The queue uses user-interactive QoS, matching React Native's JS thread, so
+Swift tasks started by `Promise.async` inherit that priority. The shared Xcode scheme and command-line runner set
 `LIBDISPATCH_COOPERATIVE_POOL_STRICT=1` in the test process so the concurrent native Promise case runs with one cooperative worker.
 
 The static-property cases belong to `objects.test.ts`, so their writes to shared native storage run sequentially. They restore the original

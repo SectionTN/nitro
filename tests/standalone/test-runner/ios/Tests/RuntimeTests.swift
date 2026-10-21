@@ -16,6 +16,8 @@ private let runtimeQueue: OperationQueue = {
   let queue = OperationQueue()
   queue.name = "com.margelo.nitro.tests.runtime"
   queue.maxConcurrentOperationCount = 2
+  // Match React Native's JS-thread QoS for the Swift tasks started by Promise.async.
+  queue.qualityOfService = .userInteractive
   return queue
 }()
 
