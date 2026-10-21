@@ -216,7 +216,7 @@ external override fun initHybrid(): HybridData
   const imports: SourceImport[] = []
   if (hybridObject.canUseNonvirtualJniCalls) {
     const implementation = getKotlinImplementation(spec)
-    imports.push(implementation.kotlinImport)
+    imports.push(...implementation.kotlinImports)
     // A class literal keeps the implementation reachable after R8 renaming.
     const implementationClassCode = `
 companion object {
@@ -267,7 +267,7 @@ private val implementationCompanion: Companion
   get() = ${implementation.className}
 `.trim()
     sections.push(companionRequirement)
-    imports.push(implementation.kotlinImport)
+    imports.push(...implementation.kotlinImports)
   }
   for (const group of groups) {
     const bridges = group.callables

@@ -162,7 +162,7 @@ return ${indent(cppResult, '')};
 
 interface KotlinImplementation {
   className: string
-  kotlinImport: SourceImport<'kotlin'>
+  kotlinImports: SourceImport<'kotlin'>[]
 }
 
 /** The Kotlin class implementing the spec, which constructors and static methods call. */
@@ -172,9 +172,14 @@ export function getKotlinImplementation(spec: HybridObjectSpec<'kotlin'>): Kotli
     throw new Error(`${spec.name}: Constructors and static methods require a Kotlin implementation.`)
   }
   // The package is already resolved within the spec's Android namespace.
-  const qualifiedName = [...implementation.package, implementation.className].join('.')
+  const implementationPackage = implementation.package.join('.')
+  const qualifiedName = `${implementationPackage}.${implementation.className}`
+  const generatedPackage = spec.config.getAndroidPackage('java/kotlin')
+  if (implementationPackage !== generatedPackage) {
+    return { className: qualifiedName, kotlinImports: [] }
+  }
   return {
     className: implementation.className,
-    kotlinImport: { language: 'kotlin', name: qualifiedName },
+    kotlinImports: [{ language: 'kotlin', name: qualifiedName }],
   }
 }

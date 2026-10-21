@@ -109,7 +109,11 @@ export class HybridObjectType implements Type {
         }
         if (!android.allowMultipleImplementations) {
           const implementation = android.implementation
-          if (fullyQualified) return [...implementation.package, implementation.className].join('.')
+          const implementationPackage = implementation.package.join('.')
+          const generatedPackage = this.sourceConfig.getAndroidPackage('java/kotlin')
+          if (fullyQualified || this.sourceConfig.isExternalConfig || implementationPackage !== generatedPackage) {
+            return `${implementationPackage}.${implementation.className}`
+          }
           return implementation.className
         }
         if (fullyQualified) {
@@ -157,10 +161,14 @@ export class HybridObjectType implements Type {
         const android = this.platforms.android
         if (android?.language === 'kotlin' && !android.allowMultipleImplementations) {
           const implementation = android.implementation
-          imports.push({
-            language: language,
-            name: [...implementation.package, implementation.className].join('.'),
-          })
+          const implementationPackage = implementation.package.join('.')
+          const generatedPackage = this.sourceConfig.getAndroidPackage('java/kotlin')
+          if (!this.sourceConfig.isExternalConfig && implementationPackage === generatedPackage) {
+            imports.push({
+              language: language,
+              name: `${implementationPackage}.${implementation.className}`,
+            })
+          }
         } else if (this.sourceConfig.isExternalConfig) {
           imports.push({
             language,

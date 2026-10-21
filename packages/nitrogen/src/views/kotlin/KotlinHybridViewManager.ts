@@ -13,7 +13,7 @@ import {
 import { createFileMetadataString, escapeCppName } from '../../syntax/helpers.js'
 import { getHybridObjectName } from '../../syntax/getHybridObjectName.js'
 import { indent } from '../../utils.js'
-import { getImportsCode, getImportCode } from '../../syntax/getImportCode.js'
+import { getImportsCode } from '../../syntax/getImportCode.js'
 import { getKotlinImplementation } from '../../syntax/kotlin/KotlinMethodHelpers.js'
 import { KotlinInstanceMethod } from '../../syntax/kotlin/KotlinInstanceMethod.js'
 import { KotlinStoredType } from '../../syntax/kotlin/types/KotlinStoredType.js'
@@ -29,7 +29,7 @@ export function createKotlinHybridViewManager(spec: HybridObjectSpec<'kotlin'>):
   const { stateUpdaterName } = new KotlinHybridViewType(spec)
   const implementation = getKotlinImplementation(spec)
   const viewImplementation = implementation.className
-  const implementationImport = getImportCode(implementation.kotlinImport)
+  const implementationImport = getImportsCode(implementation.kotlinImports)
   const viewProperties = getHybridViewProperties(spec).map(({ property, config }) => ({
     property: property,
     config: config,
