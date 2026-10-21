@@ -61,7 +61,7 @@ jobs:
         run: |
           set -o pipefail
           xcodebuild \
-            -derivedDataPath build -UseModernBuildSystem=YES \
+            -derivedDataPath build \
             -project NitroExample.xcodeproj \
             -scheme NitroExample \
             -sdk iphonesimulator \
