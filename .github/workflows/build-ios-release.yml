@@ -27,6 +27,10 @@ on:
       - 'scripts/releases/**'
       - 'config/**'
 
+concurrency:
+  group: build-ios-release-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build_release:
     name: Build iOS Example App (release, new architecture)
