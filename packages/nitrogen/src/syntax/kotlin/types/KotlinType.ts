@@ -61,6 +61,8 @@ export interface KotlinType extends Type {
   readonly jniValueKind: JniValueKind
   /** Whether the public Kotlin API needs conversion to this representation. */
   readonly needsKotlinConversion: boolean
+  /** Whether a generated Kotlin backing field already has this JNI representation. */
+  readonly isKotlinFieldCompatible?: boolean
   /** The owned JNI representation consumed by direct JSI conversions, when supported. */
   getJSIType?(): Type | undefined
   /** Native conversion requirements requested only by a C++ consumer. */
