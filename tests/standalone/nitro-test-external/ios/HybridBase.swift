@@ -1,8 +1,8 @@
 import NitroModules
 
 class HybridBase: HybridBaseSpec {
-  required override init() {
-    super.init()
+  required override init() throws {
+    try super.init()
   }
 
   var baseValue: Double {

@@ -225,8 +225,6 @@ do {
 interface SwiftEndpointOptions {
   callable: SwiftMethodInfo
   getSwiftInvocation: (args: SwiftArgument[]) => string
-  /** A nonthrowing concrete initializer can still use the exported Result ABI. */
-  invocationThrows?: boolean
 }
 
 interface SwiftEndpoint {
@@ -236,11 +234,7 @@ interface SwiftEndpoint {
 }
 
 /** The exported Swift ABI uses pointers and Result where Swift requires them. */
-export function createSwiftEndpoint({
-  callable,
-  getSwiftInvocation,
-  invocationThrows = callable.isThrowing,
-}: SwiftEndpointOptions): SwiftEndpoint {
+export function createSwiftEndpoint({ callable, getSwiftInvocation }: SwiftEndpointOptions): SwiftEndpoint {
   const exportedReturnType = callable.exportedReturnType
   const returnsVoid = callable.nativeMethod.returnType.kind === 'void'
   const bridgeParameters = getSwiftBridgeParameters(
@@ -274,12 +268,7 @@ return ${exportedReturnType.fromSwift('value')}
     resultType: swiftResultType,
     returnsVoid: returnsVoid,
   })
-  let swiftMethodBody: string
-  if (invocationThrows) {
-    swiftMethodBody = createSwiftCatchBody(swiftResultBody, swiftResultType)
-  } else {
-    swiftMethodBody = swiftResultBody
-  }
+  const swiftMethodBody = createSwiftCatchBody(swiftResultBody, swiftResultType)
   return {
     parameters: exportedParameters,
     returnType: new SwiftResultType(callable.resultType.payload, callable.resultType.sourceConfig, 'bridge'),

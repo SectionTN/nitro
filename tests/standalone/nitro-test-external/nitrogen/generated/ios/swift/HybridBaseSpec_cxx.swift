@@ -166,7 +166,11 @@ public final class HybridBaseSpec_cxx {
   // Constructor
 
   public class func constructor() -> bridge.Result_void_ {
-    let value = HybridBase()
-    return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
+    do {
+      let value = try HybridBase()
+      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
+    } catch {
+      return bridge.Result_void_.withError(error.toCpp())
+    }
   }
 }

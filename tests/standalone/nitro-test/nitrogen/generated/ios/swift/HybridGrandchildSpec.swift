@@ -35,7 +35,9 @@ public extension HybridGrandchildSpec_protocol {
 /// See ``HybridGrandchildSpec``
 open class HybridGrandchildSpec_base: HybridChildSpec_base {
   private weak var cxxWrapper: HybridGrandchildSpec_cxx? = nil
-  public override init() { super.init() }
+  public override init() throws {
+    try super.init()
+  }
   public final override func getCxxWrapper() -> HybridGrandchildSpec_cxx {
   #if DEBUG
     guard self is any HybridGrandchildSpec else {

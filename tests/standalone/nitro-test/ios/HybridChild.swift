@@ -9,8 +9,8 @@ import NitroModules
 import NitroTestExternal
 
 class HybridChild: HybridChildSpec {
-  required override init() {
-    super.init()
+  required override init() throws {
+    try super.init()
   }
 
   static func createAlternativeBase() throws -> any HybridBaseSpec {

@@ -65,10 +65,24 @@ export function createSwiftHybridObject(spec: HybridObjectSpec<'swift'>): Source
   }
   const baseMembers: string[] = []
   baseMembers.push(`private weak var cxxWrapper: ${name.HybridTSpecCxx}? = nil`)
+  // HybridViews are created by native view factories without a throwing result.
+  const throwsKeyword = spec.isHybridView ? '' : ' throws'
+  const tryKeyword = spec.isHybridView ? '' : 'try '
   if (hasBaseClass) {
-    baseMembers.push(`public override init() { super.init() }`)
+    baseMembers.push(
+      `
+public override init()${throwsKeyword} {
+  ${tryKeyword}super.init()
+}
+`.trim()
+    )
   } else {
-    baseMembers.push(`public init() { }`)
+    baseMembers.push(
+      `
+public init()${throwsKeyword} {
+}
+`.trim()
+    )
   }
   baseMembers.push(
     `

@@ -371,9 +371,9 @@ can use to estimate the native object's memory size, including any heap allocati
 class HybridImage : HybridImageSpec {
   private let cgImage: CGImage
 
-  init(cgImage: CGImage) {
+  init(cgImage: CGImage) throws {
     self.cgImage = cgImage
-    super.init()
+    try super.init()
   }
 
   var memorySize: Int {

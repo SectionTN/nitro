@@ -35,7 +35,8 @@ public extension HybridPlatformObjectSpec_protocol {
 /// See ``HybridPlatformObjectSpec``
 open class HybridPlatformObjectSpec_base {
   private weak var cxxWrapper: HybridPlatformObjectSpec_cxx? = nil
-  public init() { }
+  public init() throws {
+  }
   public final func getCxxWrapper() -> HybridPlatformObjectSpec_cxx {
   #if DEBUG
     guard self is any HybridPlatformObjectSpec else {

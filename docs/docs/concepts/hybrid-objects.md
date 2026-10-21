@@ -407,9 +407,9 @@ account for any external heap allocations you perform:
 class HybridImage : HybridImageSpec {
   private let cgImage: CGImage
 
-  init(cgImage: CGImage) {
+  init(cgImage: CGImage) throws {
     self.cgImage = cgImage
-    super.init()
+    try super.init()
   }
 
   var memorySize: Int {

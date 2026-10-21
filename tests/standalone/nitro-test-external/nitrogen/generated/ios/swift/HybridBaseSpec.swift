@@ -37,7 +37,8 @@ public extension HybridBaseSpec_protocol {
 /// See ``HybridBaseSpec``
 open class HybridBaseSpec_base {
   private weak var cxxWrapper: HybridBaseSpec_cxx? = nil
-  public init() { }
+  public init() throws {
+  }
   public final func getCxxWrapper() -> HybridBaseSpec_cxx {
   #if DEBUG
     guard self is any HybridBaseSpec else {

@@ -9,16 +9,16 @@ import NitroModules
 import NitroTestExternal
 
 class HybridBase: HybridBaseSpec {
-  required override init() {
-    super.init()
+  required override init() throws {
+    try super.init()
   }
 
   static func createAlternativeBase() throws -> any HybridBaseSpec {
-    return HybridAlternativeBase()
+    return try HybridAlternativeBase()
   }
 
   static func createInternalExternalObject() throws -> any HybridSomeExternalObjectSpec {
-    return HybridSomeInternalObject()
+    return try HybridSomeInternalObject()
   }
 
   var baseValue: Double {

@@ -9,8 +9,8 @@ import NitroModules
 import Foundation
 
 class HybridPlatformObject: HybridPlatformObjectSpec {
-  required override init() {
-    super.init()
+  required override init() throws {
+    try super.init()
   }
 
   func getOSVersion() throws -> String {

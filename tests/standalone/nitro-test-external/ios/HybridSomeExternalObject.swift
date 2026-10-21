@@ -8,8 +8,8 @@
 import NitroModules
 
 class HybridSomeExternalObject: HybridSomeExternalObjectSpec {
-  required override init() {
-    super.init()
+  required override init() throws {
+    try super.init()
   }
 
   func getValue() throws -> String {

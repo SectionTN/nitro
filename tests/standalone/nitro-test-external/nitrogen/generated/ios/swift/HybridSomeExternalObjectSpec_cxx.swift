@@ -149,7 +149,11 @@ public final class HybridSomeExternalObjectSpec_cxx {
   // Constructor
 
   public class func constructor() -> bridge.Result_void_ {
-    let value = HybridSomeExternalObject()
-    return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
+    do {
+      let value = try HybridSomeExternalObject()
+      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
+    } catch {
+      return bridge.Result_void_.withError(error.toCpp())
+    }
   }
 }
