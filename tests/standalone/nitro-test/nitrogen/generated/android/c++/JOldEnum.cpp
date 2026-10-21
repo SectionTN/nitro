@@ -31,11 +31,11 @@ namespace margelo::nitro {
     }
   }
 
-  jsi::Value JSIConverter<jni::local_ref<margelo::nitro::test::JOldEnum>>::toJSI(jsi::Runtime&, jni::alias_ref<margelo::nitro::test::JOldEnum> value) {
+  jsi::Value JSIConverter<jni::local_ref<margelo::nitro::test::JOldEnum>>::toJSI(jsi::Runtime& runtime, jni::alias_ref<margelo::nitro::test::JOldEnum> value) {
     return jsi::Value(value->value());
   }
 
-  bool JSIConverter<jni::local_ref<margelo::nitro::test::JOldEnum>>::canConvert(jsi::Runtime&, const jsi::Value& value) {
+  bool JSIConverter<jni::local_ref<margelo::nitro::test::JOldEnum>>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
     if (!value.isNumber()) return false;
     const double number = value.getNumber();
     if (!(number >= 0 && number <= 2)) return false;
