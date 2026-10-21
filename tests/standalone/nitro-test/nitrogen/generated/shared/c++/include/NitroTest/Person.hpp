@@ -23,7 +23,6 @@ namespace margelo::nitro::test {
     double age     SWIFT_PRIVATE;
 
   public:
-    Person() = default;
     explicit Person(std::string name, double age): name(std::move(name)), age(age) {}
 
   public:

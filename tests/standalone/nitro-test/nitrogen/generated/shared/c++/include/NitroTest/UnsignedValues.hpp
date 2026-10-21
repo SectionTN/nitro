@@ -32,7 +32,6 @@ namespace margelo::nitro::test {
     std::vector<Callback<uint64_t(uint64_t /* value */)>> callbacks     SWIFT_PRIVATE;
 
   public:
-    UnsignedValues() = default;
     explicit UnsignedValues(uint64_t unsignedValue, std::optional<uint64_t> optionalUnsigned, std::vector<uint64_t> values, std::vector<std::vector<uint64_t>> nested, std::unordered_map<std::string, std::optional<uint64_t>> record, std::vector<Callback<uint64_t(uint64_t /* value */)>> callbacks): unsignedValue(unsignedValue), optionalUnsigned(std::move(optionalUnsigned)), values(std::move(values)), nested(std::move(nested)), record(std::move(record)), callbacks(std::move(callbacks)) {}
 
   public:

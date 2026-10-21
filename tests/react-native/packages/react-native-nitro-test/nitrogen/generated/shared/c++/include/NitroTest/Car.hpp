@@ -37,7 +37,6 @@ namespace margelo::nitro::test {
     std::optional<std::variant<double, std::string>> someVariant     SWIFT_PRIVATE;
 
   public:
-    Car() = default;
     explicit Car(double year, std::string make, std::string model, double power, Powertrain powertrain, std::optional<Person> driver, std::vector<Person> passengers, std::optional<bool> isFast, std::optional<std::string> favouriteTrack, std::vector<double> performanceScores, std::optional<std::variant<double, std::string>> someVariant): year(year), make(std::move(make)), model(std::move(model)), power(power), powertrain(powertrain), driver(std::move(driver)), passengers(std::move(passengers)), isFast(std::move(isFast)), favouriteTrack(std::move(favouriteTrack)), performanceScores(std::move(performanceScores)), someVariant(std::move(someVariant)) {}
 
   public:

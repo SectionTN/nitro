@@ -24,7 +24,6 @@ namespace margelo::nitro::test::external {
     CppOnlyValueKind kind     SWIFT_PRIVATE;
 
   public:
-    CppOnlyValue() = default;
     explicit CppOnlyValue(std::string label, CppOnlyValueKind kind): label(std::move(label)), kind(kind) {}
 
   public:

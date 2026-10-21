@@ -24,7 +24,6 @@ namespace margelo::nitro::test {
     std::vector<JsStyleStruct> items     SWIFT_PRIVATE;
 
   public:
-    WrappedJsStruct() = default;
     explicit WrappedJsStruct(JsStyleStruct value, std::vector<JsStyleStruct> items): value(std::move(value)), items(std::move(items)) {}
 
   public:

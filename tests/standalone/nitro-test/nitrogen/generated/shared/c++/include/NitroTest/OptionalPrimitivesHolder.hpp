@@ -25,7 +25,6 @@ namespace margelo::nitro::test {
     std::optional<int64_t> optionalInt64     SWIFT_PRIVATE;
 
   public:
-    OptionalPrimitivesHolder() = default;
     explicit OptionalPrimitivesHolder(std::optional<double> optionalNumber, std::optional<bool> optionalBoolean, std::optional<uint64_t> optionalUInt64, std::optional<int64_t> optionalInt64): optionalNumber(std::move(optionalNumber)), optionalBoolean(std::move(optionalBoolean)), optionalUInt64(std::move(optionalUInt64)), optionalInt64(std::move(optionalInt64)) {}
 
   public:

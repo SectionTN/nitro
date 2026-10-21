@@ -25,7 +25,6 @@ namespace margelo::nitro::test {
     std::optional<std::variant<Callback<void()>, double>> callback     SWIFT_PRIVATE;
 
   public:
-    OptionalCallback() = default;
     explicit OptionalCallback(std::optional<std::variant<Callback<void()>, double>> callback): callback(std::move(callback)) {}
 
   public:

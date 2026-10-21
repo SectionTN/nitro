@@ -142,7 +142,6 @@ namespace ${cxxNamespace} {
     ${indent(cppStructProps, '    ')}
 
   public:
-    ${typename}() = default;
     explicit ${typename}(${cppConstructorParams}): ${cppInitializerParams} {}
 
   public:

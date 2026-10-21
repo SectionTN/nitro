@@ -25,7 +25,6 @@ namespace margelo::nitro::test {
     SecondMapWrapper secondMap     SWIFT_PRIVATE;
 
   public:
-    MapWrapper() = default;
     explicit MapWrapper(std::unordered_map<std::string, std::string> map, SecondMapWrapper secondMap): map(std::move(map)), secondMap(std::move(secondMap)) {}
 
   public:
