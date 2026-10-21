@@ -1,9 +1,104 @@
 #pragma once
 
-#include "JNICallback.hpp"
 #include "JInlineCallback.hpp"
+#include "JNICallback.hpp"
 
 namespace margelo::nitro {
+
+template <typename CppCallback, typename KotlinCallback>
+struct JNICallbackConverter;
+
+template <typename R, typename... Args, typename KotlinResult, typename... KotlinArgs>
+struct JNICallbackConverter<Callback<R(Args...)>, Callback<KotlinResult(KotlinArgs...)>> {
+  using Cpp = Callback<R(Args...)>;
+  using Kotlin = Callback<KotlinResult(KotlinArgs...)>;
+  static Cpp fromJNI(const Kotlin& value) {
+    if constexpr (std::is_same_v<Cpp, Kotlin>) {
+      return value;
+    } else if (auto* native = std::get_if<typename Kotlin::NativeCallback>(&value._impl)) {
+      return Cpp::make([callback = *native](Args... args) -> R {
+        if constexpr (std::is_void_v<R>) {
+          callback(JNIConverter<std::remove_cvref_t<Args>, std::remove_cvref_t<KotlinArgs>>::toJNI(args)...);
+        } else {
+          return JNIConverter<R, KotlinResult>::fromJNI(
+              callback(JNIConverter<std::remove_cvref_t<Args>, std::remove_cvref_t<KotlinArgs>>::toJNI(args)...));
+        }
+      });
+    } else {
+      const auto& callback = std::get<typename Kotlin::JSCallback>(value._impl);
+      return Cpp(typename Cpp::JSCallback(callback._runtime, BorrowingReference(callback._function), callback._dispatcher));
+    }
+  }
+  static Kotlin toJNI(const Cpp& value) {
+    if constexpr (std::is_same_v<Cpp, Kotlin>) {
+      return value;
+    } else if (auto* native = std::get_if<typename Cpp::NativeCallback>(&value._impl)) {
+      return Kotlin::make([callback = *native](KotlinArgs... args) -> KotlinResult {
+        if constexpr (std::is_void_v<KotlinResult>) {
+          callback(JNIConverter<std::remove_cvref_t<Args>, std::remove_cvref_t<KotlinArgs>>::fromJNI(args)...);
+        } else {
+          return JNIConverter<R, KotlinResult>::toJNI(
+              callback(JNIConverter<std::remove_cvref_t<Args>, std::remove_cvref_t<KotlinArgs>>::fromJNI(args)...));
+        }
+      });
+    } else {
+      const auto& callback = std::get<typename Cpp::JSCallback>(value._impl);
+      return Kotlin(typename Kotlin::JSCallback(callback._runtime, BorrowingReference(callback._function), callback._dispatcher));
+    }
+  }
+};
+
+template <typename R, typename... Args, typename KotlinResult, typename... KotlinArgs>
+struct JNICallbackConverter<InlineCallback<R(Args...)>, InlineCallback<KotlinResult(KotlinArgs...)>> {
+  using Cpp = InlineCallback<R(Args...)>;
+  using Kotlin = InlineCallback<KotlinResult(KotlinArgs...)>;
+  static decltype(auto) toJNI(const Cpp& value) {
+    if constexpr (std::is_same_v<Cpp, Kotlin>) {
+      return (value);
+    } else if (auto* native = std::get_if<typename Cpp::NativeCallback>(&value._impl)) {
+      return Kotlin::make([callback = *native](KotlinArgs... args) -> KotlinResult {
+        if constexpr (std::is_void_v<KotlinResult>) {
+          callback(JNIConverter<std::remove_cvref_t<Args>, std::remove_cvref_t<KotlinArgs>>::fromJNI(args)...);
+        } else {
+          return JNIConverter<R, KotlinResult>::toJNI(
+              callback(JNIConverter<std::remove_cvref_t<Args>, std::remove_cvref_t<KotlinArgs>>::fromJNI(args)...));
+        }
+      });
+    } else {
+      const auto& callback = std::get<typename Cpp::JSCallback>(value._impl);
+      jsi::Runtime& runtime = callback._runtime;
+      jsi::Function function = jsi::Value(runtime, callback._function).getObject(runtime).getFunction(runtime);
+      return Kotlin::make(runtime, std::move(function));
+    }
+  }
+  static decltype(auto) fromJNI(const Kotlin& value) {
+    if constexpr (std::is_same_v<Cpp, Kotlin>) {
+      return (value);
+    } else if (auto* native = std::get_if<typename Kotlin::NativeCallback>(&value._impl)) {
+      return Cpp::make([callback = *native](Args... args) -> R {
+        if constexpr (std::is_void_v<R>) {
+          callback(JNIConverter<std::remove_cvref_t<Args>, std::remove_cvref_t<KotlinArgs>>::toJNI(args)...);
+        } else {
+          return JNIConverter<R, KotlinResult>::fromJNI(
+              callback(JNIConverter<std::remove_cvref_t<Args>, std::remove_cvref_t<KotlinArgs>>::toJNI(args)...));
+        }
+      });
+    } else {
+      const auto& callback = std::get<typename Kotlin::JSCallback>(value._impl);
+      jsi::Runtime& runtime = callback._runtime;
+      jsi::Function function = jsi::Value(runtime, callback._function).getObject(runtime).getFunction(runtime);
+      return Cpp::make(runtime, std::move(function));
+    }
+  }
+};
+
+template <typename R, typename... Args, typename KotlinResult, typename... KotlinArgs>
+struct JNIConverter<Callback<R(Args...)>, Callback<KotlinResult(KotlinArgs...)>>
+    : JNICallbackConverter<Callback<R(Args...)>, Callback<KotlinResult(KotlinArgs...)>> {};
+
+template <typename R, typename... Args, typename KotlinResult, typename... KotlinArgs>
+struct JNIConverter<InlineCallback<R(Args...)>, InlineCallback<KotlinResult(KotlinArgs...)>>
+    : JNICallbackConverter<InlineCallback<R(Args...)>, InlineCallback<KotlinResult(KotlinArgs...)>> {};
 
 template <typename R, typename... Args, typename KotlinResult, typename... KotlinArgs>
 struct JNICallbackConverter<InlineCallback<R(Args...)>, Callback<KotlinResult(KotlinArgs...)>> {

@@ -16,7 +16,7 @@ export class KotlinInt64Type extends Int64Type implements KotlinType {
   }
 
   get jniValueKind(): JniValueKind {
-    return this.boxed ? 'wrapper' : 'primitive'
+    return this.boxed ? 'object' : 'primitive'
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {

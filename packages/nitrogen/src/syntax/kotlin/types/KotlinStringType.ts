@@ -8,7 +8,7 @@ import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './K
 import type { SourceImport } from '../../SourceFile.js'
 
 export class KotlinStringType extends StringType implements KotlinType {
-  readonly jniValueKind = 'wrapper'
+  readonly jniValueKind = 'object'
   readonly needsKotlinConversion = false
 
   getCppConverter(cppType: Type): KotlinCppConverter {

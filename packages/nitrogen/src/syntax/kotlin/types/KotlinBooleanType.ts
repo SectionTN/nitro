@@ -16,7 +16,7 @@ export class KotlinBooleanType extends BooleanType implements KotlinType {
   }
 
   get jniValueKind(): JniValueKind {
-    return this.boxed ? 'wrapper' : 'primitive'
+    return this.boxed ? 'object' : 'primitive'
   }
 
   getCppConverter(cppType: Type): KotlinCppConverter {

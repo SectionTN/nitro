@@ -24,7 +24,7 @@ export class KotlinUInt64Type extends UInt64Type implements KotlinType {
   }
 
   get jniValueKind(): JniValueKind {
-    return this.boxed ? 'wrapper' : 'primitive'
+    return this.boxed ? 'object' : 'primitive'
   }
 
   getJSIType(): this | undefined {
