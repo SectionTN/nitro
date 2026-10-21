@@ -105,13 +105,20 @@ jobs:
         working-directory: tests/react-native/apps/example
         run: bun spm
 
+      # hashFiles('**/Package.resolved') walked node_modules, which took up to
+      # two minutes and once exceeded its 120-second limit in the post step.
+      # git only lists the repository's own files.
+      - name: Hash Swift package files
+        id: swift-packages
+        run: |
+          hash=$(git ls-files -z -- bun.lock '*Package.swift' '*Package.resolved' | xargs -0 shasum -a 256 | shasum -a 256 | cut -d ' ' -f 1)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+
       - name: Restore DerivedData cache
         uses: actions/cache@v6
         with:
           path: tests/react-native/apps/example/ios/build
-          key:
-            ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-Default-dd-${{ hashFiles('bun.lock', '**/Package.swift',
-            '**/Package.resolved') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-Default-dd-${{ steps.swift-packages.outputs.hash }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-xcode${{ env.XCODE_VERSION }}-Default-dd-
 
@@ -143,6 +150,9 @@ jobs:
           projectRoot: tests/react-native/apps/example
           app: ios/build/Build/Products/Debug-iphonesimulator/NitroExample.app
           packageManager: bun
+          # The default only saves Metro and the simulator agent from the
+          # default branch, so pull requests always started both cold.
+          cacheSavePolicy: always
 
       - name: Print native crash reports
         if: failure()
