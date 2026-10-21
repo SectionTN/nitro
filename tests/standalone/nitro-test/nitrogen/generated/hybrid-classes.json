@@ -107,6 +107,14 @@
         "language": "swift"
       }
     },
+    "JNITestObject": {
+      "android": {
+        "implementation": {
+          "className": "HybridJNITestObject"
+        },
+        "language": "kotlin"
+      }
+    },
     "PlatformObject": {
       "android": {
         "implementation": {
