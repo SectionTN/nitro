@@ -146,7 +146,7 @@ namespace {
   }
 
   std::string execute(const std::string& bundle, const std::vector<std::string>& names, uint32_t timeoutMs,
-                      const std::function<void()>& onTestStarted) {
+                      const std::function<void()>& onTestStarted, const std::string& sourceMap) {
     auto dispatcher = std::make_shared<TestDispatcher>();
     auto config = ::hermes::vm::RuntimeConfig::Builder()
                       .withMicrotaskQueue(true)
@@ -189,6 +189,16 @@ namespace {
                                                   rt.instrumentation().collectGarbage("Nitro runtime test");
                                                   return jsi::Value::undefined();
                                                 }));
+      if (!sourceMap.empty()) {
+        // Only failing cases call this, so the map is never copied otherwise.
+        // The runtime, and this function with it, is destroyed before execute() returns.
+        runtime->global().setProperty(
+            *runtime, "__nitroTestSourceMap",
+            jsi::Function::createFromHostFunction(*runtime, jsi::PropNameID::forAscii(*runtime, "__nitroTestSourceMap"), 0,
+                                                  [&sourceMap](jsi::Runtime& rt, const jsi::Value&, const jsi::Value*, size_t) {
+                                                    return jsi::String::createFromUtf8(rt, sourceMap);
+                                                  }));
+      }
       runtime->evaluatePreparedJavaScript(prepared);
 
       // Stop setup's watchdog before giving each case its own execution budget.
@@ -270,7 +280,7 @@ namespace {
 } // namespace
 
 std::string runSuite(const std::string& bundle, const std::vector<std::string>& names, uint32_t timeoutMs,
-                     const std::function<void()>& onTestStarted) {
+                     const std::function<void()>& onTestStarted, const std::string& sourceMap) {
   if (names.empty())
     return "Cannot run an empty JavaScript test suite";
   try {
@@ -278,10 +288,10 @@ std::string runSuite(const std::string& bundle, const std::vector<std::string>& 
     // The host owns JNI attachment for the whole runtime lifetime, including
     // dispatcher callbacks, microtasks and teardown.
     std::string error;
-    facebook::jni::ThreadScope::WithClassLoader([&] { error = execute(bundle, names, timeoutMs, onTestStarted); });
+    facebook::jni::ThreadScope::WithClassLoader([&] { error = execute(bundle, names, timeoutMs, onTestStarted, sourceMap); });
     return error;
 #else
-    return execute(bundle, names, timeoutMs, onTestStarted);
+    return execute(bundle, names, timeoutMs, onTestStarted, sourceMap);
 #endif
   } catch (const std::exception& error) {
     return names.front() + ": " + error.what();

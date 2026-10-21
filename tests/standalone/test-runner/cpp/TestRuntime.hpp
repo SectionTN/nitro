@@ -13,7 +13,9 @@ namespace margelo::nitro::testing {
 // outside the JS deadlines. Setup and each case receive timeoutMs;
 // getNitroTestTimeoutMs(name) can override execution only. onTestStarted runs
 // after setup, before each case. The runtime is destroyed before returning.
+// A non-empty sourceMap is the bundle's source map, which JS reads through
+// `__nitroTestSourceMap()` to report failures at their TypeScript locations.
 std::string runSuite(const std::string& bundle, const std::vector<std::string>& names, uint32_t timeoutMs = 10000,
-                     const std::function<void()>& onTestStarted = {});
+                     const std::function<void()>& onTestStarted = {}, const std::string& sourceMap = "");
 
 } // namespace margelo::nitro::testing

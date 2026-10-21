@@ -25,12 +25,14 @@ private func makeRuntimeQueue() -> OperationQueue {
 
 private let runtimeQueue = makeRuntimeQueue()
 
-private func runNitroSuite(_ source: String, _ names: [String], _ timeoutMs: UInt32) async -> String? {
+private func runNitroSuite(
+  _ source: String, _ names: [String], _ timeoutMs: UInt32, sourceMap: String? = nil
+) async -> String? {
   // The native runner blocks until JS settles. Swift Promise.async fixtures need
   // the cooperative executor to remain free while the runner pumps callbacks.
   await withCheckedContinuation { continuation in
     runtimeQueue.addOperation {
-      continuation.resume(returning: NitroRunSuite(source, names, timeoutMs, nil))
+      continuation.resume(returning: NitroRunSuite(source, names, timeoutMs, sourceMap, nil))
     }
   }
 }
@@ -110,10 +112,15 @@ struct RuntimeTests {
     return try String(contentsOf: url, encoding: .utf8)
   }
 
+  // Optional: without it, failures report locations in the bundle.
+  private static let sourceMap = testResources.url(forResource: "runtime-tests.js", withExtension: "map").flatMap {
+    try? String(contentsOf: $0, encoding: .utf8)
+  }
+
   @Test(arguments: try RuntimeTests.manifest.get().suites)
   func javaScript(_ suite: JavaScriptSuite) async throws {
     let source = try Self.bundleSource.get()
-    if let failure = await runNitroSuite(source, suite.cases, 10_000) {
+    if let failure = await runNitroSuite(source, suite.cases, 10_000, sourceMap: Self.sourceMap) {
       throw JavaScriptFailure(description: failure)
     }
   }
@@ -188,7 +195,7 @@ struct RuntimeTests {
     await withCheckedContinuation { continuation in
       let operations = (0...maxConcurrentRuntimes).map { index in
         BlockOperation {
-          let failure = NitroRunSuite(source, ["parallel-runtime-\(index)"], 10_000) {
+          let failure = NitroRunSuite(source, ["parallel-runtime-\(index)"], 10_000, nil) {
             runs.started(index)
           }
           if runs.finished(index, failure: failure) {
@@ -202,6 +209,20 @@ struct RuntimeTests {
     #expect(result.overlapped, "Four initialized Hermes runtimes must meet before any test runs")
     #expect(result.peak == 4, "Four runtimes must overlap while the fifth waits for a worker")
     #expect(result.failures.isEmpty, "\(result.failures)")
+  }
+
+  @Test func sourceMapReachesJavaScriptOnlyWhenGiven() async throws {
+    let source = """
+      globalThis.runNitroTest = async (name) => {
+        const map = globalThis.__nitroTestSourceMap?.();
+        if (name === 'with-map' && map !== '{"version":3}') throw new Error(`unexpected map ${map}`);
+        if (name === 'without-map' && map !== undefined) throw new Error('map without one being given');
+      };
+      """
+    let withMap = await runNitroSuite(source, ["with-map"], 1000, sourceMap: #"{"version":3}"#)
+    #expect(withMap == nil, "\(withMap ?? "")")
+    let withoutMap = await runNitroSuite(source, ["without-map"], 1000)
+    #expect(withoutMap == nil, "\(withoutMap ?? "")")
   }
 
   @Test func changedBundleReplacesPreparedSource() async throws {
