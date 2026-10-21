@@ -287,11 +287,7 @@ public final class HybridBenchmarkObjectSwiftKotlinSpec_cxx {
   // Constructor
 
   public class func constructor() -> bridge.Result_void_ {
-    do {
-      let value = try HybridBenchmarkObjectSwift()
-      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
-    } catch {
-      return bridge.Result_void_.withError(error.toCpp())
-    }
+    let value = HybridBenchmarkObjectSwift()
+    return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
   }
 }

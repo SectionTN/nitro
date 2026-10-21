@@ -142,11 +142,7 @@ public final class HybridPlatformObjectSpec_cxx {
   // Constructor
 
   public class func constructor() -> bridge.Result_void_ {
-    do {
-      let value = try HybridPlatformObject()
-      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
-    } catch {
-      return bridge.Result_void_.withError(error.toCpp())
-    }
+    let value = HybridPlatformObject()
+    return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
   }
 }

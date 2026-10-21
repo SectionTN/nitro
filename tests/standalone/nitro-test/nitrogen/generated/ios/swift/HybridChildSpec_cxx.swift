@@ -150,11 +150,7 @@ open class HybridChildSpec_cxx: HybridBaseSpec_cxx {
   // Constructor
 
   public override class func constructor() -> bridge.Result_void_ {
-    do {
-      let value = try HybridChild()
-      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
-    } catch {
-      return bridge.Result_void_.withError(error.toCpp())
-    }
+    let value = HybridChild()
+    return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
   }
 }

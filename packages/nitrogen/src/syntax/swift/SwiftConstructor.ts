@@ -54,11 +54,16 @@ export class SwiftConstructor extends Constructor {
       callable: this.callable,
       getCppInvocation: (args) => `${this.cppInvocationTarget}::${nativeFactory.name}(${args.join(', ')})`,
     })
+    // Every generated base has a nonthrowing init(). Swift forbids throwing
+    // overrides, so a concrete zero-argument initializer cannot throw either.
+    const invocationThrows = this.parameters.length > 0
+    const tryKeyword = invocationThrows ? 'try ' : ''
     const endpoint = createSwiftEndpoint({
       callable: this.callable,
+      invocationThrows: invocationThrows,
       getSwiftInvocation: (args) => {
         const argumentsList = args.map((arg) => `${arg.name}: ${arg.code}`)
-        return `try ${this.implementationClassName}(${argumentsList.join(', ')})`
+        return `${tryKeyword}${this.implementationClassName}(${argumentsList.join(', ')})`
       },
     })
     const swiftMethod = new StaticMethod(nativeFactory.name, endpoint.returnType, endpoint.parameters, {

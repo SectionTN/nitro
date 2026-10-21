@@ -143,11 +143,7 @@ public final class HybridGrandchildSpec_cxx: HybridChildSpec_cxx {
   // Constructor
 
   public override class func constructor() -> bridge.Result_void_ {
-    do {
-      let value = try HybridGrandchild()
-      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
-    } catch {
-      return bridge.Result_void_.withError(error.toCpp())
-    }
+    let value = HybridGrandchild()
+    return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
   }
 }
