@@ -133,9 +133,14 @@ jobs:
           passed = failed = skipped = 0
           for case in cases:
               name = f"{case.get('classname', '').rsplit('.', 1)[-1]}.{case.get('name', '')}"
-              if case.find('failure') is not None or case.find('error') is not None:
+              failure = case.find('failure')
+              if failure is None:
+                  failure = case.find('error')
+              if failure is not None:
                   failed += 1
                   lines.append(f'✗ {name}')
+                  details = (failure.text or failure.get('message', '')).strip()
+                  lines.extend(f'  {line}' for line in details.splitlines())
               elif case.find('skipped') is not None:
                   skipped += 1
                   lines.append(f'- {name} (skipped)')
