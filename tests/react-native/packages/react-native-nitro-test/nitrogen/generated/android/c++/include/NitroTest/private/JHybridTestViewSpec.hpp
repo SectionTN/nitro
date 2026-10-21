@@ -17,6 +17,10 @@
 #include <memory>
 // Forward declaration of `JHybridTestViewSpec` to properly resolve imports.
 namespace margelo::nitro::test { class JHybridTestViewSpec; }
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 
 namespace margelo::nitro::test {
 
@@ -59,25 +63,25 @@ namespace margelo::nitro::test {
 
   public:
     // Properties
-    bool getIsBlue();
-    void setIsBlue(bool isBlue);
-    bool getHasBeenCalled();
-    void setHasBeenCalled(bool hasBeenCalled);
-    int64_t getInt64Value();
-    void setInt64Value(int64_t int64Value);
+    jboolean getIsBlue();
+    void setIsBlue(jboolean isBlue);
+    jboolean getHasBeenCalled();
+    void setHasBeenCalled(jboolean hasBeenCalled);
+    jlong getInt64Value();
+    void setInt64Value(jlong int64Value);
     ColorScheme getColorScheme();
     void setColorScheme(ColorScheme colorScheme);
     Callback<void()> getSomeCallback();
     void setSomeCallback(const Callback<void()>& someCallback);
-    std::optional<double> getNativeDefaultValue();
-    void setNativeDefaultValue(const std::optional<double>& nativeDefaultValue);
+    jni::local_ref<JOptional<jni::JDouble>> getNativeDefaultValue();
+    void setNativeDefaultValue(const jni::local_ref<JOptional<jni::JDouble>>& nativeDefaultValue);
 
   public:
     // Methods
-    bool getIsViewBlue(const std::shared_ptr<JHybridTestViewSpec>& view);
-    double getOnDropViewCount();
-    double getIsBlueSetterCallCount();
-    double getNativeDefaultValueSetterCallCount();
+    jboolean getIsViewBlue(const std::shared_ptr<JHybridTestViewSpec>& view);
+    jdouble getOnDropViewCount();
+    jdouble getIsBlueSetterCallCount();
+    jdouble getNativeDefaultValueSetterCallCount();
     void someMethod();
 
   public:

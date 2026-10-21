@@ -9,6 +9,8 @@
 #include <string>
 #include <NitroTest/private/CarKotlin.hpp>
 #include <variant>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroTest/private/JNamedVariant.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
@@ -19,6 +21,10 @@
 #include <optional>
 #include <NitroTest/private/JPerson.hpp>
 #include <vector>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
+#include <NitroModules/JNIConverter+Array.hpp>
+#include <NitroModules/JSIConverter+JNIArray.hpp>
 #include <NitroTest/private/JVariant_Double_String.hpp>
 
 namespace margelo::nitro::test {
@@ -75,8 +81,8 @@ namespace margelo::nitro::test {
   }
 
   // Properties
-  double JHybridChildSpec::getChildValue() {
-    static const auto __method = CxxPart::getClass()->getMethod<double()>("getChildValue");
+  jdouble JHybridChildSpec::getChildValue() {
+    static const auto __method = CxxPart::getClass()->getMethod<jdouble()>("getChildValue");
     auto __result = __method(_javaPart);
     return __result;
   }

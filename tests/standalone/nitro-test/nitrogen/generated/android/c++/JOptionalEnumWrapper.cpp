@@ -9,6 +9,10 @@
 
 #include <NitroTest/private/OptionalEnumWrapperKotlin.hpp>
 #include <optional>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 #include <NitroTest/Powertrain.hpp>
 #include <NitroTest/private/JPowertrain.hpp>
 
@@ -16,34 +20,34 @@ namespace margelo::nitro::test {
 
   OptionalEnumWrapperKotlin JOptionalEnumWrapper::toCpp() const {
     static const auto clazz = javaClassStatic();
-    static const auto fieldCount = clazz->getField<jni::JDouble>("count");
-    jni::local_ref<jni::JDouble> count = this->getFieldValue(fieldCount);
-    static const auto fieldWeight = clazz->getField<jni::JDouble>("weight");
-    jni::local_ref<jni::JDouble> weight = this->getFieldValue(fieldWeight);
-    static const auto fieldTtl = clazz->getField<jni::JDouble>("ttl");
-    jni::local_ref<jni::JDouble> ttl = this->getFieldValue(fieldTtl);
-    static const auto fieldJitter = clazz->getField<jni::JDouble>("jitter");
-    jni::local_ref<jni::JDouble> jitter = this->getFieldValue(fieldJitter);
-    static const auto fieldRetries = clazz->getField<jni::JDouble>("retries");
-    jni::local_ref<jni::JDouble> retries = this->getFieldValue(fieldRetries);
-    static const auto fieldDelayMs = clazz->getField<jni::JDouble>("delayMs");
-    jni::local_ref<jni::JDouble> delayMs = this->getFieldValue(fieldDelayMs);
-    static const auto fieldTimeoutMs = clazz->getField<jni::JDouble>("timeoutMs");
-    jni::local_ref<jni::JDouble> timeoutMs = this->getFieldValue(fieldTimeoutMs);
-    static const auto fieldRatio = clazz->getField<jni::JDouble>("ratio");
-    jni::local_ref<jni::JDouble> ratio = this->getFieldValue(fieldRatio);
-    static const auto fieldThreshold = clazz->getField<jni::JDouble>("threshold");
-    jni::local_ref<jni::JDouble> threshold = this->getFieldValue(fieldThreshold);
-    static const auto fieldEnabled = clazz->getField<jni::JBoolean>("enabled");
-    jni::local_ref<jni::JBoolean> enabled = this->getFieldValue(fieldEnabled);
-    static const auto fieldActive = clazz->getField<jni::JBoolean>("active");
-    jni::local_ref<jni::JBoolean> active = this->getFieldValue(fieldActive);
-    static const auto fieldShouldBuffer = clazz->getField<jni::JBoolean>("shouldBuffer");
-    jni::local_ref<jni::JBoolean> shouldBuffer = this->getFieldValue(fieldShouldBuffer);
-    static const auto fieldShouldRetry = clazz->getField<jni::JBoolean>("shouldRetry");
-    jni::local_ref<jni::JBoolean> shouldRetry = this->getFieldValue(fieldShouldRetry);
-    static const auto fieldVerbose = clazz->getField<jni::JBoolean>("verbose");
-    jni::local_ref<jni::JBoolean> verbose = this->getFieldValue(fieldVerbose);
+    static const auto fieldCount = clazz->getField<JOptional<jni::JDouble>>("count");
+    jni::local_ref<JOptional<jni::JDouble>> count = this->getFieldValue(fieldCount);
+    static const auto fieldWeight = clazz->getField<JOptional<jni::JDouble>>("weight");
+    jni::local_ref<JOptional<jni::JDouble>> weight = this->getFieldValue(fieldWeight);
+    static const auto fieldTtl = clazz->getField<JOptional<jni::JDouble>>("ttl");
+    jni::local_ref<JOptional<jni::JDouble>> ttl = this->getFieldValue(fieldTtl);
+    static const auto fieldJitter = clazz->getField<JOptional<jni::JDouble>>("jitter");
+    jni::local_ref<JOptional<jni::JDouble>> jitter = this->getFieldValue(fieldJitter);
+    static const auto fieldRetries = clazz->getField<JOptional<jni::JDouble>>("retries");
+    jni::local_ref<JOptional<jni::JDouble>> retries = this->getFieldValue(fieldRetries);
+    static const auto fieldDelayMs = clazz->getField<JOptional<jni::JDouble>>("delayMs");
+    jni::local_ref<JOptional<jni::JDouble>> delayMs = this->getFieldValue(fieldDelayMs);
+    static const auto fieldTimeoutMs = clazz->getField<JOptional<jni::JDouble>>("timeoutMs");
+    jni::local_ref<JOptional<jni::JDouble>> timeoutMs = this->getFieldValue(fieldTimeoutMs);
+    static const auto fieldRatio = clazz->getField<JOptional<jni::JDouble>>("ratio");
+    jni::local_ref<JOptional<jni::JDouble>> ratio = this->getFieldValue(fieldRatio);
+    static const auto fieldThreshold = clazz->getField<JOptional<jni::JDouble>>("threshold");
+    jni::local_ref<JOptional<jni::JDouble>> threshold = this->getFieldValue(fieldThreshold);
+    static const auto fieldEnabled = clazz->getField<JOptional<jni::JBoolean>>("enabled");
+    jni::local_ref<JOptional<jni::JBoolean>> enabled = this->getFieldValue(fieldEnabled);
+    static const auto fieldActive = clazz->getField<JOptional<jni::JBoolean>>("active");
+    jni::local_ref<JOptional<jni::JBoolean>> active = this->getFieldValue(fieldActive);
+    static const auto fieldShouldBuffer = clazz->getField<JOptional<jni::JBoolean>>("shouldBuffer");
+    jni::local_ref<JOptional<jni::JBoolean>> shouldBuffer = this->getFieldValue(fieldShouldBuffer);
+    static const auto fieldShouldRetry = clazz->getField<JOptional<jni::JBoolean>>("shouldRetry");
+    jni::local_ref<JOptional<jni::JBoolean>> shouldRetry = this->getFieldValue(fieldShouldRetry);
+    static const auto fieldVerbose = clazz->getField<JOptional<jni::JBoolean>>("verbose");
+    jni::local_ref<JOptional<jni::JBoolean>> verbose = this->getFieldValue(fieldVerbose);
     static const auto fieldTier = clazz->getField<JPowertrain>("tier");
     jni::local_ref<JPowertrain> tier = this->getFieldValue(fieldTier);
     static const auto fieldRegion = clazz->getField<JPowertrain>("region");
@@ -53,20 +57,20 @@ namespace margelo::nitro::test {
     static const auto fieldTone = clazz->getField<JPowertrain>("tone");
     jni::local_ref<JPowertrain> tone = this->getFieldValue(fieldTone);
     return OptionalEnumWrapperKotlin(
-      count != nullptr ? std::make_optional(count->value()) : std::nullopt,
-      weight != nullptr ? std::make_optional(weight->value()) : std::nullopt,
-      ttl != nullptr ? std::make_optional(ttl->value()) : std::nullopt,
-      jitter != nullptr ? std::make_optional(jitter->value()) : std::nullopt,
-      retries != nullptr ? std::make_optional(retries->value()) : std::nullopt,
-      delayMs != nullptr ? std::make_optional(delayMs->value()) : std::nullopt,
-      timeoutMs != nullptr ? std::make_optional(timeoutMs->value()) : std::nullopt,
-      ratio != nullptr ? std::make_optional(ratio->value()) : std::nullopt,
-      threshold != nullptr ? std::make_optional(threshold->value()) : std::nullopt,
-      enabled != nullptr ? std::make_optional(static_cast<bool>(enabled->value())) : std::nullopt,
-      active != nullptr ? std::make_optional(static_cast<bool>(active->value())) : std::nullopt,
-      shouldBuffer != nullptr ? std::make_optional(static_cast<bool>(shouldBuffer->value())) : std::nullopt,
-      shouldRetry != nullptr ? std::make_optional(static_cast<bool>(shouldRetry->value())) : std::nullopt,
-      verbose != nullptr ? std::make_optional(static_cast<bool>(verbose->value())) : std::nullopt,
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(count),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(weight),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(ttl),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(jitter),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(retries),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(delayMs),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(timeoutMs),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(ratio),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(threshold),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::fromJNI(enabled),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::fromJNI(active),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::fromJNI(shouldBuffer),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::fromJNI(shouldRetry),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::fromJNI(verbose),
       tier != nullptr ? std::make_optional(tier->toCpp()) : std::nullopt,
       region != nullptr ? std::make_optional(region->toCpp()) : std::nullopt,
       stage != nullptr ? std::make_optional(stage->toCpp()) : std::nullopt,
@@ -75,25 +79,25 @@ namespace margelo::nitro::test {
   }
 
   jni::local_ref<JOptionalEnumWrapper::javaobject> JOptionalEnumWrapper::fromCpp(const OptionalEnumWrapperKotlin& value) {
-    using JSignature = JOptionalEnumWrapper(jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JBoolean>, jni::alias_ref<jni::JBoolean>, jni::alias_ref<jni::JBoolean>, jni::alias_ref<jni::JBoolean>, jni::alias_ref<jni::JBoolean>, jni::alias_ref<JPowertrain>, jni::alias_ref<JPowertrain>, jni::alias_ref<JPowertrain>, jni::alias_ref<JPowertrain>);
+    using JSignature = JOptionalEnumWrapper(jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JBoolean>>, jni::alias_ref<JOptional<jni::JBoolean>>, jni::alias_ref<JOptional<jni::JBoolean>>, jni::alias_ref<JOptional<jni::JBoolean>>, jni::alias_ref<JOptional<jni::JBoolean>>, jni::alias_ref<JPowertrain>, jni::alias_ref<JPowertrain>, jni::alias_ref<JPowertrain>, jni::alias_ref<JPowertrain>);
     static const auto clazz = javaClassStatic();
     static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
     return create(
       clazz,
-      value.count.has_value() ? jni::JDouble::valueOf(value.count.value()) : nullptr,
-      value.weight.has_value() ? jni::JDouble::valueOf(value.weight.value()) : nullptr,
-      value.ttl.has_value() ? jni::JDouble::valueOf(value.ttl.value()) : nullptr,
-      value.jitter.has_value() ? jni::JDouble::valueOf(value.jitter.value()) : nullptr,
-      value.retries.has_value() ? jni::JDouble::valueOf(value.retries.value()) : nullptr,
-      value.delayMs.has_value() ? jni::JDouble::valueOf(value.delayMs.value()) : nullptr,
-      value.timeoutMs.has_value() ? jni::JDouble::valueOf(value.timeoutMs.value()) : nullptr,
-      value.ratio.has_value() ? jni::JDouble::valueOf(value.ratio.value()) : nullptr,
-      value.threshold.has_value() ? jni::JDouble::valueOf(value.threshold.value()) : nullptr,
-      value.enabled.has_value() ? jni::JBoolean::valueOf(value.enabled.value()) : nullptr,
-      value.active.has_value() ? jni::JBoolean::valueOf(value.active.value()) : nullptr,
-      value.shouldBuffer.has_value() ? jni::JBoolean::valueOf(value.shouldBuffer.value()) : nullptr,
-      value.shouldRetry.has_value() ? jni::JBoolean::valueOf(value.shouldRetry.value()) : nullptr,
-      value.verbose.has_value() ? jni::JBoolean::valueOf(value.verbose.value()) : nullptr,
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.count),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.weight),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.ttl),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.jitter),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.retries),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.delayMs),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.timeoutMs),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.ratio),
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.threshold),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::toJNI(value.enabled),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::toJNI(value.active),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::toJNI(value.shouldBuffer),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::toJNI(value.shouldRetry),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::toJNI(value.verbose),
       value.tier.has_value() ? JPowertrain::fromCpp(value.tier.value()) : nullptr,
       value.region.has_value() ? JPowertrain::fromCpp(value.region.value()) : nullptr,
       value.stage.has_value() ? JPowertrain::fromCpp(value.stage.value()) : nullptr,

@@ -17,6 +17,8 @@
 #include <string>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 
 namespace margelo::nitro::test {
   jni::local_ref<JVariant_HybridBaseSpec_OptionalWrapper> JVariant_HybridBaseSpec_OptionalWrapper::create_0(jni::alias_ref<JHybridBaseSpec::JavaPart> value) {

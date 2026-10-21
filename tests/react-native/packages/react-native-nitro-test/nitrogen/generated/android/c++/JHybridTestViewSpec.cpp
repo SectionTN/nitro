@@ -11,6 +11,10 @@
 #include <functional>
 #include <optional>
 #include <memory>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 #include <NitroTest/private/JColorScheme.hpp>
 #include <NitroTest/private/JCallback_void.hpp>
 #include <NitroModules/JNICallable.hpp>
@@ -75,31 +79,31 @@ namespace margelo::nitro::test {
   }
 
   // Properties
-  bool JHybridTestViewSpec::getIsBlue() {
+  jboolean JHybridTestViewSpec::getIsBlue() {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean()>("isBlue");
-    auto __result = __method(_javaPart, CxxPart::getClass());
-    return static_cast<bool>(__result);
-  }
-  void JHybridTestViewSpec::setIsBlue(bool isBlue) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jboolean /* isBlue */)>("setBlue");
-    __method(_javaPart, CxxPart::getClass(), isBlue);
-  }
-  bool JHybridTestViewSpec::getHasBeenCalled() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean()>("getHasBeenCalled");
-    auto __result = __method(_javaPart, CxxPart::getClass());
-    return static_cast<bool>(__result);
-  }
-  void JHybridTestViewSpec::setHasBeenCalled(bool hasBeenCalled) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jboolean /* hasBeenCalled */)>("setHasBeenCalled");
-    __method(_javaPart, CxxPart::getClass(), hasBeenCalled);
-  }
-  int64_t JHybridTestViewSpec::getInt64Value() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<int64_t()>("getInt64Value");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
-  void JHybridTestViewSpec::setInt64Value(int64_t int64Value) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(int64_t /* int64Value */)>("setInt64Value");
+  void JHybridTestViewSpec::setIsBlue(jboolean isBlue) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jboolean /* isBlue */)>("setBlue");
+    __method(_javaPart, CxxPart::getClass(), isBlue);
+  }
+  jboolean JHybridTestViewSpec::getHasBeenCalled() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean()>("getHasBeenCalled");
+    auto __result = __method(_javaPart, CxxPart::getClass());
+    return __result;
+  }
+  void JHybridTestViewSpec::setHasBeenCalled(jboolean hasBeenCalled) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jboolean /* hasBeenCalled */)>("setHasBeenCalled");
+    __method(_javaPart, CxxPart::getClass(), hasBeenCalled);
+  }
+  jlong JHybridTestViewSpec::getInt64Value() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jlong()>("getInt64Value");
+    auto __result = __method(_javaPart, CxxPart::getClass());
+    return __result;
+  }
+  void JHybridTestViewSpec::setInt64Value(jlong int64Value) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jlong /* int64Value */)>("setInt64Value");
     __method(_javaPart, CxxPart::getClass(), int64Value);
   }
   ColorScheme JHybridTestViewSpec::getColorScheme() {
@@ -128,34 +132,34 @@ namespace margelo::nitro::test {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<JCallback_void::javaobject> /* someCallback */)>("setSomeCallback_cxx");
     __method(_javaPart, CxxPart::getClass(), JCallback_void_cxx::fromCpp(someCallback));
   }
-  std::optional<double> JHybridTestViewSpec::getNativeDefaultValue() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<jni::JDouble>()>("getNativeDefaultValue");
+  jni::local_ref<JOptional<jni::JDouble>> JHybridTestViewSpec::getNativeDefaultValue() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JOptional<jni::JDouble>>()>("getNativeDefaultValue");
     auto __result = __method(_javaPart, CxxPart::getClass());
-    return __result != nullptr ? std::make_optional(__result->value()) : std::nullopt;
+    return __result;
   }
-  void JHybridTestViewSpec::setNativeDefaultValue(const std::optional<double>& nativeDefaultValue) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<jni::JDouble> /* nativeDefaultValue */)>("setNativeDefaultValue");
-    __method(_javaPart, CxxPart::getClass(), nativeDefaultValue.has_value() ? jni::JDouble::valueOf(nativeDefaultValue.value()) : nullptr);
+  void JHybridTestViewSpec::setNativeDefaultValue(const jni::local_ref<JOptional<jni::JDouble>>& nativeDefaultValue) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<JOptional<jni::JDouble>> /* nativeDefaultValue */)>("setNativeDefaultValue");
+    __method(_javaPart, CxxPart::getClass(), nativeDefaultValue);
   }
 
   // Methods
-  bool JHybridTestViewSpec::getIsViewBlue(const std::shared_ptr<JHybridTestViewSpec>& view) {
+  jboolean JHybridTestViewSpec::getIsViewBlue(const std::shared_ptr<JHybridTestViewSpec>& view) {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean(jni::alias_ref<JHybridTestViewSpec::JavaPart> /* view */)>("getIsViewBlue");
     auto __result = __method(_javaPart, CxxPart::getClass(), view->getJavaPart());
-    return static_cast<bool>(__result);
+    return __result;
   }
-  double JHybridTestViewSpec::getOnDropViewCount() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<double()>("getOnDropViewCount");
+  jdouble JHybridTestViewSpec::getOnDropViewCount() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jdouble()>("getOnDropViewCount");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
-  double JHybridTestViewSpec::getIsBlueSetterCallCount() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<double()>("getIsBlueSetterCallCount");
+  jdouble JHybridTestViewSpec::getIsBlueSetterCallCount() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jdouble()>("getIsBlueSetterCallCount");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
-  double JHybridTestViewSpec::getNativeDefaultValueSetterCallCount() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<double()>("getNativeDefaultValueSetterCallCount");
+  jdouble JHybridTestViewSpec::getNativeDefaultValueSetterCallCount() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jdouble()>("getNativeDefaultValueSetterCallCount");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }

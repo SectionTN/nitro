@@ -9,37 +9,42 @@
 
 #include <NitroTestExternal/private/OptionalPrimitivesHolderKotlin.hpp>
 #include <optional>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
+#include <NitroModules/JUInt64.hpp>
 
 namespace margelo::nitro::test::external {
 
   OptionalPrimitivesHolderKotlin JOptionalPrimitivesHolder::toCpp() const {
     static const auto clazz = javaClassStatic();
-    static const auto fieldOptionalNumber = clazz->getField<jni::JDouble>("optionalNumber");
-    jni::local_ref<jni::JDouble> optionalNumber = this->getFieldValue(fieldOptionalNumber);
-    static const auto fieldOptionalBoolean = clazz->getField<jni::JBoolean>("optionalBoolean");
-    jni::local_ref<jni::JBoolean> optionalBoolean = this->getFieldValue(fieldOptionalBoolean);
-    static const auto fieldOptionalUInt64 = clazz->getField<jni::JLong>("optionalUInt64");
-    jni::local_ref<jni::JLong> optionalUInt64 = this->getFieldValue(fieldOptionalUInt64);
-    static const auto fieldOptionalInt64 = clazz->getField<jni::JLong>("optionalInt64");
-    jni::local_ref<jni::JLong> optionalInt64 = this->getFieldValue(fieldOptionalInt64);
+    static const auto fieldOptionalNumber = clazz->getField<JOptional<jni::JDouble>>("optionalNumber");
+    jni::local_ref<JOptional<jni::JDouble>> optionalNumber = this->getFieldValue(fieldOptionalNumber);
+    static const auto fieldOptionalBoolean = clazz->getField<JOptional<jni::JBoolean>>("optionalBoolean");
+    jni::local_ref<JOptional<jni::JBoolean>> optionalBoolean = this->getFieldValue(fieldOptionalBoolean);
+    static const auto fieldOptionalUInt64 = clazz->getField<JOptional<JUInt64>>("optionalUInt64");
+    jni::local_ref<JOptional<JUInt64>> optionalUInt64 = this->getFieldValue(fieldOptionalUInt64);
+    static const auto fieldOptionalInt64 = clazz->getField<JOptional<jni::JLong>>("optionalInt64");
+    jni::local_ref<JOptional<jni::JLong>> optionalInt64 = this->getFieldValue(fieldOptionalInt64);
     return OptionalPrimitivesHolderKotlin(
-      optionalNumber != nullptr ? std::make_optional(optionalNumber->value()) : std::nullopt,
-      optionalBoolean != nullptr ? std::make_optional(static_cast<bool>(optionalBoolean->value())) : std::nullopt,
-      optionalUInt64 != nullptr ? std::make_optional(static_cast<uint64_t>(optionalUInt64->value())) : std::nullopt,
-      optionalInt64 != nullptr ? std::make_optional(optionalInt64->value()) : std::nullopt
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::fromJNI(optionalNumber),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::fromJNI(optionalBoolean),
+      JNIConverter<std::optional<uint64_t>, jni::local_ref<JOptional<JUInt64>>>::fromJNI(optionalUInt64),
+      JNIConverter<std::optional<int64_t>, jni::local_ref<JOptional<jni::JLong>>>::fromJNI(optionalInt64)
     );
   }
 
   jni::local_ref<JOptionalPrimitivesHolder::javaobject> JOptionalPrimitivesHolder::fromCpp(const OptionalPrimitivesHolderKotlin& value) {
-    using JSignature = JOptionalPrimitivesHolder(jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JBoolean>, jni::alias_ref<jni::JLong>, jni::alias_ref<jni::JLong>);
+    using JSignature = JOptionalPrimitivesHolder(jni::alias_ref<JOptional<jni::JDouble>>, jni::alias_ref<JOptional<jni::JBoolean>>, jni::alias_ref<JOptional<JUInt64>>, jni::alias_ref<JOptional<jni::JLong>>);
     static const auto clazz = javaClassStatic();
     static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
     return create(
       clazz,
-      value.optionalNumber.has_value() ? jni::JDouble::valueOf(value.optionalNumber.value()) : nullptr,
-      value.optionalBoolean.has_value() ? jni::JBoolean::valueOf(value.optionalBoolean.value()) : nullptr,
-      value.optionalUInt64.has_value() ? jni::JLong::valueOf(value.optionalUInt64.value()) : nullptr,
-      value.optionalInt64.has_value() ? jni::JLong::valueOf(value.optionalInt64.value()) : nullptr
+      JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(value.optionalNumber),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::toJNI(value.optionalBoolean),
+      JNIConverter<std::optional<uint64_t>, jni::local_ref<JOptional<JUInt64>>>::toJNI(value.optionalUInt64),
+      JNIConverter<std::optional<int64_t>, jni::local_ref<JOptional<jni::JLong>>>::toJNI(value.optionalInt64)
     );
   }
 

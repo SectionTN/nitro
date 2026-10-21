@@ -9,6 +9,10 @@
 #include <vector>
 #include <string>
 #include <variant>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroModules/JNIConverter+Array.hpp>
+#include <NitroModules/JSIConverter+JNIArray.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
 
@@ -28,8 +32,8 @@ namespace margelo::nitro::test {
     return method(javaClassStatic(), value);
   }
 
-  jni::local_ref<JVariant_Boolean_DoubleArray_Array_String__Double_String> JVariant_Boolean_DoubleArray_Array_String__Double_String::create_3(double value) {
-    static const auto method = javaClassStatic()->getStaticMethod<JVariant_Boolean_DoubleArray_Array_String__Double_String(double)>("fromCpp_3");
+  jni::local_ref<JVariant_Boolean_DoubleArray_Array_String__Double_String> JVariant_Boolean_DoubleArray_Array_String__Double_String::create_3(jdouble value) {
+    static const auto method = javaClassStatic()->getStaticMethod<JVariant_Boolean_DoubleArray_Array_String__Double_String(jdouble)>("fromCpp_3");
     return method(javaClassStatic(), value);
   }
 
@@ -40,24 +44,10 @@ namespace margelo::nitro::test {
 
   jni::local_ref<JVariant_Boolean_DoubleArray_Array_String__Double_String> JVariant_Boolean_DoubleArray_Array_String__Double_String::fromCpp(const std::variant<bool, std::vector<double>, std::vector<std::string>, double, std::string>& variant) {
     switch (variant.index()) {
-      case 0: return create_0(std::get<0>(variant));
-      case 1: return create_1([&]() {
-        size_t __size = std::get<1>(variant).size();
-        jni::local_ref<jni::JArrayDouble> __array = jni::JArrayDouble::newArray(__size);
-        __array->setRegion(0, __size, std::get<1>(variant).data());
-        return __array;
-      }());
-      case 2: return create_2([&](auto&& __input) {
-        size_t __size = __input.size();
-        jni::local_ref<jni::JArrayClass<jni::JString>> __array = jni::JArrayClass<jni::JString>::newArray(__size);
-        for (size_t __i = 0; __i < __size; __i++) {
-          const auto& __element = __input[__i];
-          auto __elementJni = JNIConverter<std::string, jni::local_ref<jni::JString>>::toJNI(__element);
-          __array->setElement(__i, *__elementJni);
-        }
-        return __array;
-      }(std::get<2>(variant)));
-      case 3: return create_3(std::get<3>(variant));
+      case 0: return create_0(JNIConverter<bool, jboolean>::toJNI(std::get<0>(variant)));
+      case 1: return create_1(JNIConverter<std::vector<double>, jni::local_ref<jni::JArrayDouble>>::toJNI(std::get<1>(variant)));
+      case 2: return create_2(JNIConverter<std::vector<std::string>, jni::local_ref<jni::JArrayClass<jni::JString>>>::toJNI(std::get<2>(variant)));
+      case 3: return create_3(JNIConverter<double, jdouble>::toJNI(std::get<3>(variant)));
       case 4: return create_4(JNIConverter<std::string, jni::local_ref<jni::JString>>::toJNI(std::get<4>(variant)));
       default: throw std::invalid_argument("Variant holds unknown index! (" + std::to_string(variant.index()) + ")");
     }
@@ -78,8 +68,8 @@ namespace margelo::nitro::test {
     return getFieldValue(field);
   }
 
-  double JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Fourth::getValue() const {
-    static const auto field = javaClassStatic()->getField<double>("value");
+  jdouble JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Fourth::getValue() const {
+    static const auto field = javaClassStatic()->getField<jdouble>("value");
     return getFieldValue(field);
   }
 
@@ -95,33 +85,19 @@ namespace margelo::nitro::test {
     if (isInstanceOf(JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::First::javaClassStatic())) {
       // It's a `bool`
       auto jniValue = static_cast<const JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::First*>(this)->getValue();
-      return static_cast<bool>(jniValue);
+      return JNIConverter<bool, jboolean>::fromJNI(jniValue);
     } else if (isInstanceOf(JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Second::javaClassStatic())) {
       // It's a `std::vector<double>`
       auto jniValue = static_cast<const JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Second*>(this)->getValue();
-      return [&]() {
-        size_t __size = jniValue->size();
-        std::vector<double> __vector(__size);
-        jniValue->getRegion(0, __size, __vector.data());
-        return __vector;
-      }();
+      return JNIConverter<std::vector<double>, jni::local_ref<jni::JArrayDouble>>::fromJNI(jniValue);
     } else if (isInstanceOf(JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Third::javaClassStatic())) {
       // It's a `std::vector<std::string>`
       auto jniValue = static_cast<const JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Third*>(this)->getValue();
-      return [&](auto&& __input) {
-        size_t __size = __input->size();
-        std::vector<std::string> __vector;
-        __vector.reserve(__size);
-        for (size_t __i = 0; __i < __size; __i++) {
-          auto __element = __input->getElement(__i);
-          __vector.push_back(JNIConverter<std::string, jni::local_ref<jni::JString>>::fromJNI(__element));
-        }
-        return __vector;
-      }(jniValue);
+      return JNIConverter<std::vector<std::string>, jni::local_ref<jni::JArrayClass<jni::JString>>>::fromJNI(jniValue);
     } else if (isInstanceOf(JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Fourth::javaClassStatic())) {
       // It's a `double`
       auto jniValue = static_cast<const JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Fourth*>(this)->getValue();
-      return jniValue;
+      return JNIConverter<double, jdouble>::fromJNI(jniValue);
     } else if (isInstanceOf(JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Fifth::javaClassStatic())) {
       // It's a `std::string`
       auto jniValue = static_cast<const JVariant_Boolean_DoubleArray_Array_String__Double_String_impl::Fifth*>(this)->getValue();

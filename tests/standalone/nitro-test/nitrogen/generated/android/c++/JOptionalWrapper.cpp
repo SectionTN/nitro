@@ -14,6 +14,8 @@
 #include <string>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 
 namespace margelo::nitro::test {
 
@@ -21,22 +23,22 @@ namespace margelo::nitro::test {
     static const auto clazz = javaClassStatic();
     static const auto fieldOptionalArrayBuffer = clazz->getField<JArrayBuffer::javaobject>("optionalArrayBuffer");
     jni::local_ref<JArrayBuffer::javaobject> optionalArrayBuffer = this->getFieldValue(fieldOptionalArrayBuffer);
-    static const auto fieldOptionalString = clazz->getField<jni::JString>("optionalString");
-    jni::local_ref<jni::JString> optionalString = this->getFieldValue(fieldOptionalString);
+    static const auto fieldOptionalString = clazz->getField<JOptional<jni::JString>>("optionalString");
+    jni::local_ref<JOptional<jni::JString>> optionalString = this->getFieldValue(fieldOptionalString);
     return OptionalWrapperKotlin(
       optionalArrayBuffer != nullptr ? std::make_optional(optionalArrayBuffer->cthis()->getArrayBuffer()) : std::nullopt,
-      optionalString != nullptr ? std::make_optional(JNIConverter<std::string, jni::local_ref<jni::JString>>::fromJNI(optionalString)) : std::nullopt
+      JNIConverter<std::optional<std::string>, jni::local_ref<JOptional<jni::JString>>>::fromJNI(optionalString)
     );
   }
 
   jni::local_ref<JOptionalWrapper::javaobject> JOptionalWrapper::fromCpp(const OptionalWrapperKotlin& value) {
-    using JSignature = JOptionalWrapper(jni::alias_ref<JArrayBuffer::javaobject>, jni::alias_ref<jni::JString>);
+    using JSignature = JOptionalWrapper(jni::alias_ref<JArrayBuffer::javaobject>, jni::alias_ref<JOptional<jni::JString>>);
     static const auto clazz = javaClassStatic();
     static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
     return create(
       clazz,
       value.optionalArrayBuffer.has_value() ? JArrayBuffer::wrap(value.optionalArrayBuffer.value()) : nullptr,
-      value.optionalString.has_value() ? JNIConverter<std::string, jni::local_ref<jni::JString>>::toJNI(value.optionalString.value()) : nullptr
+      JNIConverter<std::optional<std::string>, jni::local_ref<JOptional<jni::JString>>>::toJNI(value.optionalString)
     );
   }
 

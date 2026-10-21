@@ -61,7 +61,7 @@ export interface KotlinType extends Type {
   /** The owned JNI representation consumed by direct JSI conversions, when supported. */
   getJSIType?(): Type | undefined
   /** Native conversion requirements requested only by a C++ consumer. */
-  getCppConverter?(cppType: Type): KotlinCppConverter
+  getCppConverter?(cppType: Type): KotlinCppConverter | undefined
   /** Native methods required by this type, owned by the module that declares them. */
   getJniNativeRegistrations?(): readonly JNINativeRegistration[]
   /** Converts `value` across JNI, see `KotlinConversion`. */
@@ -93,20 +93,4 @@ interface JniPrimitive {
 export function getJniPrimitiveCode(jniType: string, context: TypeContext, { boxedType, boxed }: JniPrimitive): string {
   if (boxed) return getJniReferenceCode(boxedType, context)
   return jniType
-}
-
-/** Boxes or unboxes a JNI primitive in C++ where JNI requires an object. */
-export function convertJniPrimitive(value: string, { from, in: language }: KotlinConversion, { boxedType, boxed }: JniPrimitive): string {
-  switch (language) {
-    case 'kotlin':
-      return value
-    case 'c++':
-      if (!boxed) return value
-      switch (from) {
-        case 'c++':
-          return `${boxedType}::valueOf(${value})`
-        case 'kotlin':
-          return `${value}->value()`
-      }
-  }
 }

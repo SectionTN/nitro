@@ -7,11 +7,15 @@
 
 #include <NitroTest/private/views/JHybridTestViewStateUpdater.hpp>
 #include <NitroTest/private/views/HybridTestViewComponent.hpp>
+#include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JNIConverter.hpp>
 #include <NitroTest/ColorScheme.hpp>
 #include <NitroModules/Callback.hpp>
 #include <functional>
 #include <optional>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 #include <NitroModules/NitroDefines.hpp>
 #include <react/fabric/StateWrapperImpl.h>
 #include <stdexcept>
@@ -71,17 +75,17 @@ void JHybridTestViewStateUpdater::updateViewProps(jni::alias_ref<jni::JClass> /*
     if (oldProps == nullptr
           ? newProps->isBlue.isProvided()
           : !newProps->isBlue.hasSameValue(oldProps->isBlue)) {
-      hybridView->setIsBlue(JNIConverter<bool, bool>::toJNI(newProps->isBlue.get()));
+      hybridView->setIsBlue(JNIConverter<bool, jboolean>::toJNI(newProps->isBlue.get()));
     }
     if (oldProps == nullptr
           ? newProps->hasBeenCalled.isProvided()
           : !newProps->hasBeenCalled.hasSameValue(oldProps->hasBeenCalled)) {
-      hybridView->setHasBeenCalled(JNIConverter<bool, bool>::toJNI(newProps->hasBeenCalled.get()));
+      hybridView->setHasBeenCalled(JNIConverter<bool, jboolean>::toJNI(newProps->hasBeenCalled.get()));
     }
     if (oldProps == nullptr
           ? newProps->int64Value.isProvided()
           : !newProps->int64Value.hasSameValue(oldProps->int64Value)) {
-      hybridView->setInt64Value(JNIConverter<int64_t, int64_t>::toJNI(newProps->int64Value.get()));
+      hybridView->setInt64Value(JNIConverter<int64_t, jlong>::toJNI(newProps->int64Value.get()));
     }
     if (oldProps == nullptr
           ? newProps->colorScheme.isProvided()
@@ -96,7 +100,7 @@ void JHybridTestViewStateUpdater::updateViewProps(jni::alias_ref<jni::JClass> /*
     if (oldProps == nullptr
           ? newProps->nativeDefaultValue.isProvided()
           : !newProps->nativeDefaultValue.hasSameValue(oldProps->nativeDefaultValue)) {
-      hybridView->setNativeDefaultValue(JNIConverter<std::optional<double>, std::optional<double>>::toJNI(newProps->nativeDefaultValue.get()));
+      hybridView->setNativeDefaultValue(JNIConverter<std::optional<double>, jni::local_ref<JOptional<jni::JDouble>>>::toJNI(newProps->nativeDefaultValue.get()));
     }
 
     if (oldProps == nullptr

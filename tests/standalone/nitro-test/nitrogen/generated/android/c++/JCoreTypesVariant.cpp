@@ -16,6 +16,8 @@
 #include <NitroModules/JArrayBuffer.hpp>
 #include <NitroTest/private/JCallback_void_double.hpp>
 #include <NitroModules/JNICallable.hpp>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroTest/private/JWrappedJsStruct.hpp>
 #include <NitroTest/private/JsStyleStructKotlin.hpp>
 #include <NitroTest/private/JJsStyleStruct.hpp>
@@ -65,7 +67,7 @@ namespace margelo::nitro::test {
           jni::ThreadScope::WithClassLoader([&] {
             std::optional<jni::local_ref<jni::JDouble>> __converted;
             try {
-              __converted.emplace(jni::JDouble::valueOf(__result));
+              __converted.emplace(JNIConverter<double, jni::local_ref<jni::JDouble>>::toJNI(__result));
             } catch (...) {
               __promise->reject(std::current_exception());
               return;
@@ -143,7 +145,7 @@ namespace margelo::nitro::test {
           std::optional<double> __converted;
           try {
             auto __result = jni::static_ref_cast<jni::JDouble>(__boxedResult);
-            __converted.emplace(__result->value());
+            __converted.emplace(JNIConverter<double, jni::local_ref<jni::JDouble>>::fromJNI(__result));
           } catch (...) {
             __promise.reject(std::current_exception());
             return;

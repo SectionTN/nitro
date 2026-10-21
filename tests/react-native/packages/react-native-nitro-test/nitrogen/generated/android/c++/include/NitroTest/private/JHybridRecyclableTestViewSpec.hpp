@@ -11,6 +11,10 @@
 #include <NitroModules/HybridClass.hpp>
 #include <fbjni/fbjni.h>
 #include <optional>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 
 namespace margelo::nitro::test {
 
@@ -53,17 +57,17 @@ namespace margelo::nitro::test {
 
   public:
     // Properties
-    bool getIsBlue();
-    void setIsBlue(bool isBlue);
-    std::optional<double> getNativeDefaultValue();
-    void setNativeDefaultValue(const std::optional<double>& nativeDefaultValue);
+    jboolean getIsBlue();
+    void setIsBlue(jboolean isBlue);
+    jni::local_ref<JOptional<jni::JDouble>> getNativeDefaultValue();
+    void setNativeDefaultValue(const jni::local_ref<JOptional<jni::JDouble>>& nativeDefaultValue);
 
   public:
     // Methods
-    double getInvalidLifecycleOrderCount();
-    double getOnDropViewCount();
-    double getPrepareForRecycleCount();
-    double getNativeDefaultValueSetterCallCount();
+    jdouble getInvalidLifecycleOrderCount();
+    jdouble getOnDropViewCount();
+    jdouble getPrepareForRecycleCount();
+    jdouble getNativeDefaultValueSetterCallCount();
 
   public:
     // Constructor and static members

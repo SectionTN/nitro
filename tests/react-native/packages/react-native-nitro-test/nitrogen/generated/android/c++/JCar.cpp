@@ -8,6 +8,8 @@
 #include <NitroTest/private/JCar.hpp>
 
 #include <NitroTest/private/CarKotlin.hpp>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
 #include <NitroTest/Powertrain.hpp>
@@ -16,7 +18,11 @@
 #include <optional>
 #include <NitroTest/private/JPerson.hpp>
 #include <vector>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 #include <string>
+#include <NitroModules/JNIConverter+Array.hpp>
+#include <NitroModules/JSIConverter+JNIArray.hpp>
 #include <variant>
 #include <NitroTest/private/JVariant_Double_String.hpp>
 
@@ -24,33 +30,33 @@ namespace margelo::nitro::test {
 
   CarKotlin JCar::toCpp() const {
     static const auto clazz = javaClassStatic();
-    static const auto fieldYear = clazz->getField<double>("year");
-    double year = this->getFieldValue(fieldYear);
+    static const auto fieldYear = clazz->getField<jdouble>("year");
+    jdouble year = this->getFieldValue(fieldYear);
     static const auto fieldMake = clazz->getField<jni::JString>("make");
     jni::local_ref<jni::JString> make = this->getFieldValue(fieldMake);
     static const auto fieldModel = clazz->getField<jni::JString>("model");
     jni::local_ref<jni::JString> model = this->getFieldValue(fieldModel);
-    static const auto fieldPower = clazz->getField<double>("power");
-    double power = this->getFieldValue(fieldPower);
+    static const auto fieldPower = clazz->getField<jdouble>("power");
+    jdouble power = this->getFieldValue(fieldPower);
     static const auto fieldPowertrain = clazz->getField<JPowertrain>("powertrain");
     jni::local_ref<JPowertrain> powertrain = this->getFieldValue(fieldPowertrain);
     static const auto fieldDriver = clazz->getField<JPerson>("driver");
     jni::local_ref<JPerson> driver = this->getFieldValue(fieldDriver);
     static const auto fieldPassengers = clazz->getField<jni::JArrayClass<JPerson>>("passengers");
     jni::local_ref<jni::JArrayClass<JPerson>> passengers = this->getFieldValue(fieldPassengers);
-    static const auto fieldIsFast = clazz->getField<jni::JBoolean>("isFast");
-    jni::local_ref<jni::JBoolean> isFast = this->getFieldValue(fieldIsFast);
-    static const auto fieldFavouriteTrack = clazz->getField<jni::JString>("favouriteTrack");
-    jni::local_ref<jni::JString> favouriteTrack = this->getFieldValue(fieldFavouriteTrack);
+    static const auto fieldIsFast = clazz->getField<JOptional<jni::JBoolean>>("isFast");
+    jni::local_ref<JOptional<jni::JBoolean>> isFast = this->getFieldValue(fieldIsFast);
+    static const auto fieldFavouriteTrack = clazz->getField<JOptional<jni::JString>>("favouriteTrack");
+    jni::local_ref<JOptional<jni::JString>> favouriteTrack = this->getFieldValue(fieldFavouriteTrack);
     static const auto fieldPerformanceScores = clazz->getField<jni::JArrayDouble>("performanceScores");
     jni::local_ref<jni::JArrayDouble> performanceScores = this->getFieldValue(fieldPerformanceScores);
     static const auto fieldSomeVariant = clazz->getField<JVariant_Double_String>("someVariant");
     jni::local_ref<JVariant_Double_String> someVariant = this->getFieldValue(fieldSomeVariant);
     return CarKotlin(
-      year,
+      JNIConverter<double, jdouble>::fromJNI(year),
       JNIConverter<std::string, jni::local_ref<jni::JString>>::fromJNI(make),
       JNIConverter<std::string, jni::local_ref<jni::JString>>::fromJNI(model),
-      power,
+      JNIConverter<double, jdouble>::fromJNI(power),
       powertrain->toCpp(),
       driver != nullptr ? std::make_optional(driver->toCpp()) : std::nullopt,
       [&](auto&& __input) {
@@ -63,28 +69,23 @@ namespace margelo::nitro::test {
         }
         return __vector;
       }(passengers),
-      isFast != nullptr ? std::make_optional(static_cast<bool>(isFast->value())) : std::nullopt,
-      favouriteTrack != nullptr ? std::make_optional(JNIConverter<std::string, jni::local_ref<jni::JString>>::fromJNI(favouriteTrack)) : std::nullopt,
-      [&]() {
-        size_t __size = performanceScores->size();
-        std::vector<double> __vector(__size);
-        performanceScores->getRegion(0, __size, __vector.data());
-        return __vector;
-      }(),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::fromJNI(isFast),
+      JNIConverter<std::optional<std::string>, jni::local_ref<JOptional<jni::JString>>>::fromJNI(favouriteTrack),
+      JNIConverter<std::vector<double>, jni::local_ref<jni::JArrayDouble>>::fromJNI(performanceScores),
       someVariant != nullptr ? std::make_optional(someVariant->toCpp()) : std::nullopt
     );
   }
 
   jni::local_ref<JCar::javaobject> JCar::fromCpp(const CarKotlin& value) {
-    using JSignature = JCar(double, jni::alias_ref<jni::JString>, jni::alias_ref<jni::JString>, double, jni::alias_ref<JPowertrain>, jni::alias_ref<JPerson>, jni::alias_ref<jni::JArrayClass<JPerson>>, jni::alias_ref<jni::JBoolean>, jni::alias_ref<jni::JString>, jni::alias_ref<jni::JArrayDouble>, jni::alias_ref<JVariant_Double_String>);
+    using JSignature = JCar(jdouble, jni::alias_ref<jni::JString>, jni::alias_ref<jni::JString>, jdouble, jni::alias_ref<JPowertrain>, jni::alias_ref<JPerson>, jni::alias_ref<jni::JArrayClass<JPerson>>, jni::alias_ref<JOptional<jni::JBoolean>>, jni::alias_ref<JOptional<jni::JString>>, jni::alias_ref<jni::JArrayDouble>, jni::alias_ref<JVariant_Double_String>);
     static const auto clazz = javaClassStatic();
     static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
     return create(
       clazz,
-      value.year,
+      JNIConverter<double, jdouble>::toJNI(value.year),
       JNIConverter<std::string, jni::local_ref<jni::JString>>::toJNI(value.make),
       JNIConverter<std::string, jni::local_ref<jni::JString>>::toJNI(value.model),
-      value.power,
+      JNIConverter<double, jdouble>::toJNI(value.power),
       JPowertrain::fromCpp(value.powertrain),
       value.driver.has_value() ? JPerson::fromCpp(value.driver.value()) : nullptr,
       [&](auto&& __input) {
@@ -97,14 +98,9 @@ namespace margelo::nitro::test {
         }
         return __array;
       }(value.passengers),
-      value.isFast.has_value() ? jni::JBoolean::valueOf(value.isFast.value()) : nullptr,
-      value.favouriteTrack.has_value() ? JNIConverter<std::string, jni::local_ref<jni::JString>>::toJNI(value.favouriteTrack.value()) : nullptr,
-      [&]() {
-        size_t __size = value.performanceScores.size();
-        jni::local_ref<jni::JArrayDouble> __array = jni::JArrayDouble::newArray(__size);
-        __array->setRegion(0, __size, value.performanceScores.data());
-        return __array;
-      }(),
+      JNIConverter<std::optional<bool>, jni::local_ref<JOptional<jni::JBoolean>>>::toJNI(value.isFast),
+      JNIConverter<std::optional<std::string>, jni::local_ref<JOptional<jni::JString>>>::toJNI(value.favouriteTrack),
+      JNIConverter<std::vector<double>, jni::local_ref<jni::JArrayDouble>>::toJNI(value.performanceScores),
       value.someVariant.has_value() ? JVariant_Double_String::fromCpp(value.someVariant.value()) : nullptr
     );
   }

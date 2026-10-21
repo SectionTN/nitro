@@ -23,8 +23,16 @@ namespace margelo::nitro::test { class JHybridBenchmarkObjectSwiftKotlinSpec; }
 #include <optional>
 #include <NitroModules/Callback.hpp>
 #include <functional>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
+#include <NitroModules/JNIConverter+Array.hpp>
+#include <NitroModules/JSIConverter+JNIArray.hpp>
+#include <NitroModules/JNIConverter+Map.hpp>
+#include <NitroModules/JSIConverter+JNIMap.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 #include <NitroTest/private/JHybridBenchmarkObjectSwiftKotlinSpec.hpp>
 
 namespace margelo::nitro::test {
@@ -68,23 +76,23 @@ namespace margelo::nitro::test {
 
   public:
     // Properties
-    double getNumberValue();
-    void setNumberValue(double numberValue);
+    jdouble getNumberValue();
+    void setNumberValue(jdouble numberValue);
     std::shared_ptr<JHybridBenchmarkObjectSwiftKotlinSpec> getThisObject();
 
   public:
     // Methods
     void simpleFunc();
-    double addNumbers(double a, double b);
+    jdouble addNumbers(jdouble a, jdouble b);
     jni::local_ref<jni::JString> addStrings(const jni::local_ref<jni::JString>& a, const jni::local_ref<jni::JString>& b);
-    std::vector<double> bounceNumbers(const std::vector<double>& array);
+    jni::local_ref<jni::JArrayDouble> bounceNumbers(const jni::local_ref<jni::JArrayDouble>& array);
     CarKotlin bounceCar(const CarKotlin& car);
-    std::unordered_map<std::string, double> bounceSimpleMap(const std::unordered_map<std::string, double>& map);
-    jni::local_ref<jni::JString> tryOptionalParams(double num, bool boo, const std::optional<std::string>& str);
+    jni::local_ref<jni::JMap<jni::JString, jni::JDouble>> bounceSimpleMap(const jni::local_ref<jni::JMap<jni::JString, jni::JDouble>>& map);
+    jni::local_ref<jni::JString> tryOptionalParams(jdouble num, jboolean boo, const jni::local_ref<JOptional<jni::JString>>& str);
     std::variant<double, std::string> passVariant(const std::variant<bool, std::vector<double>, std::vector<std::string>, double, std::string>& either);
     ArrayBuffer bounceArrayBuffer(const ArrayBuffer& buffer);
     ArrayBuffer copyBuffer(const ArrayBuffer& buffer);
-    double callbackSync(const Callback<double()>& callback);
+    jdouble callbackSync(const Callback<double()>& callback);
     Promise<double> promiseReturnsInstantly();
     Promise<double> createPendingPromise();
     void resolvePendingPromiseOnWorker();
