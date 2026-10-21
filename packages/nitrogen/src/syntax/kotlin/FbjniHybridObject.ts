@@ -112,6 +112,7 @@ namespace ${cxxNamespace} {
 
   public:
     struct JavaPart : public jni::JavaClass<JavaPart, ${javaPartBaseClass}> {
+      using HybridType = ${name.JHybridTSpec};
       static constexpr auto kJavaDescriptor = "L${jniClassDescriptor};";
       std::shared_ptr<${name.JHybridTSpec}> get${name.JHybridTSpec}();
     };

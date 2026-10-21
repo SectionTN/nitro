@@ -18,6 +18,10 @@
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroTestExternal/private/JHybridBaseSpec.hpp>
+#include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
+// Forward declaration of `JHybridBaseSpec` to properly resolve imports.
+namespace margelo::nitro::test::external { class JHybridBaseSpec; }
 
 namespace margelo::nitro::test::external {
 
@@ -33,6 +37,7 @@ namespace margelo::nitro::test::external {
 
   public:
     struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
+      using HybridType = JHybridBaseSpec;
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/external/HybridBaseSpec;";
       std::shared_ptr<JHybridBaseSpec> getJHybridBaseSpec();
     };

@@ -15,12 +15,15 @@
 #include <functional>
 #include <optional>
 #include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 // Forward declaration of `JHybridTestViewSpec` to properly resolve imports.
 namespace margelo::nitro::test { class JHybridTestViewSpec; }
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroModules/JNIConverter+Optional.hpp>
 #include <NitroModules/JSIConverter+JNIOptional.hpp>
+#include <NitroTest/private/JHybridTestViewSpec.hpp>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 
 namespace margelo::nitro::test {
 
@@ -36,6 +39,7 @@ namespace margelo::nitro::test {
 
   public:
     struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
+      using HybridType = JHybridTestViewSpec;
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridTestViewSpec;";
       std::shared_ptr<JHybridTestViewSpec> getJHybridTestViewSpec();
     };
@@ -78,7 +82,7 @@ namespace margelo::nitro::test {
 
   public:
     // Methods
-    jboolean getIsViewBlue(const std::shared_ptr<JHybridTestViewSpec>& view);
+    jboolean getIsViewBlue(const jni::local_ref<JHybridTestViewSpec::JavaPart>& view);
     jdouble getOnDropViewCount();
     jdouble getIsBlueSetterCallCount();
     jdouble getNativeDefaultValueSetterCallCount();

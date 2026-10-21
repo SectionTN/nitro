@@ -1,8 +1,11 @@
 import type { Language } from '../../../getPlatformSpecs.js'
-import type { GetCodeOptions } from '../../types/Type.js'
+import type { GetCodeOptions, Type } from '../../types/Type.js'
 import { getHybridObjectName } from '../../getHybridObjectName.js'
 import type { SourceImport } from '../../SourceFile.js'
 import { HybridObjectType } from '../../types/HybridObjectType.js'
+import type { KotlinCppConverter } from '../KotlinConverter.js'
+import { KotlinJSIType } from './KotlinJSIType.js'
+import { KotlinCxxHybridObjectReferenceType } from './KotlinCxxHybridObjectReferenceType.js'
 import { getJniReferenceCode, type JNINativeRegistration, type KotlinConversion, type KotlinType } from './KotlinType.js'
 
 export class KotlinHybridObjectType extends HybridObjectType implements KotlinType {
@@ -30,10 +33,12 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
     }
     return name.JHybridTSpec
   }
-  get fromCppReturnType(): string {
-    // Converting from C++ returns the global reference the C++ part already holds.
-    const jniType = this.getCode('c++', { context: 'type-argument' })
-    return `jni::global_ref<${jniType}>`
+  getJSIType(): KotlinJSIType {
+    return new KotlinJSIType(this)
+  }
+
+  getCppConverter(cppType: Type): KotlinCppConverter {
+    return new KotlinCxxHybridObjectReferenceType(cppType, this).getConverter()
   }
 
   override getCode(language: Language, options: GetCodeOptions): string {
@@ -48,9 +53,14 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
     }
 
     switch (language) {
-      case 'c++':
-        return getJniReferenceCode(`${this.jniName}::JavaPart`, options.context)
-      default:
+      case 'c++': {
+        const name = getHybridObjectName(this.hybridObjectName)
+        const fullyQualified = options.fullyQualified ?? this.sourceConfig.isExternalConfig
+        const jniName = fullyQualified ? this.sourceConfig.getCxxNamespace('c++', name.JHybridTSpec) : name.JHybridTSpec
+        return getJniReferenceCode(`${jniName}::JavaPart`, options.context)
+      }
+      case 'kotlin':
+      case 'swift':
         return super.getCode(language, options)
     }
   }
@@ -59,15 +69,17 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
     switch (language) {
       case 'kotlin':
         return value
-      case 'c++':
+      case 'c++': {
+        const nativeType = `std::shared_ptr<${this.jniName}>`
+        const jniType = this.getCode('c++', { context: 'value' })
+        const converter = `JNIConverter<${nativeType}, ${jniType}>`
         switch (from) {
           case 'c++':
-            return `${value}->getJavaPart()`
-          case 'kotlin': {
-            const name = getHybridObjectName(this.hybridObjectName)
-            return `${value}->get${name.JHybridTSpec}()`
-          }
+            return `${converter}::toJNI(${value})`
+          case 'kotlin':
+            return `${converter}::fromJNI(${value})`
         }
+      }
     }
   }
 
@@ -87,17 +99,18 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
   }
 
   override getRequiredImports(language: Language): SourceImport[] {
-    const imports = this.type.getRequiredImports(language)
     switch (language) {
       case 'c++': {
         const name = getHybridObjectName(this.hybridObjectName)
-        imports.push({
-          language: language,
-          declaration: this.sourceConfig.getCxxHeader(`${name.JHybridTSpec}.hpp`, 'private'),
-        })
-        break
+        return [
+          { language: language, declaration: this.sourceConfig.getCxxHeader(`${name.JHybridTSpec}.hpp`, 'private') },
+          { language: language, declaration: { header: 'NitroModules/JNIConverter+HybridObject.hpp', space: 'system' } },
+          { language: language, declaration: { header: 'NitroModules/JSIConverter+JNIHybridObject.hpp', space: 'system' } },
+        ]
       }
+      case 'kotlin':
+      case 'swift':
+        return this.type.getRequiredImports(language)
     }
-    return imports
   }
 }

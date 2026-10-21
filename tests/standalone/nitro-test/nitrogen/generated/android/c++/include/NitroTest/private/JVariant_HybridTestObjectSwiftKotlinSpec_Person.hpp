@@ -11,11 +11,13 @@
 #include <variant>
 
 #include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 // Forward declaration of `JHybridTestObjectSwiftKotlinSpec` to properly resolve imports.
 namespace margelo::nitro::test { class JHybridTestObjectSwiftKotlinSpec; }
 #include <NitroTest/private/PersonKotlin.hpp>
 #include <variant>
 #include <NitroTest/private/JHybridTestObjectSwiftKotlinSpec.hpp>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroTest/private/JPerson.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>

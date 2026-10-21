@@ -17,7 +17,8 @@
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/AnyJSON.hpp>
 #include <variant>
-#include <NitroModules/JArrayBuffer.hpp>
+#include <NitroModules/JNIConverter+ArrayBuffer.hpp>
+#include <NitroModules/JSIConverter+JNIArrayBuffer.hpp>
 #include <NitroTest/private/JCallback_void_double.hpp>
 #include <NitroModules/JNICallable.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
@@ -26,9 +27,8 @@
 #include <NitroTest/private/JsStyleStructKotlin.hpp>
 #include <NitroTest/private/JJsStyleStruct.hpp>
 #include <vector>
-#include <optional>
-#include <NitroModules/JPromise.hpp>
-#include <NitroModules/JNISharedPtr.hpp>
+#include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JSIConverter+JNIPromise.hpp>
 #include <NitroModules/JAnyJSON.hpp>
 #include <NitroModules/JNIConverter+AnyJSON.hpp>
 #include <NitroModules/JSIConverter+JNIAnyJSON.hpp>
@@ -44,10 +44,10 @@ namespace margelo::nitro::test {
   public:
     static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/CoreTypesVariant;";
 
-    static jni::local_ref<JCoreTypesVariant> create_0(jni::alias_ref<JArrayBuffer::javaobject> value);
+    static jni::local_ref<JCoreTypesVariant> create_0(jni::alias_ref<JArrayBuffer::JavaPart> value);
     static jni::local_ref<JCoreTypesVariant> create_1(jni::alias_ref<JCallback_void_double::javaobject> value);
     static jni::local_ref<JCoreTypesVariant> create_2(jni::alias_ref<JWrappedJsStruct> value);
-    static jni::local_ref<JCoreTypesVariant> create_3(jni::alias_ref<JPromise::javaobject> value);
+    static jni::local_ref<JCoreTypesVariant> create_3(jni::alias_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> value);
     static jni::local_ref<JCoreTypesVariant> create_4(jni::alias_ref<JAnyJSON> value);
 
     static jni::local_ref<JCoreTypesVariant> fromCpp(const std::variant<ArrayBuffer, Callback<void(double /* value */)>, WrappedJsStructKotlin, Promise<double>, AnyJSON>& variant);
@@ -60,7 +60,7 @@ namespace margelo::nitro::test {
     public:
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/CoreTypesVariant$First;";
 
-      [[nodiscard]] jni::local_ref<JArrayBuffer::javaobject> getValue() const;
+      [[nodiscard]] jni::local_ref<JArrayBuffer::JavaPart> getValue() const;
     };
 
     class Second final : public jni::JavaClass<Second, JCoreTypesVariant> {
@@ -81,7 +81,7 @@ namespace margelo::nitro::test {
     public:
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/CoreTypesVariant$Fourth;";
 
-      [[nodiscard]] jni::local_ref<JPromise::javaobject> getValue() const;
+      [[nodiscard]] jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> getValue() const;
     };
 
     class Fifth final : public jni::JavaClass<Fifth, JCoreTypesVariant> {

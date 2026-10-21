@@ -14,6 +14,10 @@
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
 #include <NitroTest/private/JHybridPlatformObjectSpec.hpp>
+#include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
+// Forward declaration of `JHybridPlatformObjectSpec` to properly resolve imports.
+namespace margelo::nitro::test { class JHybridPlatformObjectSpec; }
 
 namespace margelo::nitro::test {
 
@@ -29,6 +33,7 @@ namespace margelo::nitro::test {
 
   public:
     struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
+      using HybridType = JHybridPlatformObjectSpec;
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridPlatformObjectSpec;";
       std::shared_ptr<JHybridPlatformObjectSpec> getJHybridPlatformObjectSpec();
     };

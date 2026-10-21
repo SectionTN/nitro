@@ -11,20 +11,23 @@
 #include <variant>
 
 #include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 // Forward declaration of `JHybridBaseSpec` to properly resolve imports.
 namespace margelo::nitro::test { class JHybridBaseSpec; }
 #include <NitroTest/private/OptionalWrapperKotlin.hpp>
 #include <variant>
 #include <NitroTest/private/JHybridBaseSpec.hpp>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroTest/private/JOptionalWrapper.hpp>
 #include <NitroModules/ArrayBuffer.hpp>
 #include <optional>
-#include <NitroModules/JArrayBuffer.hpp>
+#include <NitroModules/JNIConverter+ArrayBuffer.hpp>
+#include <NitroModules/JSIConverter+JNIArrayBuffer.hpp>
+#include <NitroModules/JNIConverter+Optional.hpp>
+#include <NitroModules/JSIConverter+JNIOptional.hpp>
 #include <string>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
-#include <NitroModules/JNIConverter+Optional.hpp>
-#include <NitroModules/JSIConverter+JNIOptional.hpp>
 
 namespace margelo::nitro::test {
 

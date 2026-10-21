@@ -21,6 +21,10 @@
 #include <NitroModules/JSIConverter+JNIOptional.hpp>
 #include <NitroModules/JUInt64.hpp>
 #include <NitroTestExternal/private/JHybridSomeExternalObjectSpec.hpp>
+#include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
+// Forward declaration of `JHybridSomeExternalObjectSpec` to properly resolve imports.
+namespace margelo::nitro::test::external { class JHybridSomeExternalObjectSpec; }
 
 namespace margelo::nitro::test::external {
 
@@ -36,6 +40,7 @@ namespace margelo::nitro::test::external {
 
   public:
     struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
+      using HybridType = JHybridSomeExternalObjectSpec;
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/external/HybridSomeExternalObjectSpec;";
       std::shared_ptr<JHybridSomeExternalObjectSpec> getJHybridSomeExternalObjectSpec();
     };

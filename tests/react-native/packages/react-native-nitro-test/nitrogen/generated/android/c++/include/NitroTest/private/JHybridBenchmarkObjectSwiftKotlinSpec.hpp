@@ -11,6 +11,7 @@
 #include <NitroModules/HybridClass.hpp>
 #include <fbjni/fbjni.h>
 #include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 // Forward declaration of `JHybridBenchmarkObjectSwiftKotlinSpec` to properly resolve imports.
 namespace margelo::nitro::test { class JHybridBenchmarkObjectSwiftKotlinSpec; }
 #include <string>
@@ -25,6 +26,8 @@ namespace margelo::nitro::test { class JHybridBenchmarkObjectSwiftKotlinSpec; }
 #include <functional>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroTest/private/JHybridBenchmarkObjectSwiftKotlinSpec.hpp>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
 #include <NitroModules/JNIConverter+Array.hpp>
@@ -33,7 +36,10 @@ namespace margelo::nitro::test { class JHybridBenchmarkObjectSwiftKotlinSpec; }
 #include <NitroModules/JSIConverter+JNIMap.hpp>
 #include <NitroModules/JNIConverter+Optional.hpp>
 #include <NitroModules/JSIConverter+JNIOptional.hpp>
-#include <NitroTest/private/JHybridBenchmarkObjectSwiftKotlinSpec.hpp>
+#include <NitroModules/JNIConverter+ArrayBuffer.hpp>
+#include <NitroModules/JSIConverter+JNIArrayBuffer.hpp>
+#include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JSIConverter+JNIPromise.hpp>
 
 namespace margelo::nitro::test {
 
@@ -49,6 +55,7 @@ namespace margelo::nitro::test {
 
   public:
     struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
+      using HybridType = JHybridBenchmarkObjectSwiftKotlinSpec;
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridBenchmarkObjectSwiftKotlinSpec;";
       std::shared_ptr<JHybridBenchmarkObjectSwiftKotlinSpec> getJHybridBenchmarkObjectSwiftKotlinSpec();
     };
@@ -78,7 +85,7 @@ namespace margelo::nitro::test {
     // Properties
     jdouble getNumberValue();
     void setNumberValue(jdouble numberValue);
-    std::shared_ptr<JHybridBenchmarkObjectSwiftKotlinSpec> getThisObject();
+    jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart> getThisObject();
 
   public:
     // Methods
@@ -90,13 +97,13 @@ namespace margelo::nitro::test {
     jni::local_ref<jni::JMap<jni::JString, jni::JDouble>> bounceSimpleMap(const jni::local_ref<jni::JMap<jni::JString, jni::JDouble>>& map);
     jni::local_ref<jni::JString> tryOptionalParams(jdouble num, jboolean boo, const jni::local_ref<JOptional<jni::JString>>& str);
     std::variant<double, std::string> passVariant(const std::variant<bool, std::vector<double>, std::vector<std::string>, double, std::string>& either);
-    ArrayBuffer bounceArrayBuffer(const ArrayBuffer& buffer);
-    ArrayBuffer copyBuffer(const ArrayBuffer& buffer);
+    jni::local_ref<JArrayBuffer::JavaPart> bounceArrayBuffer(const jni::local_ref<JArrayBuffer::JavaPart>& buffer);
+    jni::local_ref<JArrayBuffer::JavaPart> copyBuffer(const jni::local_ref<JArrayBuffer::JavaPart>& buffer);
     jdouble callbackSync(const Callback<double()>& callback);
-    Promise<double> promiseReturnsInstantly();
-    Promise<double> createPendingPromise();
+    jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> promiseReturnsInstantly();
+    jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> createPendingPromise();
     void resolvePendingPromiseOnWorker();
-    std::shared_ptr<JHybridBenchmarkObjectSwiftKotlinSpec> newBenchmarkObject();
+    jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart> newBenchmarkObject();
 
   public:
     // Constructor and static members

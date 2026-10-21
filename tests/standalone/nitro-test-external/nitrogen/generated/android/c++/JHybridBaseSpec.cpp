@@ -13,6 +13,8 @@
 #include <functional>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroTestExternal/private/JSize.hpp>
 #include <NitroTestExternal/private/JSizeUnit.hpp>
 #include <optional>
@@ -31,7 +33,7 @@ namespace margelo::nitro::test::external {
   std::shared_ptr<JHybridBaseSpec> JHybridBaseSpec::constructor() {
     static const auto __method = JHybridBaseSpec::JavaPart::javaClassStatic()->getStaticMethod<jni::local_ref<JHybridBaseSpec::JavaPart>()>("constructor_cxx");
     auto __result = __method(JHybridBaseSpec::JavaPart::javaClassStatic());
-    return __result->getJHybridBaseSpec();
+    return JNIConverter<std::shared_ptr<JHybridBaseSpec>, jni::local_ref<JHybridBaseSpec::JavaPart>>::fromJNI(__result);
   }
 
   const std::shared_ptr<const HybridClass>& JHybridBaseSpec::Class::get() {
@@ -97,7 +99,7 @@ namespace margelo::nitro::test::external {
     return __result->toCpp();
   }
   Promise<SizeKotlin> JHybridBaseSpec::mapSize(const SizeKotlin& size, const Callback<SizeKotlin(const SizeKotlin& /* size */)>& callback) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<JSize> /* size */, jni::alias_ref<JCallback_SizeKotlin_SizeKotlin::javaobject> /* callback */)>("mapSize_cxx");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JPromise::JavaPart>(jni::alias_ref<JSize> /* size */, jni::alias_ref<JCallback_SizeKotlin_SizeKotlin::javaobject> /* callback */)>("mapSize_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass(), JSize::fromCpp(size), JCallback_SizeKotlin_SizeKotlin_cxx::fromCpp(callback));
     return [&]() {
       auto __promise = Promise<SizeKotlin>::pending();

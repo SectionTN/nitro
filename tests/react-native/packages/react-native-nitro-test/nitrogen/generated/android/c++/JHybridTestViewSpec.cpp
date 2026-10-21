@@ -11,10 +11,12 @@
 #include <functional>
 #include <optional>
 #include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroModules/JNIConverter+Optional.hpp>
 #include <NitroModules/JSIConverter+JNIOptional.hpp>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroTest/private/JColorScheme.hpp>
 #include <NitroTest/private/JCallback_void.hpp>
 #include <NitroModules/JNICallable.hpp>
@@ -143,9 +145,9 @@ namespace margelo::nitro::test {
   }
 
   // Methods
-  jboolean JHybridTestViewSpec::getIsViewBlue(const std::shared_ptr<JHybridTestViewSpec>& view) {
+  jboolean JHybridTestViewSpec::getIsViewBlue(const jni::local_ref<JHybridTestViewSpec::JavaPart>& view) {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean(jni::alias_ref<JHybridTestViewSpec::JavaPart> /* view */)>("getIsViewBlue");
-    auto __result = __method(_javaPart, CxxPart::getClass(), view->getJavaPart());
+    auto __result = __method(_javaPart, CxxPart::getClass(), view);
     return __result;
   }
   jdouble JHybridTestViewSpec::getOnDropViewCount() {

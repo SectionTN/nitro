@@ -30,6 +30,7 @@ namespace margelo::nitro::test {
 
   public:
     struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
+      using HybridType = JHybridRecyclableTestViewSpec;
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridRecyclableTestViewSpec;";
       std::shared_ptr<JHybridRecyclableTestViewSpec> getJHybridRecyclableTestViewSpec();
     };

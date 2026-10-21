@@ -7,6 +7,7 @@
 
 #include <NitroTest/private/JHybridBenchmarkObjectSwiftKotlinSpec.hpp>
 #include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <string>
 #include <vector>
 #include <NitroTest/private/CarKotlin.hpp>
@@ -19,6 +20,7 @@
 #include <functional>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
 #include <NitroModules/JNIConverter+Array.hpp>
@@ -27,15 +29,16 @@
 #include <NitroModules/JSIConverter+JNIMap.hpp>
 #include <NitroModules/JNIConverter+Optional.hpp>
 #include <NitroModules/JSIConverter+JNIOptional.hpp>
+#include <NitroModules/JNIConverter+ArrayBuffer.hpp>
+#include <NitroModules/JSIConverter+JNIArrayBuffer.hpp>
+#include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JSIConverter+JNIPromise.hpp>
 #include <NitroTest/private/JCar.hpp>
 #include <NitroTest/Powertrain.hpp>
 #include <NitroTest/private/JPowertrain.hpp>
 #include <NitroTest/private/PersonKotlin.hpp>
 #include <NitroTest/private/JPerson.hpp>
 #include <NitroTest/private/JVariant_Double_String.hpp>
-#include <NitroModules/JArrayBuffer.hpp>
-#include <NitroModules/JPromise.hpp>
-#include <NitroModules/JNISharedPtr.hpp>
 #include <NitroTest/private/JVariant_Boolean_DoubleArray_Array_String__Double_String.hpp>
 #include <NitroTest/private/JCallback_double.hpp>
 #include <NitroModules/JNICallable.hpp>
@@ -50,7 +53,7 @@ namespace margelo::nitro::test {
   std::shared_ptr<JHybridBenchmarkObjectSwiftKotlinSpec> JHybridBenchmarkObjectSwiftKotlinSpec::constructor() {
     static const auto __method = JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart::javaClassStatic()->getStaticMethod<jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart>()>("constructor_cxx");
     auto __result = __method(JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart::javaClassStatic());
-    return __result->getJHybridBenchmarkObjectSwiftKotlinSpec();
+    return JNIConverter<std::shared_ptr<JHybridBenchmarkObjectSwiftKotlinSpec>, jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart>>::fromJNI(__result);
   }
 
   const std::shared_ptr<const HybridClass>& JHybridBenchmarkObjectSwiftKotlinSpec::Class::get() {
@@ -120,10 +123,10 @@ namespace margelo::nitro::test {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jdouble /* numberValue */)>("setNumberValue");
     __method(_javaPart, CxxPart::getClass(), numberValue);
   }
-  std::shared_ptr<JHybridBenchmarkObjectSwiftKotlinSpec> JHybridBenchmarkObjectSwiftKotlinSpec::getThisObject() {
+  jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart> JHybridBenchmarkObjectSwiftKotlinSpec::getThisObject() {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart>()>("getThisObject");
     auto __result = __method(_javaPart, CxxPart::getClass());
-    return __result->getJHybridBenchmarkObjectSwiftKotlinSpec();
+    return __result;
   }
 
   // Methods
@@ -166,75 +169,39 @@ namespace margelo::nitro::test {
     auto __result = __method(_javaPart, CxxPart::getClass(), JVariant_Boolean_DoubleArray_Array_String__Double_String::fromCpp(either));
     return __result->toCpp();
   }
-  ArrayBuffer JHybridBenchmarkObjectSwiftKotlinSpec::bounceArrayBuffer(const ArrayBuffer& buffer) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JArrayBuffer::javaobject>(jni::alias_ref<JArrayBuffer::javaobject> /* buffer */)>("bounceArrayBuffer");
-    auto __result = __method(_javaPart, CxxPart::getClass(), JArrayBuffer::wrap(buffer));
-    return __result->cthis()->getArrayBuffer();
+  jni::local_ref<JArrayBuffer::JavaPart> JHybridBenchmarkObjectSwiftKotlinSpec::bounceArrayBuffer(const jni::local_ref<JArrayBuffer::JavaPart>& buffer) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JArrayBuffer::JavaPart>(jni::alias_ref<JArrayBuffer::JavaPart> /* buffer */)>("bounceArrayBuffer");
+    auto __result = __method(_javaPart, CxxPart::getClass(), buffer);
+    return __result;
   }
-  ArrayBuffer JHybridBenchmarkObjectSwiftKotlinSpec::copyBuffer(const ArrayBuffer& buffer) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JArrayBuffer::javaobject>(jni::alias_ref<JArrayBuffer::javaobject> /* buffer */)>("copyBuffer");
-    auto __result = __method(_javaPart, CxxPart::getClass(), JArrayBuffer::wrap(buffer));
-    return __result->cthis()->getArrayBuffer();
+  jni::local_ref<JArrayBuffer::JavaPart> JHybridBenchmarkObjectSwiftKotlinSpec::copyBuffer(const jni::local_ref<JArrayBuffer::JavaPart>& buffer) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JArrayBuffer::JavaPart>(jni::alias_ref<JArrayBuffer::JavaPart> /* buffer */)>("copyBuffer");
+    auto __result = __method(_javaPart, CxxPart::getClass(), buffer);
+    return __result;
   }
   jdouble JHybridBenchmarkObjectSwiftKotlinSpec::callbackSync(const Callback<double()>& callback) {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jdouble(jni::alias_ref<JCallback_double::javaobject> /* callback */)>("callbackSync_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass(), JCallback_double_cxx::fromCpp(callback));
     return __result;
   }
-  Promise<double> JHybridBenchmarkObjectSwiftKotlinSpec::promiseReturnsInstantly() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JPromise::javaobject>()>("promiseReturnsInstantly");
+  jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> JHybridBenchmarkObjectSwiftKotlinSpec::promiseReturnsInstantly() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>>()>("promiseReturnsInstantly");
     auto __result = __method(_javaPart, CxxPart::getClass());
-    return [&]() {
-      auto __promise = Promise<double>::pending();
-      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
-        std::optional<double> __converted;
-        try {
-          auto __result = jni::static_ref_cast<jni::JDouble>(__boxedResult);
-          __converted.emplace(JNIConverter<double, jni::local_ref<jni::JDouble>>::fromJNI(__result));
-        } catch (...) {
-          __promise.reject(std::current_exception());
-          return;
-        }
-        __promise.resolve(std::move(*__converted));
-      });
-      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
-        jni::JniException __jniError(__throwable);
-        __promise.reject(std::make_exception_ptr(__jniError));
-      });
-      return __promise;
-    }();
+    return __result;
   }
-  Promise<double> JHybridBenchmarkObjectSwiftKotlinSpec::createPendingPromise() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JPromise::javaobject>()>("createPendingPromise");
+  jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> JHybridBenchmarkObjectSwiftKotlinSpec::createPendingPromise() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>>()>("createPendingPromise");
     auto __result = __method(_javaPart, CxxPart::getClass());
-    return [&]() {
-      auto __promise = Promise<double>::pending();
-      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
-        std::optional<double> __converted;
-        try {
-          auto __result = jni::static_ref_cast<jni::JDouble>(__boxedResult);
-          __converted.emplace(JNIConverter<double, jni::local_ref<jni::JDouble>>::fromJNI(__result));
-        } catch (...) {
-          __promise.reject(std::current_exception());
-          return;
-        }
-        __promise.resolve(std::move(*__converted));
-      });
-      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
-        jni::JniException __jniError(__throwable);
-        __promise.reject(std::make_exception_ptr(__jniError));
-      });
-      return __promise;
-    }();
+    return __result;
   }
   void JHybridBenchmarkObjectSwiftKotlinSpec::resolvePendingPromiseOnWorker() {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void()>("resolvePendingPromiseOnWorker");
     __method(_javaPart, CxxPart::getClass());
   }
-  std::shared_ptr<JHybridBenchmarkObjectSwiftKotlinSpec> JHybridBenchmarkObjectSwiftKotlinSpec::newBenchmarkObject() {
+  jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart> JHybridBenchmarkObjectSwiftKotlinSpec::newBenchmarkObject() {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpec::JavaPart>()>("newBenchmarkObject");
     auto __result = __method(_javaPart, CxxPart::getClass());
-    return __result->getJHybridBenchmarkObjectSwiftKotlinSpec();
+    return __result;
   }
 
 } // namespace margelo::nitro::test

@@ -14,6 +14,7 @@
 #include <NitroTest/SizeUnit.hpp>
 #include <NitroModules/Promise.hpp>
 #include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 // Forward declaration of `JHybridBaseSpec` to properly resolve imports.
 namespace margelo::nitro::test { class JHybridBaseSpec; }
 // Forward declaration of `JHybridSomeExternalObjectSpec` to properly resolve imports.
@@ -23,6 +24,7 @@ namespace margelo::nitro::test::external { class JHybridSomeExternalObjectSpec; 
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
 #include <NitroTest/private/JHybridBaseSpec.hpp>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroTestExternal/private/JHybridSomeExternalObjectSpec.hpp>
 
 namespace margelo::nitro::test {
@@ -39,6 +41,7 @@ namespace margelo::nitro::test {
 
   public:
     struct JavaPart : public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
+      using HybridType = JHybridBaseSpec;
       static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/test/HybridBaseSpec;";
       std::shared_ptr<JHybridBaseSpec> getJHybridBaseSpec();
     };
@@ -77,8 +80,8 @@ namespace margelo::nitro::test {
   public:
     // Constructor and static members
     static std::shared_ptr<JHybridBaseSpec> constructor();
-    static std::shared_ptr<JHybridBaseSpec> createAlternativeBase();
-    static std::shared_ptr<margelo::nitro::test::external::JHybridSomeExternalObjectSpec> createInternalExternalObject();
+    static jni::local_ref<JHybridBaseSpec::JavaPart> createAlternativeBase();
+    static jni::local_ref<margelo::nitro::test::external::JHybridSomeExternalObjectSpec::JavaPart> createInternalExternalObject();
 
   protected:
     const std::shared_ptr<const HybridClass>& getHybridClass() override {

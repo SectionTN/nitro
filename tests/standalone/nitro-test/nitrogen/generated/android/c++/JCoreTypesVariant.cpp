@@ -13,7 +13,8 @@
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/AnyJSON.hpp>
 #include <variant>
-#include <NitroModules/JArrayBuffer.hpp>
+#include <NitroModules/JNIConverter+ArrayBuffer.hpp>
+#include <NitroModules/JSIConverter+JNIArrayBuffer.hpp>
 #include <NitroTest/private/JCallback_void_double.hpp>
 #include <NitroModules/JNICallable.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
@@ -22,16 +23,15 @@
 #include <NitroTest/private/JsStyleStructKotlin.hpp>
 #include <NitroTest/private/JJsStyleStruct.hpp>
 #include <vector>
-#include <optional>
-#include <NitroModules/JPromise.hpp>
-#include <NitroModules/JNISharedPtr.hpp>
+#include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JSIConverter+JNIPromise.hpp>
 #include <NitroModules/JAnyJSON.hpp>
 #include <NitroModules/JNIConverter+AnyJSON.hpp>
 #include <NitroModules/JSIConverter+JNIAnyJSON.hpp>
 
 namespace margelo::nitro::test {
-  jni::local_ref<JCoreTypesVariant> JCoreTypesVariant::create_0(jni::alias_ref<JArrayBuffer::javaobject> value) {
-    static const auto method = javaClassStatic()->getStaticMethod<JCoreTypesVariant(jni::alias_ref<JArrayBuffer::javaobject>)>("fromCpp_0");
+  jni::local_ref<JCoreTypesVariant> JCoreTypesVariant::create_0(jni::alias_ref<JArrayBuffer::JavaPart> value) {
+    static const auto method = javaClassStatic()->getStaticMethod<JCoreTypesVariant(jni::alias_ref<JArrayBuffer::JavaPart>)>("fromCpp_0");
     return method(javaClassStatic(), value);
   }
 
@@ -45,8 +45,8 @@ namespace margelo::nitro::test {
     return method(javaClassStatic(), value);
   }
 
-  jni::local_ref<JCoreTypesVariant> JCoreTypesVariant::create_3(jni::alias_ref<JPromise::javaobject> value) {
-    static const auto method = javaClassStatic()->getStaticMethod<JCoreTypesVariant(jni::alias_ref<JPromise::javaobject>)>("fromCpp_3");
+  jni::local_ref<JCoreTypesVariant> JCoreTypesVariant::create_3(jni::alias_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> value) {
+    static const auto method = javaClassStatic()->getStaticMethod<JCoreTypesVariant(jni::alias_ref<JTypedPromise<jni::local_ref<jni::JDouble>>>)>("fromCpp_3");
     return method(javaClassStatic(), value);
   }
 
@@ -57,38 +57,17 @@ namespace margelo::nitro::test {
 
   jni::local_ref<JCoreTypesVariant> JCoreTypesVariant::fromCpp(const std::variant<ArrayBuffer, Callback<void(double /* value */)>, WrappedJsStructKotlin, Promise<double>, AnyJSON>& variant) {
     switch (variant.index()) {
-      case 0: return create_0(JArrayBuffer::wrap(std::get<0>(variant)));
+      case 0: return create_0(JNIConverter<ArrayBuffer, jni::local_ref<JArrayBuffer::JavaPart>>::toJNI(std::get<0>(variant)));
       case 1: return create_1(JCallback_void_double_cxx::fromCpp(std::get<1>(variant)));
       case 2: return create_2(JWrappedJsStruct::fromCpp(std::get<2>(variant)));
-      case 3: return create_3([&]() {
-        jni::local_ref<JPromise::javaobject> __localPromise = JPromise::create();
-        auto __promise = JNISharedPtr::make_shared_from_jni<JPromise>(jni::make_global(__localPromise));
-        std::get<3>(variant).addOnResolvedListener([=](const double& __result) {
-          jni::ThreadScope::WithClassLoader([&] {
-            std::optional<jni::local_ref<jni::JDouble>> __converted;
-            try {
-              __converted.emplace(JNIConverter<double, jni::local_ref<jni::JDouble>>::toJNI(__result));
-            } catch (...) {
-              __promise->reject(std::current_exception());
-              return;
-            }
-            __promise->resolve(*__converted);
-          });
-        });
-        std::get<3>(variant).addOnRejectedListener([=](const std::exception_ptr& __error) {
-          jni::ThreadScope::WithClassLoader([&] {
-            __promise->reject(__error);
-          });
-        });
-        return __localPromise;
-      }());
+      case 3: return create_3(JNIConverter<Promise<double>, jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>>>::toJNI(std::get<3>(variant)));
       case 4: return create_4(JNIConverter<AnyJSON, jni::local_ref<JAnyJSON>>::toJNI(std::get<4>(variant)));
       default: throw std::invalid_argument("Variant holds unknown index! (" + std::to_string(variant.index()) + ")");
     }
   }
 
-  jni::local_ref<JArrayBuffer::javaobject> JCoreTypesVariant_impl::First::getValue() const {
-    static const auto field = javaClassStatic()->getField<JArrayBuffer::javaobject>("value");
+  jni::local_ref<JArrayBuffer::JavaPart> JCoreTypesVariant_impl::First::getValue() const {
+    static const auto field = javaClassStatic()->getField<JArrayBuffer::JavaPart>("value");
     return getFieldValue(field);
   }
 
@@ -102,8 +81,8 @@ namespace margelo::nitro::test {
     return getFieldValue(field);
   }
 
-  jni::local_ref<JPromise::javaobject> JCoreTypesVariant_impl::Fourth::getValue() const {
-    static const auto field = javaClassStatic()->getField<JPromise::javaobject>("value");
+  jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>> JCoreTypesVariant_impl::Fourth::getValue() const {
+    static const auto field = javaClassStatic()->getField<JTypedPromise<jni::local_ref<jni::JDouble>>>("value");
     return getFieldValue(field);
   }
 
@@ -119,7 +98,7 @@ namespace margelo::nitro::test {
     if (isInstanceOf(JCoreTypesVariant_impl::First::javaClassStatic())) {
       // It's a `ArrayBuffer`
       auto jniValue = static_cast<const JCoreTypesVariant_impl::First*>(this)->getValue();
-      return jniValue->cthis()->getArrayBuffer();
+      return JNIConverter<ArrayBuffer, jni::local_ref<JArrayBuffer::JavaPart>>::fromJNI(jniValue);
     } else if (isInstanceOf(JCoreTypesVariant_impl::Second::javaClassStatic())) {
       // It's a `Callback<void(double /* value */)>`
       auto jniValue = static_cast<const JCoreTypesVariant_impl::Second*>(this)->getValue();
@@ -139,25 +118,7 @@ namespace margelo::nitro::test {
     } else if (isInstanceOf(JCoreTypesVariant_impl::Fourth::javaClassStatic())) {
       // It's a `Promise<double>`
       auto jniValue = static_cast<const JCoreTypesVariant_impl::Fourth*>(this)->getValue();
-      return [&]() {
-        auto __promise = Promise<double>::pending();
-        jniValue->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
-          std::optional<double> __converted;
-          try {
-            auto __result = jni::static_ref_cast<jni::JDouble>(__boxedResult);
-            __converted.emplace(JNIConverter<double, jni::local_ref<jni::JDouble>>::fromJNI(__result));
-          } catch (...) {
-            __promise.reject(std::current_exception());
-            return;
-          }
-          __promise.resolve(std::move(*__converted));
-        });
-        jniValue->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
-          jni::JniException __jniError(__throwable);
-          __promise.reject(std::make_exception_ptr(__jniError));
-        });
-        return __promise;
-      }();
+      return JNIConverter<Promise<double>, jni::local_ref<JTypedPromise<jni::local_ref<jni::JDouble>>>>::fromJNI(jniValue);
     } else if (isInstanceOf(JCoreTypesVariant_impl::Fifth::javaClassStatic())) {
       // It's a `AnyJSON`
       auto jniValue = static_cast<const JCoreTypesVariant_impl::Fifth*>(this)->getValue();

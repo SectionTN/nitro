@@ -16,6 +16,8 @@
 #include <NitroModules/JNIConverter+Optional.hpp>
 #include <NitroModules/JSIConverter+JNIOptional.hpp>
 #include <NitroModules/JUInt64.hpp>
+#include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroTestExternal/private/JOptionalPrimitivesHolder.hpp>
 
 namespace margelo::nitro::test::external {
@@ -28,7 +30,7 @@ namespace margelo::nitro::test::external {
   std::shared_ptr<JHybridSomeExternalObjectSpec> JHybridSomeExternalObjectSpec::constructor() {
     static const auto __method = JHybridSomeExternalObjectSpec::JavaPart::javaClassStatic()->getStaticMethod<jni::local_ref<JHybridSomeExternalObjectSpec::JavaPart>()>("constructor_cxx");
     auto __result = __method(JHybridSomeExternalObjectSpec::JavaPart::javaClassStatic());
-    return __result->getJHybridSomeExternalObjectSpec();
+    return JNIConverter<std::shared_ptr<JHybridSomeExternalObjectSpec>, jni::local_ref<JHybridSomeExternalObjectSpec::JavaPart>>::fromJNI(__result);
   }
 
   const std::shared_ptr<const HybridClass>& JHybridSomeExternalObjectSpec::Class::get() {

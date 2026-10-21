@@ -7,9 +7,11 @@
 
 #include <NitroTest/private/JVariant_HybridTestObjectSwiftKotlinSpec_Person.hpp>
 #include <memory>
+#include <NitroModules/JNIConverter+HybridObject.hpp>
 #include <NitroTest/private/JHybridTestObjectSwiftKotlinSpec.hpp>
 #include <NitroTest/private/PersonKotlin.hpp>
 #include <variant>
+#include <NitroModules/JSIConverter+JNIHybridObject.hpp>
 #include <NitroTest/private/JPerson.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
@@ -29,7 +31,7 @@ namespace margelo::nitro::test {
 
   jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> JVariant_HybridTestObjectSwiftKotlinSpec_Person::fromCpp(const std::variant<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, PersonKotlin>& variant) {
     switch (variant.index()) {
-      case 0: return create_0(std::get<0>(variant)->getJavaPart());
+      case 0: return create_0(JNIConverter<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, jni::local_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart>>::toJNI(std::get<0>(variant)));
       case 1: return create_1(JPerson::fromCpp(std::get<1>(variant)));
       default: throw std::invalid_argument("Variant holds unknown index! (" + std::to_string(variant.index()) + ")");
     }
@@ -52,7 +54,7 @@ namespace margelo::nitro::test {
     if (isInstanceOf(JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::First::javaClassStatic())) {
       // It's a `std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>`
       auto jniValue = static_cast<const JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::First*>(this)->getValue();
-      return jniValue->getJHybridTestObjectSwiftKotlinSpec();
+      return JNIConverter<std::shared_ptr<JHybridTestObjectSwiftKotlinSpec>, jni::local_ref<JHybridTestObjectSwiftKotlinSpec::JavaPart>>::fromJNI(jniValue);
     } else if (isInstanceOf(JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::Second::javaClassStatic())) {
       // It's a `PersonKotlin`
       auto jniValue = static_cast<const JVariant_HybridTestObjectSwiftKotlinSpec_Person_impl::Second*>(this)->getValue();
