@@ -1,4 +1,5 @@
 #include "TestRuntime.hpp"
+#include <NitroModules/ByteBufferArrayBuffer.hpp>
 #include <NitroModules/JNIConverter+Map.hpp>
 #include <NitroModules/JNIConverter+Promise.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
@@ -101,8 +102,48 @@ public:
     return Converter::toJNI(Converter::fromJNI(value));
   }
 
+  static void checkGlobalRefCleanup(jni::alias_ref<JNativeTestRuntime>) {
+    using namespace margelo::nitro;
+    for (bool attach : {false, true}) {
+      auto reference = jni::make_global(jni::make_jstring("worker-owned"));
+      auto buffer = std::make_shared<ByteBufferArrayBuffer>(jni::JByteBuffer::allocateDirect(64));
+      std::exception_ptr error;
+      std::thread worker([&, reference = std::move(reference), buffer = std::move(buffer)]() mutable {
+        try {
+          auto release = [&] {
+            buffer->data()[0] = 42;
+            if (buffer->size() != 64) {
+              throw std::runtime_error("Native buffer storage changed on a worker.");
+            }
+            buffer.reset();
+            resetGlobalRef(reference);
+          };
+          if (attach) {
+            jni::ThreadScope scope;
+            release();
+            if (jni::detail::currentOrNull() == nullptr) {
+              throw std::runtime_error("Cleanup detached its caller's JNI scope.");
+            }
+          } else {
+            release();
+          }
+          if (jni::detail::currentOrNull() != nullptr) {
+            throw std::runtime_error("Cleanup leaked a native worker attachment.");
+          }
+        } catch (...) {
+          error = std::current_exception();
+        }
+      });
+      worker.join();
+      if (error) {
+        std::rethrow_exception(error);
+      }
+    }
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                        makeNativeMethod("checkGlobalRefCleanup", JNativeTestRuntime::checkGlobalRefCleanup),
                                         makeNativeMethod("roundtripStringMap", JNativeTestRuntime::roundtripStringMap),
                                         makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
                                         makeNativeMethod("checkHardwareBufferBytes", JNativeTestRuntime::checkHardwareBufferBytes),

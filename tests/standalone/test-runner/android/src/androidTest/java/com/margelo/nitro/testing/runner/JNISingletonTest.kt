@@ -18,6 +18,11 @@ class JNISingletonTest {
   }
 
   @Test
+  fun releasesGlobalReferencesOnDetachedAndAttachedWorkers() {
+    NativeTestRuntime.checkGlobalRefCleanup()
+  }
+
+  @Test
   fun nativeVoidPromiseDeliversKotlinUnitToTypedListener() {
     var called = false
     NativeTestRuntime.resolvedVoidPromise().then { value ->
