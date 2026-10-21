@@ -1,5 +1,7 @@
 #include "TestRuntime.hpp"
+#include <NitroModules/JNIConverter+Map.hpp>
 #include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JNull.hpp>
 #include <NitroModules/JUnit.hpp>
 #include <android/hardware_buffer_jni.h>
@@ -93,8 +95,15 @@ public:
     return matches;
   }
 
+  using StringMap = jni::JMap<jni::JString, jni::JString>;
+  static jni::local_ref<StringMap> roundtripStringMap(jni::alias_ref<JNativeTestRuntime>, jni::alias_ref<StringMap> value) {
+    using Converter = margelo::nitro::JNIConverter<std::unordered_map<std::string, std::string>, jni::local_ref<StringMap>>;
+    return Converter::toJNI(Converter::fromJNI(value));
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                        makeNativeMethod("roundtripStringMap", JNativeTestRuntime::roundtripStringMap),
                                         makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
                                         makeNativeMethod("checkHardwareBufferBytes", JNativeTestRuntime::checkHardwareBufferBytes),
                                         makeNativeMethod("resolvedVoidPromise", JNativeTestRuntime::resolvedVoidPromise),

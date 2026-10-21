@@ -1,6 +1,6 @@
 #pragma once
 
-#include "JNISize.hpp"
+#include "JNIMapCursor.hpp"
 #include <NitroModules/JSIConverter.hpp>
 #include <NitroModules/JSIHelpers.hpp>
 #include <fbjni/fbjni.h>
@@ -22,7 +22,7 @@ struct JSIConverter<jni::local_ref<jni::JMap<Key, Value>>> {
     auto object = value.asObject(runtime);
     auto keys = object.getPropertyNames(runtime);
     const jsize size = getJNISize(keys.size(runtime));
-    auto result = jni::JHashMap<Key, Value>::create(size);
+    auto result = jni::JHashMap<Key, Value>::create(getJNIMapCapacity(size));
     for (jsize i = 0; i < size; ++i) {
       auto key = keys.getValueAtIndex(runtime, i);
       auto element = object.getProperty(runtime, key);
@@ -34,7 +34,10 @@ struct JSIConverter<jni::local_ref<jni::JMap<Key, Value>>> {
     requires(JSIEncodable<OwnedKey> && JSIEncodable<OwnedValue>)
   {
     jsi::Object result(runtime);
-    for (const auto& [key, element] : *value) {
+    JNIMapCursor<Key, Value> cursor(value);
+    while (cursor.advance()) {
+      auto key = cursor.key();
+      auto element = cursor.value();
       auto jsKey = JSIConverter<OwnedKey>::toJSI(runtime, key);
       result.setProperty(runtime, jsKey, JSIConverter<OwnedValue>::toJSI(runtime, element));
     }

@@ -15,6 +15,8 @@ internal object NativeTestRuntime {
     write: Boolean,
   ): Boolean
 
+  external fun roundtripStringMap(value: Map<*, *>): Map<String, String>
+
   external fun singletonNull(): NullType
 
   external fun resolvedVoidPromise(): Promise<Unit>
