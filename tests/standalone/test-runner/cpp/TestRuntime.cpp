@@ -168,13 +168,9 @@ namespace {
     // JSError owns JSI values. Convert it before destroying their runtime.
     try {
       // The watchdog interrupts JS execution, not the native compiler. Compile
-      // once before timing setup, then evaluate in a fresh runtime for each file.
+      // once before timing JS, then evaluate in a fresh runtime for each file.
       auto prepared = prepareBundle(*runtime, bundle);
-      phase = "loading JS test bundle";
-      const auto timeout = std::chrono::milliseconds(timeoutMs);
-      const auto timeoutMessage = "Timed out after " + std::to_string(timeoutMs) + "ms";
-      const auto bundleDeadline = Clock::now() + timeout;
-      runtime->watchTimeLimit(timeoutMs);
+      phase = "installing Nitro";
       install(*runtime, dispatcher);
       // Expose platform information and explicit garbage collection to the tests.
 #ifdef __ANDROID__
@@ -189,9 +185,14 @@ namespace {
                                                   rt.instrumentation().collectGarbage("Nitro runtime test");
                                                   return jsi::Value::undefined();
                                                 }));
+      phase = "loading JS test bundle";
+      const auto timeout = std::chrono::milliseconds(timeoutMs);
+      const auto timeoutMessage = "Timed out after " + std::to_string(timeoutMs) + "ms";
+      const auto bundleDeadline = Clock::now() + timeout;
+      runtime->watchTimeLimit(timeoutMs);
       runtime->evaluatePreparedJavaScript(prepared);
 
-      // Stop setup's watchdog before giving each case its own execution budget.
+      // Give bundle evaluation and each case their own JS execution budgets.
       runtime->unwatchTimeLimit();
       if (Clock::now() >= bundleDeadline)
         throw std::runtime_error(timeoutMessage);

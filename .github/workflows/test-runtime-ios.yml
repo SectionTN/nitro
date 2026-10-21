@@ -127,14 +127,14 @@ jobs:
             inputs.ref || github.sha }}
           restore-keys: |
             standalone-ios-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.toolchain }}-${{ matrix.sanitizer.value }}-
-      - name: Test Swift HybridObjects in Hermes
-        id: runtime-tests
+      - name: Build Swift Test Runner
+        id: runtime-build
         env:
           SANITIZER: ${{ matrix.sanitizer.value }}
-        run: bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" --skip-hermes-build
+        run: bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" --skip-hermes-build --build-only
       - name: Save compilation cache
         if: >-
-          !cancelled() && steps.runtime-tests.outcome != 'skipped' && steps.native-cache.outputs.cache-hit != 'true' && github.event_name !=
+          !cancelled() && steps.runtime-build.outcome == 'success' && steps.native-cache.outputs.cache-hit != 'true' && github.event_name !=
           'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1')
         uses: actions/cache/save@v6
         with:
@@ -142,6 +142,10 @@ jobs:
             tests/standalone/.build/ios/${{ matrix.sanitizer.value }}/DerivedData/CompilationCache.noindex
             tests/standalone/.build/ios/${{ matrix.sanitizer.value }}/DerivedData/SourcePackages
           key: ${{ steps.native-cache.outputs.cache-primary-key }}
+      - name: Run Swift Test Suites
+        env:
+          SANITIZER: ${{ matrix.sanitizer.value }}
+        run: bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" --skip-build
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

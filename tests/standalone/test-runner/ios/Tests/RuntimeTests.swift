@@ -232,6 +232,7 @@ struct RuntimeTests {
       };
       """
     let ordinary = try #require(await runNitroSuite(source, ["slow", "ordinary"], 1000))
+    #expect(ordinary.hasPrefix("ordinary:"))
     #expect(ordinary.localizedCaseInsensitiveContains("timed out"))
     #expect(ordinary.contains("running JS test"))
   }
