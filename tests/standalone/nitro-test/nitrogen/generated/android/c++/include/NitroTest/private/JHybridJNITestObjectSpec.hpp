@@ -10,7 +10,11 @@
 #include <NitroModules/JHybridObject.hpp>
 #include <NitroModules/HybridClass.hpp>
 #include <fbjni/fbjni.h>
+#include <stdexcept>
 #include <NitroTest/private/JHybridJNITestObjectSpecJavaPart.hpp>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroTest/private/JJNIScalar.hpp>
 #include <NitroTest/private/JJNIValues.hpp>
 #include <NitroTest/private/JHybridJNITestObjectSpec.hpp>
 #include <memory>
@@ -37,6 +41,13 @@ namespace margelo::nitro::test {
       static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
       static void registerNatives();
       static jni::alias_ref<jni::JClass> getClass();
+      #ifdef NITRO_DEBUG
+      static void assertExactImplementation(jni::alias_ref<JHybridJNITestObjectSpec::JavaPart> javaPart) {
+        if (!jni::isSameObject(javaPart->getClass(), getClass())) [[unlikely]] {
+          throw std::runtime_error("JNITestObject requires its configured implementation when inheritance and multiple implementations are disabled.");
+        }
+      }
+      #endif
       using HybridBase::HybridBase;
     protected:
       std::shared_ptr<JHybridObject> createHybridObject(jni::alias_ref<JHybridObject::JavaPart> javaPart) override;
@@ -45,7 +56,11 @@ namespace margelo::nitro::test {
   public:
     explicit JHybridJNITestObjectSpec(jni::alias_ref<JHybridJNITestObjectSpec::JavaPart> javaPart):
       JHybridObject(javaPart),
-      _javaPart(jni::static_ref_cast<JavaPart>(JHybridObject::getJavaPart())) {}
+      _javaPart(jni::static_ref_cast<JavaPart>(JHybridObject::getJavaPart())) {
+      #ifdef NITRO_DEBUG
+      CxxPart::assertExactImplementation(_javaPart);
+      #endif
+    }
     // Defined in the owning library so RTTI has one identity across modules.
     ~JHybridJNITestObjectSpec() override;
 
@@ -56,10 +71,12 @@ namespace margelo::nitro::test {
 
   public:
     // Properties
-
+    jdouble getComputedValue();
+    void setComputedValue(jdouble computedValue);
 
   public:
     // Methods
+    jni::local_ref<JJNIScalar> roundtripScalar(const jni::local_ref<JJNIScalar>& value);
     jni::local_ref<JJNIValues> roundtrip(const jni::local_ref<JJNIValues>& value);
 
   public:

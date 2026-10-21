@@ -6,6 +6,9 @@
 ///
 
 #include <NitroTest/private/JHybridJNITestObjectSpec.hpp>
+#include <NitroModules/JNIConverter+Primitives.hpp>
+#include <NitroModules/JSIConverter+JNIPrimitives.hpp>
+#include <NitroTest/private/JJNIScalar.hpp>
 #include <NitroTest/private/JJNIValues.hpp>
 #include <memory>
 #include <NitroModules/JNIConverter+HybridObject.hpp>
@@ -22,6 +25,8 @@ namespace margelo::nitro::test {
 
   const std::shared_ptr<const HybridClass>& JHybridJNITestObjectSpec::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
+      clazz.registerHybridProperty("computedValue", &JHybridJNITestObjectSpec::getComputedValue, &JHybridJNITestObjectSpec::setComputedValue);
+      clazz.registerHybridMethod("roundtripScalar", &JHybridJNITestObjectSpec::roundtripScalar);
       clazz.registerHybridMethod("roundtrip", &JHybridJNITestObjectSpec::roundtrip);
       clazz.registerHybridConstructor(&JHybridJNITestObjectSpec::constructor);
     });
@@ -62,9 +67,22 @@ namespace margelo::nitro::test {
   }
 
   // Properties
-
+  jdouble JHybridJNITestObjectSpec::getComputedValue() {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jdouble()>("getComputedValue");
+    auto __result = __method(_javaPart, CxxPart::getClass());
+    return __result;
+  }
+  void JHybridJNITestObjectSpec::setComputedValue(jdouble computedValue) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jdouble /* computedValue */)>("setComputedValue");
+    __method(_javaPart, CxxPart::getClass(), computedValue);
+  }
 
   // Methods
+  jni::local_ref<JJNIScalar> JHybridJNITestObjectSpec::roundtripScalar(const jni::local_ref<JJNIScalar>& value) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JJNIScalar>(jni::alias_ref<JJNIScalar> /* value */)>("roundtripScalar");
+    auto __result = __method(_javaPart, CxxPart::getClass(), value);
+    return __result;
+  }
   jni::local_ref<JJNIValues> JHybridJNITestObjectSpec::roundtrip(const jni::local_ref<JJNIValues>& value) {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JJNIValues>(jni::alias_ref<JJNIValues> /* value */)>("roundtrip");
     auto __result = __method(_javaPart, CxxPart::getClass(), value);

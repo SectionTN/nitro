@@ -27,9 +27,17 @@ import com.margelo.nitro.core.HybridObject
 )
 abstract class HybridJNITestObjectSpec: HybridObject() {
   // Properties
-
+  @get:DoNotStrip
+  @get:Keep
+  @set:DoNotStrip
+  @set:Keep
+  abstract var computedValue: Double
 
   // Methods
+  @DoNotStrip
+  @Keep
+  abstract fun roundtripScalar(value: JNIScalar): JNIScalar
+
   @DoNotStrip
   @Keep
   abstract fun roundtrip(value: JNIValues): JNIValues

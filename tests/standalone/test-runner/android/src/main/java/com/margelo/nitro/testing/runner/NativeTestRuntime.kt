@@ -35,6 +35,8 @@ internal object NativeTestRuntime {
 
   external fun checkStringHashes()
 
+  external fun checkClosedImplementation(value: HybridObject)
+
   external fun singletonNull(): NullType
 
   external fun resolvedVoidPromise(): Promise<Unit>

@@ -243,8 +243,13 @@ public:
     }
   }
 
+  static void checkClosedImplementation(jni::alias_ref<JNativeTestRuntime>, jni::alias_ref<margelo::nitro::JHybridObject::JavaPart> value) {
+    auto object = value->getJHybridObject();
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                        makeNativeMethod("checkClosedImplementation", JNativeTestRuntime::checkClosedImplementation),
                                         makeNativeMethod("checkStringHashes", JNativeTestRuntime::checkStringHashes),
                                         makeNativeMethod("checkRetainedEnums", JNativeTestRuntime::checkRetainedEnums),
                                         makeNativeMethod("nativeBuffer", JNativeTestRuntime::nativeBuffer),
