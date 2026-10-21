@@ -10,7 +10,8 @@ namespace margelo::nitro {
 
 namespace jni = facebook::jni;
 
-/** HashMap's constructor takes capacity, rather than the expected entry count. */
+/** HashMap's constructor takes capacity, rather than the expected entry count.
+ */
 inline jint getJNIMapCapacity(size_t size) {
   const auto count = static_cast<uint64_t>(getJNISize(size));
   const auto capacity = (count * 4 + 2) / 3;
@@ -51,7 +52,8 @@ namespace detail {
   };
 } // namespace detail
 
-/** Owns only a local iterator and consumes each field reference without cloning it. */
+/** Owns only a local iterator and consumes each field reference without cloning
+ * it. */
 template <typename Key, typename Value>
 class JNIMapCursor final {
 public:
