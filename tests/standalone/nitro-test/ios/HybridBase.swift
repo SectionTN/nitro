@@ -13,11 +13,11 @@ class HybridBase: HybridBaseSpec {
     super.init()
   }
 
-  static func createAlternativeBase() -> any HybridBaseSpec {
+  static func createAlternativeBase() throws -> any HybridBaseSpec {
     return HybridAlternativeBase()
   }
 
-  static func createInternalExternalObject() -> any HybridSomeExternalObjectSpec {
+  static func createInternalExternalObject() throws -> any HybridSomeExternalObjectSpec {
     return HybridSomeInternalObject()
   }
 

@@ -13,7 +13,7 @@ class HybridPlatformObject: HybridPlatformObjectSpec {
     super.init()
   }
 
-  func getOSVersion() -> String {
+  func getOSVersion() throws -> String {
     let version = ProcessInfo.processInfo.operatingSystemVersion
     let baseVersion = "\(version.majorVersion).\(version.minorVersion)"
     return version.patchVersion == 0 ? baseVersion : "\(baseVersion).\(version.patchVersion)"

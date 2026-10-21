@@ -13,12 +13,12 @@ class HybridChild: HybridChildSpec {
     super.init()
   }
 
-  static func createAlternativeBase() -> any HybridBaseSpec {
-    return HybridBase.createAlternativeBase()
+  static func createAlternativeBase() throws -> any HybridBaseSpec {
+    return try HybridBase.createAlternativeBase()
   }
 
-  static func createInternalExternalObject() -> any HybridSomeExternalObjectSpec {
-    return HybridBase.createInternalExternalObject()
+  static func createInternalExternalObject() throws -> any HybridSomeExternalObjectSpec {
+    return try HybridBase.createInternalExternalObject()
   }
 
   var baseValue: Double {
