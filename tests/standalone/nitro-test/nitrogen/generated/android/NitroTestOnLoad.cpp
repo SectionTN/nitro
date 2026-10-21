@@ -11,6 +11,8 @@
 #include <NitroTest/private/JCallback_Size_Size.hpp>
 #include <NitroTest/private/JHybridChildSpec.hpp>
 #include <NitroTest/private/JHybridGrandchildSpec.hpp>
+#include <NitroTest/private/JHybridJNITestObjectSpec.hpp>
+#include <NitroTest/private/JCallback_uint64_t_uint64_t.hpp>
 #include <NitroTest/private/JHybridPlatformObjectSpec.hpp>
 #include <NitroTest/private/JHybridTestObjectSwiftKotlinSpec.hpp>
 #include <NitroTest/private/JCallback_void_double.hpp>
@@ -41,6 +43,8 @@ namespace margelo::nitro::test {
     margelo::nitro::test::JCallback_Size_Size_cxx::registerNatives();
     margelo::nitro::test::JHybridChildSpec::CxxPart::registerNatives();
     margelo::nitro::test::JHybridGrandchildSpec::CxxPart::registerNatives();
+    margelo::nitro::test::JHybridJNITestObjectSpec::CxxPart::registerNatives();
+    margelo::nitro::test::JCallback_uint64_t_uint64_t_cxx::registerNatives();
     margelo::nitro::test::JHybridPlatformObjectSpec::CxxPart::registerNatives();
     margelo::nitro::test::JHybridTestObjectSwiftKotlinSpec::CxxPart::registerNatives();
     margelo::nitro::test::JCallback_void_double_cxx::registerNatives();
@@ -67,6 +71,7 @@ namespace margelo::nitro::test {
     HybridClassRegistry::registerHybridClass("test.CppChild", HybridCppChildSpec::Class::get());
     HybridClassRegistry::registerHybridClass("test.CppGrandchild", HybridCppGrandchildSpec::Class::get());
     HybridClassRegistry::registerHybridClass("test.Grandchild", JHybridGrandchildSpec::Class::get());
+    HybridClassRegistry::registerHybridClass("test.JNITestObject", JHybridJNITestObjectSpec::Class::get());
     HybridClassRegistry::registerHybridClass("test.PlatformObject", JHybridPlatformObjectSpec::Class::get());
     HybridClassRegistry::registerHybridClass("test.TestObjectCpp", HybridTestObjectCppSpec::Class::get());
     HybridClassRegistry::registerHybridClass("test.TestObjectSwiftKotlin", JHybridTestObjectSwiftKotlinSpec::Class::get());
