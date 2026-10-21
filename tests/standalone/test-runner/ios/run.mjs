@@ -1,4 +1,4 @@
-import { closeSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeSync } from 'node:fs'
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, statSync, writeSync } from 'node:fs'
 import { spawn, spawnSync } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -211,6 +211,25 @@ for (const name of readdirSync(results).filter((name) => name.startsWith('saniti
   if (report.trim()) {
     process.stderr.write(report)
     sanitizerFailure = true
+  }
+}
+// xcodebuild only reports which Swift test or test file failed. Print every
+// failure message from the result bundle, which names the failed JS case.
+const resultBundle = path.join(results, 'RuntimeTests.xcresult')
+if (status !== 0 && existsSync(resultBundle)) {
+  const output = spawnSync('xcrun', ['xcresulttool', 'get', 'test-results', 'tests', '--path', resultBundle], {
+    encoding: 'utf8',
+    maxBuffer: 256 * 1024 * 1024,
+  })
+  const printFailures = (node, test) => {
+    const name = node.nodeType === 'Arguments' ? `${test} ${node.name}` : node.name
+    if (node.nodeType === 'Failure Message') {
+      console.log(`  failed: ${test}\n    ${node.name.split('\n').slice(0, 8).join('\n    ')}`)
+    }
+    for (const child of node.children ?? []) printFailures(child, name)
+  }
+  if (output.status === 0) {
+    for (const node of JSON.parse(output.stdout).testNodes ?? []) printFailures(node, '')
   }
 }
 console.log(`Test results: ${results}`)
