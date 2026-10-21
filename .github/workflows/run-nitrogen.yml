@@ -36,9 +36,11 @@ jobs:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Enable long paths on Windows
+      - name: Configure Git on Windows
         if: runner.os == 'Windows'
-        run: git config --global core.longpaths true
+        run: |
+          git config --global core.longpaths true
+          git config --global core.autocrlf false
       - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.sha }}
