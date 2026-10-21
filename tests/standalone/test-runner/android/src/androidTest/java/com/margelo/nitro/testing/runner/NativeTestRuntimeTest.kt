@@ -10,16 +10,16 @@ class NativeTestRuntimeTest {
   @Test
   fun reportsJavaScriptFailures() {
     val failure =
-      NativeTestRuntime.runTest(
+      NativeTestRuntime.runSuite(
         "globalThis.runNitroTest = async () => { throw new Error('sentinel failure'); };",
-        "bridge failure",
+        arrayOf("bridge failure"),
       )
     assertTrue(failure, failure.contains("sentinel failure"))
   }
 
   @Test
   fun reportsSynchronousJavaScriptFailures() {
-    val failure = NativeTestRuntime.runTest("throw new Error('sync sentinel');", "bundle failure")
+    val failure = NativeTestRuntime.runSuite("throw new Error('sync sentinel');", arrayOf("bundle failure"))
     assertTrue(failure, failure.contains("sync sentinel"))
   }
 
@@ -27,14 +27,16 @@ class NativeTestRuntimeTest {
   fun reusingBundleKeepsRuntimesIsolated() {
     val source =
       """
-      globalThis.executionCount = (globalThis.executionCount ?? 0) + 1;
-      globalThis.runNitroTest = async () => {
-        if (globalThis.executionCount !== 1) throw new Error('runtime was reused');
+      globalThis.bundleEvaluations = (globalThis.bundleEvaluations ?? 0) + 1;
+      globalThis.executionCount = 0;
+      globalThis.runNitroTest = async (name) => {
+        if (globalThis.bundleEvaluations !== 1) throw new Error('runtime was reused');
         globalThis.executionCount++;
+        if (globalThis.executionCount !== Number(name)) throw new Error('unexpected runtime state');
       };
       """.trimIndent()
     repeat(2) {
-      val failure = NativeTestRuntime.runTest(source, "runtime isolation", 1000)
+      val failure = NativeTestRuntime.runSuite(source, arrayOf("1", "2"), 1000)
       assertTrue(failure, failure.isEmpty())
     }
   }
@@ -43,7 +45,7 @@ class NativeTestRuntimeTest {
   fun changedBundleReplacesPreparedSource() {
     for (message in listOf("alpha", "bravo", "alpha")) {
       val source = "globalThis.runNitroTest = async () => { throw new Error('$message'); };"
-      val failure = NativeTestRuntime.runTest(source, "changed source", 1000)
+      val failure = NativeTestRuntime.runSuite(source, arrayOf("changed source"), 1000)
       assertTrue(failure, failure.contains(message))
     }
   }
@@ -51,11 +53,11 @@ class NativeTestRuntimeTest {
   @Test
   fun invalidSourceDoesNotPoisonPreparedBundle() {
     val source = "globalThis.runNitroTest = async () => {};"
-    val first = NativeTestRuntime.runTest(source, "valid source", 1000)
+    val first = NativeTestRuntime.runSuite(source, arrayOf("valid source"), 1000)
     assertTrue(first, first.isEmpty())
-    val invalid = NativeTestRuntime.runTest("globalThis.runNitroTest = async () => {", "invalid source", 1000)
+    val invalid = NativeTestRuntime.runSuite("globalThis.runNitroTest = async () => {", arrayOf("invalid source"), 1000)
     assertTrue("Invalid source unexpectedly passed", invalid.isNotEmpty())
-    val repeated = NativeTestRuntime.runTest(source, "valid source", 1000)
+    val repeated = NativeTestRuntime.runSuite(source, arrayOf("valid source"), 1000)
     assertTrue(repeated, repeated.isEmpty())
   }
 
@@ -69,9 +71,7 @@ class NativeTestRuntimeTest {
         while (Date.now() < deadline) {}
       };
       """.trimIndent()
-    val slow = NativeTestRuntime.runTest(source, "slow", 1000)
-    assertTrue(slow, slow.isEmpty())
-    val ordinary = NativeTestRuntime.runTest(source, "ordinary", 1000)
+    val ordinary = NativeTestRuntime.runSuite(source, arrayOf("slow", "ordinary"), 1000)
     assertTrue(ordinary, ordinary.contains("timed out", ignoreCase = true))
     assertTrue(ordinary, ordinary.contains("running JS test"))
   }
@@ -84,7 +84,7 @@ class NativeTestRuntimeTest {
         globalThis.getNitroTestTimeoutMs = () => $value;
         globalThis.runNitroTest = async () => {};
         """.trimIndent()
-      val failure = NativeTestRuntime.runTest(source, "invalid timeout $value", 1000)
+      val failure = NativeTestRuntime.runSuite(source, arrayOf("invalid timeout $value"), 1000)
       assertTrue(failure, failure.contains("getNitroTestTimeoutMs"))
     }
   }
@@ -92,9 +92,9 @@ class NativeTestRuntimeTest {
   @Test
   fun timesOutPendingPromises() {
     val failure =
-      NativeTestRuntime.runTest(
+      NativeTestRuntime.runSuite(
         "globalThis.runNitroTest = () => new Promise(() => {});",
-        "pending promise",
+        arrayOf("pending promise"),
         1000,
       )
     assertTrue(failure, failure.contains("timed out", ignoreCase = true))
@@ -114,7 +114,7 @@ class NativeTestRuntimeTest {
         wait(600);
       };
       """.trimIndent()
-    val failure = NativeTestRuntime.runTest(source, "separate timeouts", 1000)
+    val failure = NativeTestRuntime.runSuite(source, arrayOf("separate timeouts"), 1000)
     assertTrue(failure, failure.isEmpty())
   }
 
@@ -124,7 +124,7 @@ class NativeTestRuntimeTest {
       """
       while (true) {}
       """.trimIndent()
-    val failure = NativeTestRuntime.runTest(source, "evaluation loop", 1000)
+    val failure = NativeTestRuntime.runSuite(source, arrayOf("evaluation loop"), 1000)
     assertTrue(failure, failure.contains("timed out", ignoreCase = true))
     assertTrue(failure, failure.contains("loading JS test bundle"))
   }
@@ -137,7 +137,7 @@ class NativeTestRuntimeTest {
         while (true) {}
       };
       """.trimIndent()
-    val failure = NativeTestRuntime.runTest(source, "test loop", 1000)
+    val failure = NativeTestRuntime.runSuite(source, arrayOf("test loop"), 1000)
     assertTrue(failure, failure.contains("timed out", ignoreCase = true))
     assertTrue(failure, failure.contains("running JS test"))
   }
@@ -152,7 +152,7 @@ class NativeTestRuntimeTest {
         }
       };
       """.trimIndent()
-    val failure = NativeTestRuntime.runTest(source, "microtask loop", 1000)
+    val failure = NativeTestRuntime.runSuite(source, arrayOf("microtask loop"), 1000)
     assertTrue(failure, failure.contains("timed out", ignoreCase = true))
     assertTrue(failure, failure.contains("running JS test"))
   }

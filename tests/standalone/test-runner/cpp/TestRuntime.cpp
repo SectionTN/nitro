@@ -61,6 +61,20 @@ namespace {
       task();
     }
 
+    // Run work already queued by the completed case before starting the next.
+    bool runQueued() {
+      std::function<void()> task;
+      {
+        std::lock_guard lock(mutex);
+        if (tasks.empty())
+          return false;
+        task = std::move(tasks.front());
+        tasks.pop();
+      }
+      task();
+      return true;
+    }
+
     void close() {
       std::queue<std::function<void()>> discarded;
       {
@@ -131,7 +145,8 @@ namespace {
     return static_cast<uint32_t>(timeout.getNumber());
   }
 
-  std::string execute(const std::string& bundle, const std::string& name, uint32_t timeoutMs, const std::function<void()>& onTestStarted) {
+  std::string execute(const std::string& bundle, const std::vector<std::string>& names, uint32_t timeoutMs,
+                      const std::function<void()>& onTestStarted) {
     auto dispatcher = std::make_shared<TestDispatcher>();
     auto config = ::hermes::vm::RuntimeConfig::Builder()
                       .withMicrotaskQueue(true)
@@ -149,10 +164,11 @@ namespace {
       }
     } cleanup{dispatcher, *runtime};
     const char* phase = "preparing JS test bundle";
+    std::string currentName = names.front();
     // JSError owns JSI values. Convert it before destroying their runtime.
     try {
       // The watchdog interrupts JS execution, not the native compiler. Compile
-      // once before timing setup, then evaluate in a fresh runtime for each case.
+      // once before timing setup, then evaluate in a fresh runtime for each file.
       auto prepared = prepareBundle(*runtime, bundle);
       phase = "loading JS test bundle";
       const auto timeout = std::chrono::milliseconds(timeoutMs);
@@ -175,84 +191,103 @@ namespace {
                                                 }));
       runtime->evaluatePreparedJavaScript(prepared);
 
-      struct Result {
-        bool done = false;
-        std::string error;
-      };
-      auto result = std::make_shared<Result>();
-      auto success = jsi::Function::createFromHostFunction(*runtime, jsi::PropNameID::forAscii(*runtime, "testPassed"), 0,
-                                                           [result](jsi::Runtime&, const jsi::Value&, const jsi::Value*, size_t) {
-                                                             result->done = true;
-                                                             return jsi::Value::undefined();
-                                                           });
-      auto failure =
-          jsi::Function::createFromHostFunction(*runtime, jsi::PropNameID::forAscii(*runtime, "testFailed"), 1,
-                                                [result](jsi::Runtime& rt, const jsi::Value&, const jsi::Value* args, size_t count) {
-                                                  result->done = true;
-                                                  try {
-                                                    result->error =
-                                                        count == 0 ? "Test rejected without an error" : describeError(rt, args[0]);
-                                                    if (result->error.empty())
-                                                      result->error = "Test rejected with an empty error";
-                                                  } catch (const std::exception& error) {
-                                                    result->error = std::string("Could not describe JS rejection: ") + error.what();
-                                                  } catch (...) {
-                                                    result->error = "Could not describe JS rejection";
-                                                  }
-                                                  return jsi::Value::undefined();
-                                                });
-      auto run = runtime->global().getPropertyAsFunction(*runtime, "runNitroTest");
-      const auto testTimeoutMs = getTestTimeout(*runtime, name, timeoutMs);
-      // Stop setup's watchdog before checking elapsed time so an expired
-      // interrupt cannot carry over when the execution deadline is reset.
+      // Stop setup's watchdog before giving each case its own execution budget.
       runtime->unwatchTimeLimit();
       if (Clock::now() >= bundleDeadline)
         throw std::runtime_error(timeoutMessage);
 
-      if (onTestStarted)
-        onTestStarted();
-      phase = "running JS test";
-      const auto testTimeoutMessage = "Timed out after " + std::to_string(testTimeoutMs) + "ms";
-      const auto deadline = Clock::now() + std::chrono::milliseconds(testTimeoutMs);
-      runtime->watchTimeLimit(testTimeoutMs);
-      auto promise = run.call(*runtime, jsi::String::createFromUtf8(*runtime, name)).asObject(*runtime);
-      promise.getPropertyAsFunction(*runtime, "then").callWithThis(*runtime, promise, success, failure);
+      for (const auto& name : names) {
+        currentName = name;
+        phase = "running JS test";
+        struct Result {
+          bool done = false;
+          std::string error;
+        };
+        auto result = std::make_shared<Result>();
+        auto success = jsi::Function::createFromHostFunction(*runtime, jsi::PropNameID::forAscii(*runtime, "testPassed"), 0,
+                                                             [result](jsi::Runtime&, const jsi::Value&, const jsi::Value*, size_t) {
+                                                               result->done = true;
+                                                               return jsi::Value::undefined();
+                                                             });
+        auto failure =
+            jsi::Function::createFromHostFunction(*runtime, jsi::PropNameID::forAscii(*runtime, "testFailed"), 1,
+                                                  [result](jsi::Runtime& rt, const jsi::Value&, const jsi::Value* args, size_t count) {
+                                                    result->done = true;
+                                                    try {
+                                                      result->error =
+                                                          count == 0 ? "Test rejected without an error" : describeError(rt, args[0]);
+                                                      if (result->error.empty())
+                                                        result->error = "Test rejected with an empty error";
+                                                    } catch (const std::exception& error) {
+                                                      result->error = std::string("Could not describe JS rejection: ") + error.what();
+                                                    } catch (...) {
+                                                      result->error = "Could not describe JS rejection";
+                                                    }
+                                                    return jsi::Value::undefined();
+                                                  });
+        auto run = runtime->global().getPropertyAsFunction(*runtime, "runNitroTest");
+        runtime->watchTimeLimit(timeoutMs);
+        const auto testTimeoutMs = getTestTimeout(*runtime, name, timeoutMs);
+        runtime->unwatchTimeLimit();
+        if (onTestStarted)
+          onTestStarted();
+        const auto testTimeoutMessage = "Timed out after " + std::to_string(testTimeoutMs) + "ms";
+        const auto deadline = Clock::now() + std::chrono::milliseconds(testTimeoutMs);
+        runtime->watchTimeLimit(testTimeoutMs);
+        auto promise = run.call(*runtime, jsi::String::createFromUtf8(*runtime, name)).asObject(*runtime);
+        promise.getPropertyAsFunction(*runtime, "then").callWithThis(*runtime, promise, success, failure);
 
-      while (!result->done) {
+        while (!result->done) {
+          if (Clock::now() >= deadline)
+            throw std::runtime_error(testTimeoutMessage);
+          const bool drained = runtime->drainMicrotasks(128);
+          if (!result->done && drained)
+            dispatcher->tick(deadline);
+        }
         if (Clock::now() >= deadline)
           throw std::runtime_error(testTimeoutMessage);
-        const bool drained = runtime->drainMicrotasks(128);
-        if (!result->done && drained)
-          dispatcher->tick(deadline);
+        if (!result->error.empty())
+          return name + ": " + result->error;
+
+        phase = "settling work queued by the JS test";
+        while (true) {
+          if (Clock::now() >= deadline)
+            throw std::runtime_error(testTimeoutMessage);
+          const bool drained = runtime->drainMicrotasks(128);
+          if (!dispatcher->runQueued() && drained)
+            break;
+        }
+        runtime->unwatchTimeLimit();
       }
-      runtime->unwatchTimeLimit();
-      if (Clock::now() >= deadline)
-        throw std::runtime_error(testTimeoutMessage);
-      return result->error;
+      return "";
     } catch (const std::exception& error) {
       std::string message = error.what();
-      return std::string("While ") + phase + ": " + (message.empty() ? "Native exception without a message" : message);
+      return currentName + ": While " + phase + ": " + (message.empty() ? "Native exception without a message" : message);
     } catch (...) {
-      return std::string("While ") + phase + ": unknown native exception";
+      return currentName + ": While " + phase + ": unknown native exception";
     }
   }
 } // namespace
 
-std::string runTest(const std::string& bundle, const std::string& name, uint32_t timeoutMs, const std::function<void()>& onTestStarted) {
+std::string runSuite(const std::string& bundle, const std::vector<std::string>& names, uint32_t timeoutMs,
+                     const std::function<void()>& onTestStarted) {
+  if (names.empty())
+    return "Cannot run an empty JavaScript test suite";
   try {
 #ifdef __ANDROID__
     // The host owns JNI attachment for the whole runtime lifetime, including
     // dispatcher callbacks, microtasks and teardown.
     std::string error;
-    facebook::jni::ThreadScope::WithClassLoader([&] { error = execute(bundle, name, timeoutMs, onTestStarted); });
+    facebook::jni::ThreadScope::WithClassLoader([&] { error = execute(bundle, names, timeoutMs, onTestStarted); });
+    return error;
 #else
-    auto error = execute(bundle, name, timeoutMs, onTestStarted);
+    return execute(bundle, names, timeoutMs, onTestStarted);
 #endif
-    return error.empty() ? "" : name + ": " + error;
   } catch (const std::exception& error) {
-    return name + ": " + error.what();
+    return names.front() + ": " + error.what();
   } catch (...) {
-    return name + ": unknown native exception";
+    return names.front() + ": unknown native exception";
   }
 }
+
 } // namespace margelo::nitro::testing

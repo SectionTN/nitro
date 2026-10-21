@@ -2,9 +2,13 @@
 #include "TestRuntime.hpp"
 #include <exception>
 
-NSString* _Nullable NitroRunTest(NSString* bundle, NSString* name, uint32_t timeoutMs, void (^onTestStarted)(void)) {
+NSString* _Nullable NitroRunSuite(NSString* bundle, NSArray<NSString*>* names, uint32_t timeoutMs, void (^onTestStarted)(void)) {
   try {
-    auto failure = margelo::nitro::testing::runTest(bundle.UTF8String, name.UTF8String, timeoutMs, [onTestStarted] {
+    std::vector<std::string> cases;
+    cases.reserve(names.count);
+    for (NSString* name in names)
+      cases.emplace_back(name.UTF8String);
+    auto failure = margelo::nitro::testing::runSuite(bundle.UTF8String, cases, timeoutMs, [onTestStarted] {
       if (onTestStarted)
         onTestStarted();
     });

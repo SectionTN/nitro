@@ -45,7 +45,7 @@ bun test:prepare
 ```
 
 `test:prepare` builds the workspace Nitrogen, typechecks the specs and tests, regenerates bindings, and bundles the JS into
-`test-runner/build/runtime-tests.js`. It also writes `test-runner/build/runtime-tests.json`, the case list used by both native runners, and
+`test-runner/build/runtime-tests.js`. It also writes `test-runner/build/runtime-tests.json`, which maps each test file to its cases, and
 `test-runner/build/runtime-test-skips.json`, the platform/build exclusions. The bundle and manifests are generated together. Commit
 generated binding changes with their spec. The **Check Nitrogen output** job regenerates bindings for both test environments and checks for
 drift. It does not bundle the JavaScript tests; each native test job runs `test:prepare` before building and executing its tests.
@@ -90,12 +90,12 @@ export async function fibonacci(): Promise<void> {
 ```
 
 The bundler discovers exported values using TypeScript's module information, without executing test modules in Bun. Keep helper functions
-unexported or in separate helper files. Each test gets a file-qualified name, such as `promises.fibonacci` for a function in
-`promises.test.ts`. New files and cases require no Swift/Kotlin edits.
+unexported or in separate helper files. Each test gets a file-qualified name, such as `async.fibonacci` for a function in `async.test.ts`.
+New files and cases require no Swift/Kotlin edits.
 
-Swift Testing and JUnit run the names as parameterized cases, preserving individual results and continuing after a case fails. Missing,
-invalid, or empty case lists fail discovery. The native error/timeout contract tests remain handwritten. Jest and Vitest are not needed to
-run the JS cases.
+Each `.test.ts` file is one suite and one Swift Testing or JUnit parameter. Its cases run sequentially in one Hermes runtime. A failure
+stops that suite; other suites continue. Missing, invalid, or empty case lists fail discovery. The native error/timeout contract tests
+remain handwritten. Jest and Vitest are not needed to run the JS cases.
 
 Larger suites can export a `cases` object whose keys are literal test names. `casesForTestObjects` binds each case to a fresh C++ or
 Swift/Kotlin fixture; `namedCases` prefixes cases that do not use that pair of fixtures:
@@ -135,25 +135,28 @@ but cannot prove these ownership and scheduling details.
 
 ## Execution and failures
 
-Each native case creates a fresh Hermes runtime, installs Nitro, loads the bundle, and calls `runNitroTest(name)`. The runner eagerly
-compiles the bundle once and caches its bytecode by source contents. Each runtime evaluates that bytecode with fresh globals and native
-objects. Compilation happens before the JS deadlines; Hermes' watchdog cannot interrupt the native compiler.
+Each test file creates a fresh Hermes runtime, installs Nitro, loads the bundle, and calls `runNitroTest(name)` for each enabled case. The
+runtime is destroyed after the file finishes or its first failure. The ten shared test files therefore use ten runtimes per successful run;
+handwritten native runner contracts use separate runtimes. The runner eagerly compiles the bundle once and caches its bytecode by source
+contents. Each runtime evaluates that bytecode with fresh globals and native objects. Compilation happens before the JS deadlines; Hermes'
+watchdog cannot interrupt the native compiler.
 
-The native thread owns the runtime and pumps its dispatcher. On iOS, an operation queue runs at most two native tests at once while Swift
-awaits continuations. This leaves Swift's cooperative executor free to run `Promise.async` tasks that the JavaScript case awaits. The iOS
-runner restricts the cooperative pool to one worker so the concurrent native Promise test checks this behavior. Native work runs on
-background threads; its callbacks are queued back to the runtime's owning thread. When the microtask queue is empty, the dispatcher sleeps
-until a native callback arrives or the deadline expires. Each runtime owns its JSI caches. The shared prepared-bundle cache is locked only
-while compiling or replacing bytecode; test execution can overlap.
+The native thread owns the runtime and pumps its dispatcher. On iOS, an operation queue runs at most two suites at once while Swift awaits
+continuations. This leaves Swift's cooperative executor free to run `Promise.async` tasks that the JavaScript case awaits. The iOS runner
+restricts the cooperative pool to one worker so the concurrent native Promise test checks this behavior. Native work runs on background
+threads; its callbacks are queued back to the runtime's owning thread. When the microtask queue is empty, the dispatcher sleeps until a
+native callback arrives or the deadline expires. Each runtime owns its JSI caches. The shared prepared-bundle cache is locked only while
+compiling or replacing bytecode; test execution can overlap.
 
-An async case keeps that same runtime alive across every `await`. Put repeated calls, concurrent Promises, or cache-growth checks in one
-case when they must share runtime state. The suite checks concurrent native completions and a long Promise chain with per-iteration captured
-bindings. This host does not install timer APIs such as `setTimeout`. Asynchronous helpers yield via the C++ fixture's native `wait` method.
-The host exposes `gc()` for lifetime tests and `__nitroTestPlatform` for platform-dependent assertions.
+Cases in one file share module-level state, but `casesForTestObjects` still creates a fresh native fixture for each case. Restore shared
+native state after changing it. Put a case in its own `.test.ts` file when it needs an isolated runtime. The suite checks concurrent native
+completions and a long Promise chain with per-iteration captured bindings. This host does not install timer APIs such as `setTimeout`.
+Asynchronous helpers yield via the C++ fixture's native `wait` method. The host exposes `gc()` for lifetime tests and `__nitroTestPlatform`
+for platform-dependent assertions.
 
 Fulfillment passes. An assertion, JS exception, rejection, native exception, or timeout becomes a Swift error or JUnit assertion failure
 containing the case name and JS stack. The helper returns a message across the native boundary rather than exposing JSI values or throwing
-C++ exceptions into Swift. Bundle setup and test execution each get a 10-second timeout. Setup cannot consume the test's budget.
+C++ exceptions into Swift. Bundle setup and each case get a 10-second timeout. Setup cannot consume the case's budget.
 `withTestTimeout(150_000, test)` gives the four 55,000-object allocation/disposal cases 150 seconds to complete. Other tests retain the
 default, and the override never extends bundle setup. Native runner contracts pass shorter explicit limits to check timeouts. Hermes
 interrupts synchronous JS loops and endless microtask chains in either phase; timeout errors identify the phase. Late native callbacks
