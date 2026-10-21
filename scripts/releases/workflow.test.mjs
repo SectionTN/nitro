@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
 import { test } from 'node:test'
+import { nativeWorkflows, resolveNativeChecks } from './ci-native.mjs'
+import { git } from './lib.mjs'
 
 const workflow = Bun.YAML.parse(readFileSync(new URL('../../.github/workflows/release.yml', import.meta.url), 'utf8'))
 const androidArtifacts = Bun.YAML.parse(readFileSync(new URL('../../.github/workflows/build-android-release.yml', import.meta.url), 'utf8'))
-const androidJobs = ['test-runtime-android', 'harness-android']
 
 // These workflow conditions use boolean operators, strings and property access.
 // Convert GitHub's hyphenated property names before evaluating that subset.
@@ -21,6 +24,7 @@ function evaluate(expression, { cancelled = false, ...context } = {}) {
 function prerequisites(branch) {
   const needs = Object.fromEntries(workflow.jobs.release.needs.map((name) => [name, { result: 'success' }]))
   needs.resolve.outputs = { branch, commit: 'a'.repeat(40) }
+  for (const name of nativeWorkflows) needs.resolve.outputs[name] = 'true'
   return needs
 }
 
@@ -37,8 +41,153 @@ test('main and v1 require every check, including Android', () => {
       }
     }
   }
-  for (const name of androidJobs) assert.equal(workflow.jobs[name].if, undefined)
   assert.equal(evaluate(workflow.jobs.release.if, { needs: prerequisites('other') }), false)
+})
+
+test('only explicitly unneeded native checks can be skipped for publication', () => {
+  for (const branch of ['main', 'v1']) {
+    const needs = prerequisites(branch)
+    for (const name of nativeWorkflows) {
+      needs.resolve.outputs[name] = 'false'
+      needs[name].result = 'skipped'
+    }
+    assert.equal(evaluate(workflow.jobs.release.if, { needs }), true)
+    for (const name of nativeWorkflows) {
+      assert.equal(evaluate(workflow.jobs[name].if, { needs }), false)
+      for (const result of ['failure', 'cancelled']) {
+        const changed = structuredClone(needs)
+        changed[name].result = result
+        assert.equal(evaluate(workflow.jobs.release.if, { needs: changed }), false)
+      }
+      for (const required of ['true', '', undefined]) {
+        const changed = structuredClone(needs)
+        changed.resolve.outputs[name] = required
+        assert.equal(evaluate(workflow.jobs.release.if, { needs: changed }), false)
+        assert.equal(evaluate(workflow.jobs[name].if, { needs: changed }), required === 'true')
+      }
+    }
+  }
+})
+
+function nativeFixture(t) {
+  const cwd = mkdtempSync(path.join(tmpdir(), 'nitro-ci-native-'))
+  t.after(() => rmSync(cwd, { recursive: true, force: true }))
+  git(['init', '--quiet'], { cwd })
+  git(['config', 'user.name', 'Marc Rousavy'], { cwd })
+  git(['config', 'user.email', 'me@mrousavy.com'], { cwd })
+  mkdirSync(path.join(cwd, '.github/workflows'), { recursive: true })
+  for (const name of nativeWorkflows) {
+    copyFileSync(new URL(`../../.github/workflows/${name}.yml`, import.meta.url), path.join(cwd, '.github/workflows', `${name}.yml`))
+  }
+  function commit(filename, content = 'changed\n') {
+    mkdirSync(path.dirname(path.join(cwd, filename)), { recursive: true })
+    writeFileSync(path.join(cwd, filename), content)
+    git(['add', '.'], { cwd })
+    git(['commit', '--quiet', '--no-gpg-sign', '--message', 'Update fixture'], { cwd })
+    return git(['rev-parse', 'HEAD'], { cwd })
+  }
+  const baseline = commit('README.md', 'initial\n')
+  const run = { id: 42, conclusion: 'success', event: 'push', head_branch: 'v1', head_sha: baseline }
+  return {
+    cwd: cwd,
+    commit: commit,
+    baseline: baseline,
+    run: run,
+    options: (commit, runs = [run]) => ({
+      cwd: cwd,
+      env: { GITHUB_EVENT_NAME: 'push', GITHUB_REPOSITORY: 'margelo/nitro', RELEASE_BRANCH: 'v1', RELEASE_VALIDATED_COMMIT: commit },
+      fetchJSON: async (url) => {
+        if (url.pathname.endsWith('/jobs')) return { jobs: [{ name: 'release', conclusion: 'success' }] }
+        return { workflow_runs: runs }
+      },
+    }),
+  }
+}
+
+function selected(checks) {
+  return nativeWorkflows.filter((name) => checks[name])
+}
+
+test('docs pushes skip native checks only after a successful ancestor', async (t) => {
+  const fixture = nativeFixture(t)
+  const commit = fixture.commit('docs/guide.md')
+  assert.deepEqual(selected(await resolveNativeChecks(fixture.options(commit))), [])
+  for (const runs of [[], [{ ...fixture.run, conclusion: 'cancelled' }], [{ ...fixture.run, conclusion: 'failure' }]]) {
+    assert.deepEqual(selected(await resolveNativeChecks(fixture.options(commit, runs))), nativeWorkflows)
+  }
+})
+
+test('a docs push still validates native changes from failed or cancelled pushes', async (t) => {
+  const fixture = nativeFixture(t)
+  const nativeCommit = fixture.commit('packages/nitro-core/native/cpp/example.cpp')
+  const docsCommit = fixture.commit('docs/guide.md')
+  for (const conclusion of ['failure', 'cancelled']) {
+    const runs = [{ ...fixture.run, head_sha: nativeCommit, conclusion: conclusion }, fixture.run]
+    assert.deepEqual(selected(await resolveNativeChecks(fixture.options(docsCommit, runs))), nativeWorkflows)
+  }
+})
+
+test('an overall successful run with skipped or missing publication is not a baseline', async (t) => {
+  const fixture = nativeFixture(t)
+  const commit = fixture.commit('docs/guide.md')
+  for (const jobs of [[], undefined, [{ name: 'release', conclusion: 'skipped' }], [{ name: 'release', conclusion: 'cancelled' }]]) {
+    const options = fixture.options(commit)
+    options.fetchJSON = async (url) => {
+      if (url.pathname.endsWith('/jobs')) return { jobs: jobs }
+      return { workflow_runs: [fixture.run] }
+    }
+    assert.deepEqual(selected(await resolveNativeChecks(options)), nativeWorkflows)
+  }
+})
+
+test('push selection uses the native workflows pull request paths', async (t) => {
+  const fixture = nativeFixture(t)
+  const standalone = fixture.commit('tests/standalone/test-runner/android/config.properties')
+  assert.deepEqual(selected(await resolveNativeChecks(fixture.options(standalone))), ['test-runtime-ios', 'test-runtime-android'])
+  const harness = fixture.commit('patches/@react-native-harness%2Fplatform-apple@1.5.0.patch')
+  const runs = [{ ...fixture.run, head_sha: standalone }]
+  assert.deepEqual(selected(await resolveNativeChecks(fixture.options(harness, runs))), ['harness-ios'])
+})
+
+test('renaming a native file out of its path still requires validation', async (t) => {
+  const fixture = nativeFixture(t)
+  const nativeCommit = fixture.commit('packages/nitro-core/native/cpp/example.cpp')
+  mkdirSync(path.join(fixture.cwd, 'docs'))
+  git(['mv', 'packages/nitro-core/native/cpp/example.cpp', 'docs/example.cpp'], { cwd: fixture.cwd })
+  const movedCommit = fixture.commit('README.md', 'renamed\n')
+  assert.deepEqual(
+    selected(await resolveNativeChecks(fixture.options(movedCommit, [{ ...fixture.run, head_sha: nativeCommit }]))),
+    nativeWorkflows
+  )
+})
+
+test('unknown baselines, lookup failures and changed release policy run every native check', async (t) => {
+  const fixture = nativeFixture(t)
+  const docsCommit = fixture.commit('docs/guide.md')
+  for (const runs of [[{ ...fixture.run, head_branch: 'main' }], [{ ...fixture.run, head_sha: 'a'.repeat(40) }], undefined]) {
+    const options = fixture.options(docsCommit)
+    options.fetchJSON = async () => ({ workflow_runs: runs })
+    assert.deepEqual(selected(await resolveNativeChecks(options)), nativeWorkflows)
+  }
+  const options = fixture.options(docsCommit)
+  options.fetchJSON = async () => {
+    throw new Error('GitHub unavailable')
+  }
+  assert.deepEqual(selected(await resolveNativeChecks(options)), nativeWorkflows)
+  const changedPolicy = fixture.commit('.github/workflows/release.yml')
+  assert.deepEqual(selected(await resolveNativeChecks(fixture.options(changedPolicy))), nativeWorkflows)
+})
+
+test('manual and tagged releases always run all native checks', async () => {
+  for (const event of ['workflow_dispatch', 'release']) {
+    const checks = await resolveNativeChecks({
+      env: { GITHUB_EVENT_NAME: event },
+      fetchJSON: () => {
+        throw new Error('Manual releases should not look for a baseline')
+      },
+    })
+    assert.deepEqual(selected(checks), nativeWorkflows)
+  }
 })
 
 test('branch pushes and alpha release events select the correct release branch', () => {
