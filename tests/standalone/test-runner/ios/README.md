@@ -56,10 +56,10 @@ bun tests/standalone/test-runner/ios/run.mjs --help
 exported tests in `js/**/*.test.ts` need no Swift changes. Suites can be rerun individually in Xcode. A failed case stops its suite and
 reports its file-qualified name and JS stack. Missing, invalid, empty or duplicate manifest entries fail discovery.
 
-The Swift tests await an operation queue limited to two concurrent suites. Each file creates one fresh Hermes runtime and executes its cases
-in order, with JavaScript and callbacks on its owning worker. The runtime is destroyed after the file finishes or fails. This keeps Swift's
-cooperative executor available for `Promise.async` completions. The queue uses user-interactive QoS, matching React Native's JS thread, so
-Swift tasks started by `Promise.async` inherit that priority. The shared Xcode scheme and command-line runner set
+The Swift tests await an operation queue limited to four concurrent suites. Each file creates one fresh Hermes runtime and executes its
+cases in order, with JavaScript and callbacks on its owning worker. The runtime is destroyed after the file finishes or fails. This keeps
+Swift's cooperative executor available for `Promise.async` completions. The queue uses user-interactive QoS, matching React Native's JS
+thread, so Swift tasks started by `Promise.async` inherit that priority. The shared Xcode scheme and command-line runner set
 `LIBDISPATCH_COOPERATIVE_POOL_STRICT=1` in the test process so the concurrent native Promise case runs with one cooperative worker.
 
 The static-property cases belong to `objects.test.ts`, so their writes to shared native storage run sequentially. They restore the original
@@ -67,9 +67,10 @@ values before returning.
 
 The Objective-C++ bridge converts a failed assertion or native exception into a Swift error. Handwritten tests check error propagation,
 cached bytecode with shared state within a suite and fresh state between suites, per-case timeout overrides, independent setup and execution
-budgets, and timeouts for unresolved promises, synchronous loops, and endless microtask chains. A concurrency contract submits three tests
-and makes the first two initialized runtimes meet, checking overlap, the two-worker limit, isolated globals, and Swift Promise callbacks.
-The automatically discovered TypeScript cases check HybridObject behavior.
+budgets, and timeouts for unresolved promises, synchronous loops, and endless microtask chains. A concurrency contract uses a separate queue
+with the same four-worker configuration so its rendezvous does not wait behind behavior suites. It submits five tests and makes the first
+four initialized runtimes meet, checking overlap, the worker limit, isolated globals, and Swift Promise callbacks. The automatically
+discovered TypeScript cases check HybridObject behavior.
 
 `--sanitizer` accepts `none` (the default), `address` (ASan), or `thread` (TSan). CI runs all three modes. Xcode instruments the C++,
 Objective-C++, and Swift sources compiled for Core, generated bindings, fixtures, and the test runner. The prebuilt Hermes XCFramework is

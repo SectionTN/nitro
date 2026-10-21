@@ -12,14 +12,18 @@ private var testResources: Bundle {
   #endif
 }
 
-private let runtimeQueue: OperationQueue = {
+private let maxConcurrentRuntimes = 4
+
+private func makeRuntimeQueue() -> OperationQueue {
   let queue = OperationQueue()
   queue.name = "com.margelo.nitro.tests.runtime"
-  queue.maxConcurrentOperationCount = 2
+  queue.maxConcurrentOperationCount = maxConcurrentRuntimes
   // Match React Native's JS-thread QoS for the Swift tasks started by Promise.async.
   queue.qualityOfService = .userInteractive
   return queue
-}()
+}
+
+private let runtimeQueue = makeRuntimeQueue()
 
 private func runNitroSuite(_ source: String, _ names: [String], _ timeoutMs: UInt32) async -> String? {
   // The native runner blocks until JS settles. Swift Promise.async fixtures need
@@ -180,9 +184,10 @@ struct RuntimeTests {
       };
       """
     let runs = ConcurrentRuns()
+    let queue = makeRuntimeQueue()
     await withCheckedContinuation { continuation in
-      let operations = (0..<3).map { index in
-        let operation = BlockOperation {
+      let operations = (0...maxConcurrentRuntimes).map { index in
+        BlockOperation {
           let failure = NitroRunSuite(source, ["parallel-runtime-\(index)"], 10_000) {
             runs.started(index)
           }
@@ -190,15 +195,12 @@ struct RuntimeTests {
             continuation.resume()
           }
         }
-        // Keep the rendezvous pair together ahead of the behavior-test backlog.
-        operation.queuePriority = .veryHigh
-        return operation
       }
-      runtimeQueue.addOperations(operations, waitUntilFinished: false)
+      queue.addOperations(operations, waitUntilFinished: false)
     }
     let result = runs.result
-    #expect(result.overlapped, "Two initialized Hermes runtimes must meet before either test runs")
-    #expect(result.peak == 2, "The third native test must wait for a worker")
+    #expect(result.overlapped, "Four initialized Hermes runtimes must meet before any test runs")
+    #expect(result.peak == 4, "Four runtimes must overlap while the fifth waits for a worker")
     #expect(result.failures.isEmpty, "\(result.failures)")
   }
 
@@ -301,7 +303,7 @@ struct RuntimeTests {
   }
 }
 
-// Protect observations shared by the two native workers. The deadline only
+// Protect observations shared by the native workers. The deadline only
 // makes a serialization regression fail instead of hanging the test process.
 private final class ConcurrentRuns: @unchecked Sendable {
   private let condition = NSCondition()
@@ -320,7 +322,7 @@ private final class ConcurrentRuns: @unchecked Sendable {
     peak = max(peak, active.count)
     condition.broadcast()
     let deadline = Date().addingTimeInterval(10)
-    while startedCount < 2 {
+    while startedCount < maxConcurrentRuntimes {
       if !condition.wait(until: deadline) {
         overlapped = false
         break
@@ -334,12 +336,12 @@ private final class ConcurrentRuns: @unchecked Sendable {
     active.remove(index)
     finishedCount += 1
     if let failure { failures.append(failure) }
-    return finishedCount == 3
+    return finishedCount == maxConcurrentRuntimes + 1
   }
 
   var result: (overlapped: Bool, peak: Int, failures: [String]) {
     condition.lock()
     defer { condition.unlock() }
-    return (overlapped && startedCount == 3, peak, failures)
+    return (overlapped && startedCount == maxConcurrentRuntimes + 1, peak, failures)
   }
 }
