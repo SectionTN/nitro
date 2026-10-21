@@ -6,7 +6,7 @@
 ///
 
 public import NitroModules
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 /**
  * A Swift enum with associated values representing a Variant/Union type.

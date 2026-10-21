@@ -6,7 +6,7 @@
 ///
 internal import NitroModules
 internal import CxxStdlib
-public import NitroTestExternalAppleCxx
+internal import NitroTestExternalAppleCxx
 
 /**
  * A class implementation that bridges HybridTestViewSpec over to C++.

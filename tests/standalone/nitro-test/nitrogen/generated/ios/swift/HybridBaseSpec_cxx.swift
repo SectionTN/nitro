@@ -6,7 +6,7 @@
 ///
 internal import NitroModules
 internal import CxxStdlib
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 internal import NitroTestExternal
 
 /**

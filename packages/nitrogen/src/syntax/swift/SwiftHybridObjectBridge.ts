@@ -244,7 +244,7 @@ ${swiftMemberAccess} override func getCxxPart() -> bridge.${getHybridObjectBridg
     {
       language: 'swift',
       name: `${swiftModuleName}AppleCxx`,
-      access: 'public',
+      access: 'internal',
     },
     ...getSwiftImports(type.baseTypes, 'public'),
     ...getSwiftImports([...spec.methods, ...spec.properties, ...spec.staticMethods, ...spec.staticProperties], 'internal'),

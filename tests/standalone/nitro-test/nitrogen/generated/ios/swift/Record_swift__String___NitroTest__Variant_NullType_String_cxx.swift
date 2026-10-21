@@ -5,7 +5,7 @@
 /// Copyright © Marc Rousavy @ Margelo
 ///
 
-public import NitroModules
+internal import NitroModules
 internal import CxxStdlib
 
 @_expose(Cxx)

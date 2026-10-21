@@ -16,7 +16,7 @@ export function getProtocolConformanceImports(
   })
 }
 
-/** Collect dependencies at the access level needed by their generated Swift usage. */
+/** Narrow API dependencies for bridge-only usage without promoting implementation imports. */
 export function getSwiftImports(
   types: Pick<Type, 'getRequiredImports'>[],
   access: SourceImport<'swift'>['access']
@@ -24,5 +24,8 @@ export function getSwiftImports(
   return types
     .flatMap((type) => type.getRequiredImports('swift'))
     .filter((i) => i.language === 'swift')
-    .map((i) => ({ ...i, access: access }))
+    .map((i) => {
+      if (i.access === 'private' || access === 'public') return i
+      return { ...i, access: access }
+    })
 }

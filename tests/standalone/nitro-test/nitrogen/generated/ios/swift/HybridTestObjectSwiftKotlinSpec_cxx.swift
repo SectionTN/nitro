@@ -5,8 +5,8 @@
 /// Copyright © Marc Rousavy @ Margelo
 ///
 public import NitroModules
-public import CxxStdlib
-public import NitroTestAppleCxx
+internal import CxxStdlib
+internal import NitroTestAppleCxx
 public import NitroTestExternal
 
 /**

@@ -7,7 +7,7 @@
 
 public import NitroModules
 internal import CxxStdlib
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 public typealias Callback_void_swift__Optional_double_ = margelo.nitro.test.swift_bridge.Callback_void_swift__Optional_double_
 

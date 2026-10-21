@@ -8,7 +8,7 @@
 public import NitroModules
 internal import CxxStdlib
 public import Dispatch
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 public import NitroTestExternal
 
 public typealias Promise___NitroTestExternal__HybridSomeExternalObjectSpec_cxx = margelo.nitro.test.swift_bridge.Promise___NitroTestExternal__HybridSomeExternalObjectSpec_cxx

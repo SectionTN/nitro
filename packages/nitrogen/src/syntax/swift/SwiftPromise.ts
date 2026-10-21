@@ -15,11 +15,7 @@ export function createSwiftPromiseBridge(type: SwiftPromiseType): SourceFile[] {
     { language: 'swift', name: 'NitroModules', access: 'public' },
     { language: 'swift', name: 'CxxStdlib', access: 'internal' },
     { language: 'swift', name: 'Dispatch', access: 'public' },
-    {
-      language: 'swift',
-      name: `${NitroConfig.current.getIosModuleName()}AppleCxx`,
-      access: 'public',
-    },
+    ...type.getRequiredImports('swift'),
     ...promiseType.getRequiredImports('swift'),
   ])
 

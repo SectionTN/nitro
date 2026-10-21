@@ -6,7 +6,7 @@
 //
 
 public import Foundation
-public import NitroModulesAppleCxx
+internal import NitroModulesAppleCxx
 
 /// Equality compares the encoded JSON bytes, including key order and whitespace.
 @_expose(Cxx)

@@ -8,7 +8,7 @@
 public import NitroModules
 internal import CxxStdlib
 public import Dispatch
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 public typealias Promise_swift__Optional_double_ = margelo.nitro.test.swift_bridge.Promise_swift__Optional_double_
 

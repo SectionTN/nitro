@@ -8,7 +8,7 @@
 public import NitroModules
 internal import CxxStdlib
 public import Dispatch
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 public typealias Promise___NitroTest__SwiftContainer_swift__Array___NitroTest__Powertrain_ = margelo.nitro.test.swift_bridge.Promise___NitroTest__SwiftContainer_swift__Array___NitroTest__Powertrain_
 

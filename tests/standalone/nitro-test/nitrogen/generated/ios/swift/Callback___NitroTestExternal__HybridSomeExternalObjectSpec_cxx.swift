@@ -8,7 +8,7 @@
 public import NitroModules
 internal import CxxStdlib
 public import NitroTestExternal
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 public typealias Callback___NitroTestExternal__HybridSomeExternalObjectSpec_cxx = margelo.nitro.test.swift_bridge.Callback___NitroTestExternal__HybridSomeExternalObjectSpec_cxx
 
