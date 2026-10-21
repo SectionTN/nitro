@@ -88,6 +88,11 @@ export class HybridObjectType implements Type {
             `HybridObject "${this.hybridObjectName}" is implemented in ${android.language} on Android, but this reference requires Kotlin. Cross-language HybridObject references are currently supported only in C++ APIs.`
           )
         }
+        if (!android.allowMultipleImplementations) {
+          const implementation = android.implementation
+          if (fullyQualified) return [...implementation.package, implementation.className].join('.')
+          return implementation.className
+        }
         if (fullyQualified) {
           // full qualified name: "com.margelo.nitro.image.Image"
           return this.sourceConfig.getAndroidPackage('java/kotlin', name.HybridTSpec)
@@ -130,7 +135,14 @@ export class HybridObjectType implements Type {
         break
       }
       case 'kotlin': {
-        if (this.sourceConfig.isExternalConfig) {
+        const android = this.platforms.android
+        if (android?.language === 'kotlin' && !android.allowMultipleImplementations) {
+          const implementation = android.implementation
+          imports.push({
+            language: language,
+            name: [...implementation.package, implementation.className].join('.'),
+          })
+        } else if (this.sourceConfig.isExternalConfig) {
           imports.push({
             language,
             name: this.sourceConfig.getAndroidPackage('java/kotlin', name.HybridTSpec),

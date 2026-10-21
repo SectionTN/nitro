@@ -73,7 +73,7 @@
 #include <NitroTest/private/JExternalObjectStruct.hpp>
 #include <NitroTest/private/JStringOrExternal.hpp>
 #include <NitroTest/private/JCppOnlyValue.hpp>
-#include <NitroTest/private/JVariant_HybridTestObjectSwiftKotlinSpec_Person.hpp>
+#include <NitroTest/private/JVariant_HybridTestObjectKotlin_Person.hpp>
 #include <NitroTest/private/JCallback_void_std__vector_Powertrain_.hpp>
 #include <NitroTest/private/JCallback_Promise_std__vector_Powertrain__.hpp>
 #include <NitroTest/private/JCallback_std__vector_std__vector_std__optional_Person____std__vector_std__vector_std__optional_Person___.hpp>
@@ -314,7 +314,7 @@ namespace margelo::nitro::test {
     jni::local_ref<JCppOnlyValue> bounceCppOnlyValue(const jni::local_ref<JCppOnlyValue>& value);
     jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart> newTestObject();
     jni::local_ref<JTypedPromise<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>>> newTestObjectAsync();
-    jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> getVariantHybrid(const jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person>& variant);
+    jni::local_ref<JVariant_HybridTestObjectKotlin_Person> getVariantHybrid(const jni::local_ref<JVariant_HybridTestObjectKotlin_Person>& variant);
 
   public:
     // Constructor and static members

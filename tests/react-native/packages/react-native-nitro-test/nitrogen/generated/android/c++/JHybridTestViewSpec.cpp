@@ -130,7 +130,7 @@ namespace margelo::nitro::test {
 
   // Methods
   jboolean JHybridTestViewSpec::getIsViewBlue(const jni::local_ref<JHybridTestViewSpecJavaPart>& view) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean(jni::alias_ref<JHybridTestViewSpecJavaPart> /* view */)>("getIsViewBlue");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean(jni::alias_ref<JHybridTestViewSpecJavaPart> /* view */)>("getIsViewBlue_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass(), view);
     return __result;
   }

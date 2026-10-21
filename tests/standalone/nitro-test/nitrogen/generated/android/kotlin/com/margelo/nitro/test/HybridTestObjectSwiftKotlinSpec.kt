@@ -12,13 +12,14 @@ import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
 import dalvik.annotation.optimization.FastNative
 import com.margelo.nitro.core.NullType
+import com.margelo.nitro.test.HybridTestObjectKotlin
 import com.margelo.nitro.core.Promise
 import com.margelo.nitro.utils.mapToArray
 import com.margelo.nitro.utils.mapToLongArray
 import com.margelo.nitro.core.AnyJSON
 import com.margelo.nitro.core.ArrayBuffer
+import com.margelo.nitro.test.HybridGrandchild
 import com.margelo.nitro.test.external.HybridSomeExternalObjectSpec
-import com.margelo.nitro.test.HybridTestObjectKotlin
 import com.margelo.nitro.core.HybridObject
 
 /**
@@ -178,15 +179,27 @@ abstract class HybridTestObjectSwiftKotlinSpec: HybridObject() {
   @set:Keep
   abstract var someVariant: Variant_Double_String
 
-  @get:DoNotStrip
-  @get:Keep
-  abstract val thisObject: HybridTestObjectSwiftKotlinSpec
+  abstract val thisObject: HybridTestObjectKotlin
 
-  @get:DoNotStrip
-  @get:Keep
-  @set:DoNotStrip
-  @set:Keep
-  abstract var optionalHybrid: HybridTestObjectSwiftKotlinSpec?
+  @DoNotStrip
+  @Keep
+  private fun getThisObject_cxx(): HybridTestObjectSwiftKotlinSpec {
+    return this.thisObject
+  }
+
+  abstract var optionalHybrid: HybridTestObjectKotlin?
+
+  @DoNotStrip
+  @Keep
+  private fun getOptionalHybrid_cxx(): HybridTestObjectSwiftKotlinSpec? {
+    return this.optionalHybrid?.let { it }
+  }
+
+  @DoNotStrip
+  @Keep
+  private fun setOptionalHybrid_cxx(value: HybridTestObjectSwiftKotlinSpec?): Unit {
+    this.optionalHybrid = value?.let { it as HybridTestObjectKotlin }
+  }
 
   // Methods
   @DoNotStrip
@@ -703,9 +716,14 @@ abstract class HybridTestObjectSwiftKotlinSpec: HybridObject() {
   @Keep
   abstract fun createBaseActualChild(): HybridBaseSpec
 
+  abstract fun createGrandchild(): HybridGrandchild
+
   @DoNotStrip
   @Keep
-  abstract fun createGrandchild(): HybridGrandchildSpec
+  private fun createGrandchild_cxx(): HybridGrandchildSpec {
+    val __result = createGrandchild()
+    return __result
+  }
 
   @DoNotStrip
   @Keep
@@ -715,9 +733,14 @@ abstract class HybridTestObjectSwiftKotlinSpec: HybridObject() {
   @Keep
   abstract fun createBaseActualGrandchild(): HybridBaseSpec
 
+  abstract fun bounceGrandchild(grandchild: HybridGrandchild): HybridGrandchild
+
   @DoNotStrip
   @Keep
-  abstract fun bounceGrandchild(grandchild: HybridGrandchildSpec): HybridGrandchildSpec
+  private fun bounceGrandchild_cxx(grandchild: HybridGrandchildSpec): HybridGrandchildSpec {
+    val __result = bounceGrandchild(grandchild as HybridGrandchild)
+    return __result
+  }
 
   @DoNotStrip
   @Keep
@@ -791,17 +814,27 @@ abstract class HybridTestObjectSwiftKotlinSpec: HybridObject() {
   @Keep
   abstract fun bounceCppOnlyValue(value: CppOnlyValue): CppOnlyValue
 
-  @DoNotStrip
-  @Keep
-  abstract fun newTestObject(): HybridTestObjectSwiftKotlinSpec
+  abstract fun newTestObject(): HybridTestObjectKotlin
 
   @DoNotStrip
   @Keep
-  abstract fun newTestObjectAsync(): Promise<HybridTestObjectSwiftKotlinSpec>
+  private fun newTestObject_cxx(): HybridTestObjectSwiftKotlinSpec {
+    val __result = newTestObject()
+    return __result
+  }
+
+  abstract fun newTestObjectAsync(): Promise<HybridTestObjectKotlin>
 
   @DoNotStrip
   @Keep
-  abstract fun getVariantHybrid(variant: Variant_HybridTestObjectSwiftKotlinSpec_Person): Variant_HybridTestObjectSwiftKotlinSpec_Person
+  private fun newTestObjectAsync_cxx(): Promise<HybridTestObjectSwiftKotlinSpec> {
+    val __result = newTestObjectAsync()
+    return __result.let { __source -> Promise<HybridTestObjectSwiftKotlinSpec>().also { __promise -> __source.then { __result -> __promise.resolve(__result) }.catch { __promise.reject(it) } } }
+  }
+
+  @DoNotStrip
+  @Keep
+  abstract fun getVariantHybrid(variant: Variant_HybridTestObjectKotlin_Person): Variant_HybridTestObjectKotlin_Person
 
   // Default implementation of `HybridObject.toString()`
   override fun toString(): String {

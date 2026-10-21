@@ -21,7 +21,13 @@ sealed class CoreTypesVariant private constructor(@DoNotStrip private val index:
   @DoNotStrip
   data class First(@DoNotStrip val value: ArrayBuffer): CoreTypesVariant(0)
   @DoNotStrip
-  data class Second(@DoNotStrip val value: Callback_void_double): CoreTypesVariant(1)
+  data class Second(@DoNotStrip val value: (value: Double) -> Unit): CoreTypesVariant(1) {
+    @DoNotStrip
+    @Suppress("unused", "FunctionName")
+    private fun getValue_cxx(): Callback_void_double {
+      return value.let { if (it is Callback_void_double) it else Callback_void_double_java(it) }
+    }
+  }
   @DoNotStrip
   data class Third(@DoNotStrip val value: WrappedJsStruct): CoreTypesVariant(2)
   @DoNotStrip
@@ -93,7 +99,7 @@ sealed class CoreTypesVariant private constructor(@DoNotStrip private val index:
     private fun fromCpp_0(value: ArrayBuffer): CoreTypesVariant = First(value)
     @JvmStatic
     @DoNotStrip
-    fun create(value: (value: Double) -> Unit): CoreTypesVariant = Second(value.let { if (it is Callback_void_double) it else Callback_void_double_java(it) })
+    fun create(value: (value: Double) -> Unit): CoreTypesVariant = Second(value)
 
     @JvmStatic
     @DoNotStrip

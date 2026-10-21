@@ -17,7 +17,13 @@ import com.facebook.proguard.annotations.DoNotStrip
 @DoNotStrip
 sealed class Variant_______Unit_Double private constructor(@DoNotStrip private val index: Int) {
   @DoNotStrip
-  data class First(@DoNotStrip val value: Callback_void): Variant_______Unit_Double(0)
+  data class First(@DoNotStrip val value: () -> Unit): Variant_______Unit_Double(0) {
+    @DoNotStrip
+    @Suppress("unused", "FunctionName")
+    private fun getValue_cxx(): Callback_void {
+      return value.let { if (it is Callback_void) it else Callback_void_java(it) }
+    }
+  }
   @DoNotStrip
   data class Second(@DoNotStrip val value: Double): Variant_______Unit_Double(1)
 
@@ -54,7 +60,7 @@ sealed class Variant_______Unit_Double private constructor(@DoNotStrip private v
   companion object {
     @JvmStatic
     @DoNotStrip
-    fun create(value: () -> Unit): Variant_______Unit_Double = First(value.let { if (it is Callback_void) it else Callback_void_java(it) })
+    fun create(value: () -> Unit): Variant_______Unit_Double = First(value)
 
     @JvmStatic
     @DoNotStrip

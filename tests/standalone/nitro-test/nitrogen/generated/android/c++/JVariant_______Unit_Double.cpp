@@ -24,8 +24,8 @@ namespace margelo::nitro::test {
   }
 
   JVariant_______Unit_Double_impl::First::Value JVariant_______Unit_Double_impl::First::getValue() const {
-    static const auto field = javaClassStatic()->getField<margelo::nitro::test::JCallback_void>("value");
-    return getFieldValue(field);
+    static const auto method = javaClassStatic()->getMethod<jni::local_ref<margelo::nitro::test::JCallback_void>()>("getValue_cxx");
+    return method(this->self());
   }
 
   jni::local_ref<JVariant_______Unit_Double> JVariant_______Unit_Double_impl::Second::create(jdouble value) {

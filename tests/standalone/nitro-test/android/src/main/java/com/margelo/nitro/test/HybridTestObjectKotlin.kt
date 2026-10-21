@@ -59,8 +59,8 @@ class HybridTestObjectKotlin : HybridTestObjectSwiftKotlinSpec() {
   override var stringOrUndefined: String? = null
   override var nullValue: NullType = NullType.NULL
   override var stringOrNull: Variant_NullType_String = Variant_NullType_String.create(NullType.NULL)
-  override var optionalHybrid: HybridTestObjectSwiftKotlinSpec? = null
-  override val thisObject: HybridTestObjectSwiftKotlinSpec
+  override var optionalHybrid: HybridTestObjectKotlin? = null
+  override val thisObject: HybridTestObjectKotlin
     get() = this
   override var someVariant: Variant_Double_String = Variant_Double_String.create(55.05)
   override var optionalArray: Array<String>? = null
@@ -665,7 +665,7 @@ class HybridTestObjectKotlin : HybridTestObjectSwiftKotlinSpec() {
     return variant
   }
 
-  override fun getVariantHybrid(variant: Variant_HybridTestObjectSwiftKotlinSpec_Person): Variant_HybridTestObjectSwiftKotlinSpec_Person {
+  override fun getVariantHybrid(variant: Variant_HybridTestObjectKotlin_Person): Variant_HybridTestObjectKotlin_Person {
     return variant
   }
 
@@ -707,13 +707,13 @@ class HybridTestObjectKotlin : HybridTestObjectSwiftKotlinSpec() {
     return HybridChild()
   }
 
-  override fun createGrandchild(): HybridGrandchildSpec = HybridGrandchild()
+  override fun createGrandchild(): HybridGrandchild = HybridGrandchild()
 
   override fun createChildActualGrandchild(): HybridChildSpec = HybridGrandchild()
 
   override fun createBaseActualGrandchild(): HybridBaseSpec = HybridGrandchild()
 
-  override fun bounceGrandchild(grandchild: HybridGrandchildSpec): HybridGrandchildSpec = grandchild
+  override fun bounceGrandchild(grandchild: HybridGrandchild): HybridGrandchild = grandchild
 
   override fun bounceChild(child: HybridChildSpec): HybridChildSpec {
     return child
@@ -734,12 +734,12 @@ class HybridTestObjectKotlin : HybridTestObjectSwiftKotlinSpec() {
     return base
   }
 
-  override fun newTestObject(): HybridTestObjectSwiftKotlinSpec {
+  override fun newTestObject(): HybridTestObjectKotlin {
     return HybridTestObjectKotlin()
   }
 
-  override fun newTestObjectAsync(): Promise<HybridTestObjectSwiftKotlinSpec> {
-    return Promise.parallel<HybridTestObjectSwiftKotlinSpec> {
+  override fun newTestObjectAsync(): Promise<HybridTestObjectKotlin> {
+    return Promise.parallel<HybridTestObjectKotlin> {
       HybridTestObjectKotlin()
     }
   }

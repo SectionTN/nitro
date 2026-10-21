@@ -11,9 +11,9 @@ import androidx.annotation.Keep
 import com.facebook.jni.HybridData
 import com.facebook.proguard.annotations.DoNotStrip
 import dalvik.annotation.optimization.FastNative
+import com.margelo.nitro.test.HybridBenchmarkObjectKotlin
 import com.margelo.nitro.core.ArrayBuffer
 import com.margelo.nitro.core.Promise
-import com.margelo.nitro.test.HybridBenchmarkObjectKotlin
 import com.margelo.nitro.core.HybridObject
 
 /**
@@ -35,9 +35,13 @@ abstract class HybridBenchmarkObjectSwiftKotlinSpec: HybridObject() {
   @set:Keep
   abstract var numberValue: Double
 
-  @get:DoNotStrip
-  @get:Keep
-  abstract val thisObject: HybridBenchmarkObjectSwiftKotlinSpec
+  abstract val thisObject: HybridBenchmarkObjectKotlin
+
+  @DoNotStrip
+  @Keep
+  private fun getThisObject_cxx(): HybridBenchmarkObjectSwiftKotlinSpec {
+    return this.thisObject
+  }
 
   // Methods
   @DoNotStrip
@@ -101,9 +105,14 @@ abstract class HybridBenchmarkObjectSwiftKotlinSpec: HybridObject() {
   @Keep
   abstract fun resolvePendingPromiseOnWorker(): Unit
 
+  abstract fun newBenchmarkObject(): HybridBenchmarkObjectKotlin
+
   @DoNotStrip
   @Keep
-  abstract fun newBenchmarkObject(): HybridBenchmarkObjectSwiftKotlinSpec
+  private fun newBenchmarkObject_cxx(): HybridBenchmarkObjectSwiftKotlinSpec {
+    val __result = newBenchmarkObject()
+    return __result
+  }
 
   // Default implementation of `HybridObject.toString()`
   override fun toString(): String {

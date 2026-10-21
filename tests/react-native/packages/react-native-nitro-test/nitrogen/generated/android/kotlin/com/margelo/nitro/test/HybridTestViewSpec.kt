@@ -73,9 +73,14 @@ abstract class HybridTestViewSpec: HybridView() {
   abstract var nativeDefaultValue: Double?
 
   // Methods
+  abstract fun getIsViewBlue(view: HybridTestView): Boolean
+
   @DoNotStrip
   @Keep
-  abstract fun getIsViewBlue(view: HybridTestViewSpec): Boolean
+  private fun getIsViewBlue_cxx(view: HybridTestViewSpec): Boolean {
+    val __result = getIsViewBlue(view as HybridTestView)
+    return __result
+  }
 
   @DoNotStrip
   @Keep

@@ -336,6 +336,11 @@ To implement `Math` now, you just need to implement the spec:
     }
     ```
 
+    With a concrete `implementation`, generated Kotlin parameters, return values, and properties use that class, including values inside
+    arrays, callbacks, and other containers. The implementation must be public when another module references it. Use
+    `allowMultipleImplementations: true` to expose the generated spec type instead. JNI bridges keep using the spec type and convert at
+    the boundary.
+
   </TabItem>
   <TabItem value="cpp" label="C++">
     ```cpp title="HybridMath.hpp"

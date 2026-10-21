@@ -21,7 +21,7 @@ class HybridBenchmarkObjectKotlin : HybridBenchmarkObjectSwiftKotlinSpec() {
   }
 
   override var numberValue: Double = 0.0
-  override val thisObject: HybridBenchmarkObjectSwiftKotlinSpec
+  override val thisObject: HybridBenchmarkObjectKotlin
     get() = this
 
   override fun simpleFunc() {
@@ -72,7 +72,7 @@ class HybridBenchmarkObjectKotlin : HybridBenchmarkObjectSwiftKotlinSpec() {
     )
   }
 
-  override fun newBenchmarkObject(): HybridBenchmarkObjectSwiftKotlinSpec {
+  override fun newBenchmarkObject(): HybridBenchmarkObjectKotlin {
     return HybridBenchmarkObjectKotlin()
   }
 

@@ -14,13 +14,28 @@ export function createKotlinVariant(variant: KotlinVariantType): SourceFile[] {
   const kotlinName = variant.name
   const namespace = `${jniName}_impl`
 
-  const innerClasses = variant.kotlinCases.map(({ label, type }, index) => {
+  const innerClasses = variant.kotlinCases.map(({ label, publicType, type }, index) => {
     const innerName = capitalizeName(label)
-    const valueType = type.getCode('kotlin', { context: 'property' })
+    const valueType = publicType.getCode('kotlin', { context: 'property' })
+    const declaration = `data class ${innerName}(@DoNotStrip val value: ${valueType}): ${kotlinName}(${index})`
+    if (!type.needsKotlinConversion) {
+      return `
+@DoNotStrip
+${declaration}
+`.trim()
+    }
+    const bridgeType = type.getCode('kotlin', { context: 'return' })
+    const bridgeValue = type.convert('value', { from: 'kotlin', to: 'c++', in: 'kotlin' })
     return `
 @DoNotStrip
-data class ${innerName}(@DoNotStrip val value: ${valueType}): ${kotlinName}(${index})
-      `.trim()
+${declaration} {
+  @DoNotStrip
+  @Suppress("unused", "FunctionName")
+  private fun getValue_cxx(): ${bridgeType} {
+    return ${bridgeValue}
+  }
+}
+`.trim()
   })
 
   const packageName = config.getAndroidPackage('java/kotlin')
@@ -31,19 +46,14 @@ val is${innerName}: Boolean
   get() = this is ${innerName}
     `.trim()
   })
-  const asFunctions = variant.kotlinCases.map(({ label, publicType, type }) => {
+  const asFunctions = variant.kotlinCases.map(({ label, publicType }) => {
     const innerName = capitalizeName(label)
     const optional = new OptionalType(publicType)
     const optionalType = optional.getCode('kotlin', { context: 'return' })
-    const publicValue = type.convert('value', {
-      from: 'c++',
-      to: 'kotlin',
-      in: 'kotlin',
-    })
     return `
 fun as${innerName}OrNull(): ${optionalType} {
   val value = (this as? ${innerName})?.value ?: return null
-  return ${publicValue}
+  return value
 }
     `.trim()
   })
@@ -51,26 +61,16 @@ fun as${innerName}OrNull(): ${optionalType} {
     const type = publicType.getCode('kotlin', { context: 'parameter' })
     return `${label}: (${type}) -> R`
   })
-  const matchCases = variant.kotlinCases.map(({ label, type }) => {
+  const matchCases = variant.kotlinCases.map(({ label }) => {
     const innerName = capitalizeName(label)
-    const publicValue = type.convert('value', {
-      from: 'c++',
-      to: 'kotlin',
-      in: 'kotlin',
-    })
     return `
-is ${innerName} -> ${label}(${publicValue})
+is ${innerName} -> ${label}(value)
     `.trim()
   })
-  const asCases = variant.kotlinCases.map(({ label, type }) => {
+  const asCases = variant.kotlinCases.map(({ label }) => {
     const innerName = capitalizeName(label)
-    const publicValue = type.convert('value', {
-      from: 'c++',
-      to: 'kotlin',
-      in: 'kotlin',
-    })
     return `
-is ${innerName} -> (${publicValue}) as? T
+is ${innerName} -> (value) as? T
     `.trim()
   })
 
@@ -78,19 +78,19 @@ is ${innerName} -> (${publicValue}) as? T
     const innerName = capitalizeName(label)
     const valueType = publicType.getCode('kotlin', { context: 'parameter' })
     const bridgeType = type.getCode('kotlin', { context: 'parameter' })
-    const bridgeValue = type.convert('value', {
-      from: 'kotlin',
-      to: 'c++',
+    const publicValue = type.convert('value', {
+      from: 'c++',
+      to: 'kotlin',
       in: 'kotlin',
     })
     return `
 @JvmStatic
 @DoNotStrip
-fun create(value: ${valueType}): ${kotlinName} = ${innerName}(${bridgeValue})
+fun create(value: ${valueType}): ${kotlinName} = ${innerName}(value)
 
 @JvmStatic
 @DoNotStrip
-private fun fromCpp_${i}(value: ${bridgeType}): ${kotlinName} = ${innerName}(value)
+private fun fromCpp_${i}(value: ${bridgeType}): ${kotlinName} = ${innerName}(${publicValue})
 `.trim()
   })
 
@@ -148,7 +148,21 @@ sealed class ${kotlinName} private constructor(@DoNotStrip private val index: In
     const valueType = type.getCode('c++', { context: 'return' })
     const parameterType = type.getCode('c++', { context: 'parameter' })
     const createValue = convertJniValue(type, 'value', 'to-jni')
-    const extractedValue = convertJniValue(type, 'getFieldValue(field)', 'from-jni')
+    let getterBody: string
+    if (type.needsKotlinConversion) {
+      const jniReturnType = getJniCode(type, { context: 'return' })
+      const extractedValue = convertJniValue(type, 'method(this->self())', 'from-jni')
+      getterBody = `
+static const auto method = javaClassStatic()->getMethod<${jniReturnType}()>("getValue_cxx");
+return ${extractedValue};
+`.trim()
+    } else {
+      const extractedValue = convertJniValue(type, 'getFieldValue(field)', 'from-jni')
+      getterBody = `
+static const auto field = javaClassStatic()->getField<${jniField}>("value");
+return ${extractedValue};
+`.trim()
+    }
     const declaration = `
 class ${innerName} final : public jni::JavaClass<${innerName}, ${jniName}> {
 public:
@@ -166,8 +180,7 @@ jni::local_ref<${jniName}> ${namespace}::${innerName}::create(${parameterType} v
 }
 
 ${namespace}::${innerName}::Value ${namespace}::${innerName}::getValue() const {
-  static const auto field = javaClassStatic()->getField<${jniField}>("value");
-  return ${extractedValue};
+  ${indent(getterBody, '  ')}
 }
 `.trim()
     return { name: innerName, declaration: declaration, implementation: implementation }

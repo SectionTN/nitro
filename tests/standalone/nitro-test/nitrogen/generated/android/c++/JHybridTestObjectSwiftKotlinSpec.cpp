@@ -67,7 +67,7 @@
 #include <NitroTest/private/JExternalObjectStruct.hpp>
 #include <NitroTest/private/JStringOrExternal.hpp>
 #include <NitroTest/private/JCppOnlyValue.hpp>
-#include <NitroTest/private/JVariant_HybridTestObjectSwiftKotlinSpec_Person.hpp>
+#include <NitroTest/private/JVariant_HybridTestObjectKotlin_Person.hpp>
 #include <NitroTest/private/JCallback_void_std__vector_Powertrain_.hpp>
 #include <NitroTest/private/JCallback_Promise_std__vector_Powertrain__.hpp>
 #include <NitroTest/private/JCallback_std__vector_std__vector_std__optional_Person____std__vector_std__vector_std__optional_Person___.hpp>
@@ -499,17 +499,17 @@ namespace margelo::nitro::test {
     __method(_javaPart, CxxPart::getClass(), someVariant);
   }
   jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart> JHybridTestObjectSwiftKotlinSpec::getThisObject() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>()>("getThisObject");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>()>("getThisObject_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
   jni::local_ref<JOptional<JHybridTestObjectSwiftKotlinSpecJavaPart>> JHybridTestObjectSwiftKotlinSpec::getOptionalHybrid() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JOptional<JHybridTestObjectSwiftKotlinSpecJavaPart>>()>("getOptionalHybrid");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JOptional<JHybridTestObjectSwiftKotlinSpecJavaPart>>()>("getOptionalHybrid_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
   void JHybridTestObjectSwiftKotlinSpec::setOptionalHybrid(const jni::local_ref<JOptional<JHybridTestObjectSwiftKotlinSpecJavaPart>>& optionalHybrid) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<JOptional<JHybridTestObjectSwiftKotlinSpecJavaPart>> /* optionalHybrid */)>("setOptionalHybrid");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<JOptional<JHybridTestObjectSwiftKotlinSpecJavaPart>> /* optionalHybrid */)>("setOptionalHybrid_cxx");
     __method(_javaPart, CxxPart::getClass(), optionalHybrid);
   }
 
@@ -1022,7 +1022,7 @@ namespace margelo::nitro::test {
     return __result;
   }
   jni::local_ref<JHybridGrandchildSpecJavaPart> JHybridTestObjectSwiftKotlinSpec::createGrandchild() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridGrandchildSpecJavaPart>()>("createGrandchild");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridGrandchildSpecJavaPart>()>("createGrandchild_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
@@ -1037,7 +1037,7 @@ namespace margelo::nitro::test {
     return __result;
   }
   jni::local_ref<JHybridGrandchildSpecJavaPart> JHybridTestObjectSwiftKotlinSpec::bounceGrandchild(const jni::local_ref<JHybridGrandchildSpecJavaPart>& grandchild) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridGrandchildSpecJavaPart>(jni::alias_ref<JHybridGrandchildSpecJavaPart> /* grandchild */)>("bounceGrandchild");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridGrandchildSpecJavaPart>(jni::alias_ref<JHybridGrandchildSpecJavaPart> /* grandchild */)>("bounceGrandchild_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass(), grandchild);
     return __result;
   }
@@ -1107,17 +1107,17 @@ namespace margelo::nitro::test {
     return __result;
   }
   jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart> JHybridTestObjectSwiftKotlinSpec::newTestObject() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>()>("newTestObject");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>()>("newTestObject_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
   jni::local_ref<JTypedPromise<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>>> JHybridTestObjectSwiftKotlinSpec::newTestObjectAsync() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JTypedPromise<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>>>()>("newTestObjectAsync");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JTypedPromise<jni::local_ref<JHybridTestObjectSwiftKotlinSpecJavaPart>>>()>("newTestObjectAsync_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
-  jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> JHybridTestObjectSwiftKotlinSpec::getVariantHybrid(const jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person>& variant) {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person>(jni::alias_ref<JVariant_HybridTestObjectSwiftKotlinSpec_Person> /* variant */)>("getVariantHybrid");
+  jni::local_ref<JVariant_HybridTestObjectKotlin_Person> JHybridTestObjectSwiftKotlinSpec::getVariantHybrid(const jni::local_ref<JVariant_HybridTestObjectKotlin_Person>& variant) {
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JVariant_HybridTestObjectKotlin_Person>(jni::alias_ref<JVariant_HybridTestObjectKotlin_Person> /* variant */)>("getVariantHybrid");
     auto __result = __method(_javaPart, CxxPart::getClass(), variant);
     return __result;
   }

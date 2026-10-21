@@ -77,7 +77,7 @@ target_sources(NitroTest PRIVATE
   "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JVariant_Boolean_DoubleArray_Array_String__Double_String.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JVariant_Double_String.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JVariant_HybridBaseSpec_OptionalWrapper.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JVariant_HybridTestObjectSwiftKotlinSpec_Person.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JVariant_HybridTestObjectKotlin_Person.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JVariant_NullType_String.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JVariant_OldEnum_Boolean.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../android/c++/JVariant_Person_Car.cpp"

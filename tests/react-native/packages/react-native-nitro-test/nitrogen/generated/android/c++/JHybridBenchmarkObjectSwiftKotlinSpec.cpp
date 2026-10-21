@@ -109,7 +109,7 @@ namespace margelo::nitro::test {
     __method(_javaPart, CxxPart::getClass(), numberValue);
   }
   jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpecJavaPart> JHybridBenchmarkObjectSwiftKotlinSpec::getThisObject() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpecJavaPart>()>("getThisObject");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpecJavaPart>()>("getThisObject_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }
@@ -184,7 +184,7 @@ namespace margelo::nitro::test {
     __method(_javaPart, CxxPart::getClass());
   }
   jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpecJavaPart> JHybridBenchmarkObjectSwiftKotlinSpec::newBenchmarkObject() {
-    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpecJavaPart>()>("newBenchmarkObject");
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JHybridBenchmarkObjectSwiftKotlinSpecJavaPart>()>("newBenchmarkObject_cxx");
     auto __result = __method(_javaPart, CxxPart::getClass());
     return __result;
   }

@@ -9,7 +9,11 @@ import { getJniReferenceCode, type JNINativeRegistration, type KotlinConversion,
 
 export class KotlinHybridObjectType extends HybridObjectType implements KotlinType {
   readonly jniValueKind = 'object'
-  readonly needsKotlinConversion = false
+
+  get needsKotlinConversion(): boolean {
+    const android = this.platforms.android
+    return android?.language === 'kotlin' && !android.allowMultipleImplementations
+  }
 
   constructor(readonly type: HybridObjectType) {
     super(type.hybridObjectName, type.platforms, type.baseTypes, type.sourceConfig)
@@ -55,7 +59,12 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
         const jniName = fullyQualified ? this.sourceConfig.getCxxNamespace('c++', name.JHybridTSpecJavaPart) : name.JHybridTSpecJavaPart
         return getJniReferenceCode(jniName, options)
       }
-      case 'kotlin':
+      case 'kotlin': {
+        const name = getHybridObjectName(this.hybridObjectName)
+        const fullyQualified = options.fullyQualified ?? this.sourceConfig.isExternalConfig
+        if (fullyQualified) return this.sourceConfig.getAndroidPackage('java/kotlin', name.HybridTSpec)
+        return name.HybridTSpec
+      }
       case 'swift':
         return super.getCode(language, options)
     }
@@ -63,8 +72,11 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
 
   convert(value: string, { from, in: language }: KotlinConversion): string {
     switch (language) {
-      case 'kotlin':
-        return value
+      case 'kotlin': {
+        if (from === 'kotlin' || !this.needsKotlinConversion) return value
+        const target = this.type.getCode('kotlin', { context: 'value' })
+        return `${value} as ${target}`
+      }
       case 'c++': {
         const nativeType = `std::shared_ptr<${this.jniName}>`
         const jniType = this.getCode('c++', { context: 'value' })
@@ -108,7 +120,14 @@ export class KotlinHybridObjectType extends HybridObjectType implements KotlinTy
           { language: language, declaration: { header: 'NitroModules/JSIConverter+JHybridObject.hpp', space: 'system' } },
         ]
       }
-      case 'kotlin':
+      case 'kotlin': {
+        const imports = this.type.getRequiredImports(language)
+        if (this.sourceConfig.isExternalConfig) {
+          const name = getHybridObjectName(this.hybridObjectName)
+          imports.push({ language: language, name: this.sourceConfig.getAndroidPackage('java/kotlin', name.HybridTSpec) })
+        }
+        return imports
+      }
       case 'swift':
         return this.type.getRequiredImports(language)
     }
