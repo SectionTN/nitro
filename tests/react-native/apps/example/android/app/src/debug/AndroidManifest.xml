@@ -6,7 +6,11 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="28"
         tools:ignore="GoogleAppIndexingWarning">
-        <!-- Harness asserts view reuse within one surface, so overlays must not recreate the debug host. -->
+        <!--
+            Harness asserts view reuse within one surface, so overlays must not recreate the debug host.
+            TODO: Remove this override once a Harness release provides stable-host handling for overlay updates:
+            https://github.com/callstackincubator/react-native-harness/issues/271
+        -->
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|assetsPaths"
