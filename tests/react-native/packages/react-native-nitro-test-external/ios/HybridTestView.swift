@@ -2,6 +2,10 @@ import NitroModules
 import UIKit
 
 class HybridTestView: HybridTestViewSpec {
+  override init() throws {
+    try super.init()
+  }
+
   var view: UIView = MainActor.assumeIsolated { UIView() }
 
   var isBlue: Bool = false {

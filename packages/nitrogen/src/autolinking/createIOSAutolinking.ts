@@ -15,6 +15,7 @@ import { HybridObjectType } from '../syntax/types/HybridObjectType.js'
 import { prepareSwiftMethod } from '../syntax/swift/SwiftMethodHelpers.js'
 import type { SwiftType } from '../syntax/swift/types/SwiftType.js'
 import { ForeignHybridObjectType } from '../syntax/c++/ForeignHybridObjectType.js'
+import { StaticMethod } from '../syntax/StaticMethod.js'
 
 interface IOSAutolinking extends Autolinking {}
 
@@ -29,6 +30,7 @@ function getSwiftTypes(specs: HybridObjectSpec[]): SwiftType[] {
     const swiftTypes = referencedTypes.map((type) => wrapSwiftType(type, spec.config))
     const methods = [...spec.methods, ...spec.staticMethods]
     if (spec.constructor != null) methods.push(spec.constructor.toStaticMethod(hybridObject))
+    if (spec.isHybridView) methods.push(new StaticMethod(`create${spec.name}View`, hybridObject, []))
     const resultTypes = methods.map((method) => prepareSwiftMethod(method, true, spec.config).resultType)
     return [...baseTypes, wrapSwiftType(hybridObject, spec.config), ...swiftTypes, ...resultTypes]
   })

@@ -9,6 +9,10 @@ import NitroModules
 import UIKit
 
 class HybridRecyclableTestView: HybridRecyclableTestViewSpec, RecyclableView {
+  override init() throws {
+    try super.init()
+  }
+
   // UIView
   var view: UIView = MainActor.assumeIsolated { UIView() }
   private let lifecycleLock = NSLock()

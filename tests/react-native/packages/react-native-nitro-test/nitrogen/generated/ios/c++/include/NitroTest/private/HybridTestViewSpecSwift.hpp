@@ -74,6 +74,8 @@ namespace margelo::nitro::test {
     double getIsBlueSetterCallCount();
     double getNativeDefaultValueSetterCallCount();
     void someMethod();
+    // Native view constructor
+    static ::NitroTest::HybridTestViewSpec_cxx createTestViewView();
 
   protected:
     const std::shared_ptr<const HybridClass>& getHybridClass() override {

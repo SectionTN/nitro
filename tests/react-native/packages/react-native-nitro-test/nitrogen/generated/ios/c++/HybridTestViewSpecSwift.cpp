@@ -107,6 +107,16 @@ namespace margelo::nitro::test {
     }
   }
 
+  // Native view constructor
+
+  ::NitroTest::HybridTestViewSpec_cxx HybridTestViewSpecSwift::createTestViewView() {
+    auto __result = ::NitroTest::HybridTestViewSpec_cxx::createTestViewView();
+    if (__result.hasError()) [[unlikely]] {
+      std::rethrow_exception(__result.error());
+    }
+    return ::NitroTest::HybridTestViewSpec_cxx::fromUnsafe(__result.value());
+  }
+
   const std::shared_ptr<const HybridClass>& HybridTestViewSpecSwift::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
       clazz.registerHybridProperty("isBlue", &HybridTestViewSpecSwift::getIsBlue, &HybridTestViewSpecSwift::setIsBlue);

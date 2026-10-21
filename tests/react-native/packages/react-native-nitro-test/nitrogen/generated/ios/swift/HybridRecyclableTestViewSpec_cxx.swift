@@ -183,9 +183,15 @@ public final class HybridRecyclableTestViewSpec_cxx {
     }
   }
 
-  // Fabric creates views on the UI thread, independently of JavaScript constructors.
-  public static func createRecyclableTestViewView() -> bridge.std__shared_ptr_margelo__nitro__test__HybridRecyclableTestViewSpec_ {
-    return HybridRecyclableTestView().getCxxWrapper().getCxxPart()
+  // Native view constructor
+
+  public class func createRecyclableTestViewView() -> bridge.Result_void_ {
+    do {
+      let value = try HybridRecyclableTestView()
+      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
+    } catch {
+      return bridge.Result_void_.withError(error.toCpp())
+    }
   }
 
   public static func isRecyclableTestViewRecyclable() -> Bool {

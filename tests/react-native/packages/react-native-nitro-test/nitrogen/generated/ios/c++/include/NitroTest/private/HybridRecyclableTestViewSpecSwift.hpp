@@ -65,6 +65,8 @@ namespace margelo::nitro::test {
     double getOnDropViewCount();
     double getPrepareForRecycleCount();
     double getNativeDefaultValueSetterCallCount();
+    // Native view constructor
+    static ::NitroTest::HybridRecyclableTestViewSpec_cxx createRecyclableTestViewView();
 
   protected:
     const std::shared_ptr<const HybridClass>& getHybridClass() override {

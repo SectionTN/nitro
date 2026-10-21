@@ -9,6 +9,10 @@ import NitroModules
 import UIKit
 
 class HybridTestView: HybridTestViewSpec {
+  override init() throws {
+    try super.init()
+  }
+
   // UIView
   var view: UIView = MainActor.assumeIsolated { UIView() }
   private let lifecycleLock = NSLock()

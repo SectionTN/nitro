@@ -228,9 +228,15 @@ public final class HybridTestViewSpec_cxx {
     }
   }
 
-  // Fabric creates views on the UI thread, independently of JavaScript constructors.
-  public static func createTestViewView() -> bridge.std__shared_ptr_margelo__nitro__test__HybridTestViewSpec_ {
-    return HybridTestView().getCxxWrapper().getCxxPart()
+  // Native view constructor
+
+  public class func createTestViewView() -> bridge.Result_void_ {
+    do {
+      let value = try HybridTestView()
+      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
+    } catch {
+      return bridge.Result_void_.withError(error.toCpp())
+    }
   }
 
   public static func isTestViewRecyclable() -> Bool {
