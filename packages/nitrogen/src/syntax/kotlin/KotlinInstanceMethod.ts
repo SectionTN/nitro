@@ -3,7 +3,7 @@ import { Parameter } from '../Parameter.js'
 import type { Property } from '../Property.js'
 import {
   createCppJniCallBody,
-  createKotlinForwarderBody,
+  createKotlinBridgeBody,
   prepareKotlinMethod,
   type KotlinMethodBridge,
   type KotlinMethodDefinition,
@@ -27,7 +27,7 @@ interface KotlinInstanceBridgeOptions {
 
 /**
  * The Kotlin member that C++ calls through JNI.
- * If values need conversion, this is a private `_cxx` forwarder;
+ * If values need conversion, this is a private `_cxx` bridge;
  * otherwise JNI calls the public abstract member directly.
  */
 export class KotlinInstanceMethod extends InstanceMethod {
@@ -74,8 +74,8 @@ export class KotlinInstanceMethod extends InstanceMethod {
     this.callable = callable
   }
 
-  /** Whether JNI calls a private forwarder instead of the public member. */
-  get needsKotlinForwarder(): boolean {
+  /** Whether JNI calls a private bridge instead of the public member. */
+  get needsKotlinBridge(): boolean {
     return this.callable.needsKotlinConversion
   }
 
@@ -84,7 +84,7 @@ export class KotlinInstanceMethod extends InstanceMethod {
     const cppMethod = new InstanceMethod(nativeMethod.name, nativeMethod.returnType, nativeMethod.parameters, {
       generated: true,
     })
-    const isNonvirtual = nonvirtual || this.needsKotlinForwarder
+    const isNonvirtual = nonvirtual || this.needsKotlinBridge
     const jniMethod = isNonvirtual ? 'getNonvirtualMethod' : 'getMethod'
     const jniMethodLookup = `CxxPart::getClass()->${jniMethod}`
     const jniDeclaringClass = isNonvirtual ? 'CxxPart::getClass()' : undefined
@@ -96,8 +96,8 @@ export class KotlinInstanceMethod extends InstanceMethod {
       jniDeclaringClass: jniDeclaringClass,
     })
     const kotlinMethods: KotlinMethodDefinition[] = []
-    if (this.needsKotlinForwarder) {
-      kotlinMethods.push({ method: this, body: this.getKotlinForwarderBody() })
+    if (this.needsKotlinBridge) {
+      kotlinMethods.push({ method: this, body: this.getKotlinBridgeBody() })
     }
     return {
       kotlinMethods: kotlinMethods,
@@ -105,9 +105,9 @@ export class KotlinInstanceMethod extends InstanceMethod {
     }
   }
 
-  private getKotlinForwarderBody(): string {
+  private getKotlinBridgeBody(): string {
     if (this.accessor == null) {
-      return createKotlinForwarderBody({
+      return createKotlinBridgeBody({
         callable: this.callable,
         getKotlinInvocation: (args) => `${this.nativeMethod.name}(${args.join(', ')})`,
       })

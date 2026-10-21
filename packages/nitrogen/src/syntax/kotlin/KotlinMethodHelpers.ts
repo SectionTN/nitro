@@ -52,13 +52,13 @@ export function prepareKotlinMethod(nativeMethod: Method): KotlinMethodInfo {
   }
 }
 
-interface KotlinForwarderBodyOptions {
+interface KotlinBridgeBodyOptions {
   callable: KotlinMethodInfo
   getKotlinInvocation: (args: string[]) => string
 }
 
-/** Kotlin forwarders convert JNI values to the public API and back. */
-export function createKotlinForwarderBody({ callable, getKotlinInvocation }: KotlinForwarderBodyOptions): string {
+/** Kotlin bridges convert JNI values to the public API and back. */
+export function createKotlinBridgeBody({ callable, getKotlinInvocation }: KotlinBridgeBodyOptions): string {
   const kotlinArguments = callable.parameters.map((parameter) =>
     parameter.type.convert(parameter.native.type.escapedName, {
       from: 'c++',
@@ -144,11 +144,6 @@ static const auto __method = ${jniMethodLookup}<${jniSignature}>("${jvmName}");
 auto __result = __method(${jniArguments.join(', ')});
 return ${indent(cppResult, '')};
 `.trim()
-}
-
-/** An exact implementation can skip JVM virtual dispatch for its direct members. */
-export function canUseNonvirtualJniCalls(spec: HybridObjectSpec<'kotlin'>): boolean {
-  return spec.implementation != null && !spec.allowInheritance && !spec.allowMultipleImplementations
 }
 
 interface KotlinImplementation {

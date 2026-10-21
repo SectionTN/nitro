@@ -8,13 +8,18 @@ import { getKotlinPropertyAccessors, KotlinInstanceMethod } from './KotlinInstan
 import { wrapKotlinType } from './wrapKotlinType.js'
 import { getImportsCode } from '../getImportCode.js'
 import { createKotlinHybridClassBindings } from './KotlinHybridClassBindings.js'
-import { canUseNonvirtualJniCalls } from './KotlinMethodHelpers.js'
+import type { KotlinHybridObjectType } from './types/KotlinHybridObjectType.js'
 
-export function createFbjniHybridObject(spec: HybridObjectSpec<'kotlin'>): SourceFile[] {
+interface FbjniHybridObjectOptions {
+  spec: HybridObjectSpec<'kotlin'>
+  hybridObject: KotlinHybridObjectType
+}
+
+export function createFbjniHybridObject({ spec, hybridObject }: FbjniHybridObjectOptions): SourceFile[] {
   const name = getHybridObjectName(spec.name)
   const properties = spec.properties
   const nativeMethods = spec.methods
-  const nonvirtual = canUseNonvirtualJniCalls(spec)
+  const nonvirtual = hybridObject.canUseNonvirtualJniCalls
   const propertyAccessors = properties.flatMap(getKotlinPropertyAccessors)
   const propertyDefinitions = propertyAccessors.flatMap((accessor) => accessor.createBridge({ nonvirtual: nonvirtual }).cppMethods)
   const methodDefinitions = nativeMethods.flatMap(
