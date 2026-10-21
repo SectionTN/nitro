@@ -2,13 +2,14 @@
 #include <NitroModules/JNIConverter+Promise.hpp>
 #include <NitroModules/JNull.hpp>
 #include <NitroModules/JUnit.hpp>
+#include <android/hardware_buffer_jni.h>
 #include <barrier>
 #include <exception>
+#include <fbjni/fbjni.h>
+#include <jni.h>
 #include <mutex>
 #include <thread>
 #include <vector>
-#include <fbjni/fbjni.h>
-#include <jni.h>
 
 namespace {
 using namespace facebook;
@@ -69,11 +70,35 @@ public:
     }
   }
 
+  static bool checkHardwareBufferBytes(jni::alias_ref<JNativeTestRuntime>, jni::alias_ref<jni::JObject> boxed, bool write) {
+    auto* buffer = AHardwareBuffer_fromHardwareBuffer(jni::Environment::current(), boxed.get());
+    AHardwareBuffer_Desc description;
+    AHardwareBuffer_describe(buffer, &description);
+    void* data = nullptr;
+    const auto usage = write ? AHARDWAREBUFFER_USAGE_CPU_WRITE_OFTEN : AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN;
+    if (AHardwareBuffer_lock(buffer, usage, -1, nullptr, &data) != 0) {
+      throw std::runtime_error("Failed to lock test HardwareBuffer.");
+    }
+    auto* bytes = static_cast<uint8_t*>(data);
+    bool matches = true;
+    for (size_t i = 0; i < description.width; ++i) {
+      const auto expected = static_cast<uint8_t>(i * 31);
+      if (write) {
+        bytes[i] = expected;
+      } else {
+        matches = matches && bytes[i] == expected;
+      }
+    }
+    AHardwareBuffer_unlock(buffer, nullptr);
+    return matches;
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
-                                      makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
-                                      makeNativeMethod("resolvedVoidPromise", JNativeTestRuntime::resolvedVoidPromise),
-                                      makeNativeMethod("checkConcurrentSingletons", JNativeTestRuntime::checkConcurrentSingletons)});
+                                        makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
+                                        makeNativeMethod("checkHardwareBufferBytes", JNativeTestRuntime::checkHardwareBufferBytes),
+                                        makeNativeMethod("resolvedVoidPromise", JNativeTestRuntime::resolvedVoidPromise),
+                                        makeNativeMethod("checkConcurrentSingletons", JNativeTestRuntime::checkConcurrentSingletons)});
   }
 };
 } // namespace

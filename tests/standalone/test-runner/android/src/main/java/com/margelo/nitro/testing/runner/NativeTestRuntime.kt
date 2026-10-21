@@ -10,6 +10,11 @@ internal object NativeTestRuntime {
     System.loadLibrary("NitroTestRunner")
   }
 
+  external fun checkHardwareBufferBytes(
+    buffer: Any,
+    write: Boolean,
+  ): Boolean
+
   external fun singletonNull(): NullType
 
   external fun resolvedVoidPromise(): Promise<Unit>
