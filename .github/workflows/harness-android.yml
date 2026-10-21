@@ -110,6 +110,7 @@ jobs:
           projectRoot: tests/react-native/apps/example
           app: android/app/build/outputs/apk/debug/app-debug.apk
           packageManager: bun
+          cacheSavePolicy: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1') && 'always' || 'never' }}
 
       - name: Print native crash reports
         if: failure()
