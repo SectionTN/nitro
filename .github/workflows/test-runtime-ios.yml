@@ -62,17 +62,20 @@ jobs:
           ninja --version
           xcodebuild -version
           xcrun swift --version
+          echo "CPUs: $(sysctl -n hw.ncpu), memory: $(($(sysctl -n hw.memsize) / 1073741824)) GiB"
       - name: Read Hermes build cache inputs
         id: hermes
         run: |
           echo "revision=$(git -C tests/standalone/hermes/hermes rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           toolchain=$({ xcodebuild -version; xcrun --sdk iphonesimulator --show-sdk-version; cmake --version; ninja --version; echo "$GITHUB_WORKSPACE"; } | shasum -a 256 | cut -d ' ' -f 1)
           echo "toolchain=$toolchain" >> "$GITHUB_OUTPUT"
+      # build.mjs reuses a restored XCFramework only if its fingerprint matches.
       - name: Cache Hermes simulator XCFramework
-        id: hermes-cache
         uses: actions/cache@v6
         with:
-          path: tests/standalone/.build/hermes/NitroTestHermes.xcframework
+          path: |
+            tests/standalone/.build/hermes/NitroTestHermes.xcframework
+            tests/standalone/.build/hermes/NitroTestHermes.fingerprint
           key:
             hermes-ios-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.revision }}-${{ steps.hermes.outputs.toolchain }}-${{
             hashFiles('tests/standalone/hermes/build.mjs', 'tests/standalone/hermes/options.cmake',
@@ -83,14 +86,10 @@ jobs:
         run: bun test:prepare
       - name: Test Swift HybridObjects in Hermes
         env:
-          HERMES_CACHE_HIT: ${{ steps.hermes-cache.outputs.cache-hit }}
           SANITIZER: ${{ matrix.sanitizer.value }}
         run: |
-          if [ "$HERMES_CACHE_HIT" = 'true' ]; then
-            bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" --skip-hermes-build
-          else
-            bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER"
-          fi
+          bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" \
+            --jobs "$(sysctl -n hw.ncpu)" --derived-data "$RUNNER_TEMP/DerivedData"
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

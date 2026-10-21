@@ -1,4 +1,5 @@
-import { cpSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { availableParallelism, arch, platform } from 'node:os'
 import { dirname, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -47,6 +48,37 @@ function run(command, commandArgs) {
     throw new Error(`${command} failed (${result.status ?? result.signal})`)
   }
 }
+
+function read(command, commandArgs) {
+  const result = spawnSync(command, commandArgs, { encoding: 'utf8' })
+  if (result.error) throw result.error
+  if (result.status !== 0) throw new Error(`${command} failed (${result.status ?? result.signal})`)
+  return result.stdout
+}
+
+// Everything that determines the XCFramework. A fresh checkout makes every
+// source newer than a cached build tree, so CMake cannot tell a restored build
+// is current; this fingerprint can, and a mismatch always rebuilds.
+const xcframework = resolve(output, 'NitroTestHermes.xcframework')
+const fingerprintFile = resolve(output, 'NitroTestHermes.fingerprint')
+const fingerprint =
+  target === 'ios'
+    ? createHash('sha256')
+        .update(read('git', ['-C', source, 'rev-parse', 'HEAD']))
+        .update(read('xcodebuild', ['-version']))
+        .update(read('xcrun', ['--sdk', 'iphonesimulator', '--show-sdk-version']))
+        .update(read('cmake', ['--version']))
+        .update(read('ninja', ['--version']))
+        .update(readFileSync(fileURLToPath(import.meta.url)))
+        .update(readFileSync(options))
+        .update(`${architecture} ${deploymentTarget}`)
+        .digest('hex')
+    : undefined
+if (fingerprint && existsSync(xcframework) && existsSync(fingerprintFile) && readFileSync(fingerprintFile, 'utf8') === fingerprint) {
+  console.log(`Reusing ${xcframework}; its sources and toolchain are unchanged.`)
+  process.exit(0)
+}
+rmSync(fingerprintFile, { force: true })
 
 const host = resolve(output, 'host')
 run('cmake', [
@@ -116,7 +148,6 @@ if (target === 'ios') {
 `
   )
 
-  const xcframework = resolve(output, 'NitroTestHermes.xcframework')
   rmSync(xcframework, { recursive: true, force: true })
   run('xcodebuild', [
     '-create-xcframework',
@@ -127,4 +158,5 @@ if (target === 'ios') {
     '-output',
     xcframework,
   ])
+  writeFileSync(fingerprintFile, fingerprint)
 }

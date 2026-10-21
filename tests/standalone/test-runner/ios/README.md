@@ -17,7 +17,7 @@ synchronous and nonisolated; implementations synchronize shared mutable state.
 
 Hermes is a local XCFramework built from the pinned upstream CMake sources. Its binary target lives in the root manifest so the framework
 and all canonical runtime sources stay inside the Swift package boundary. Run the existing Hermes build helper before opening the package in
-Xcode. The command-line test runner builds Hermes automatically unless `--skip-hermes-build` is passed.
+Xcode. The command-line test runner builds Hermes automatically, and reuses the XCFramework while its sources and toolchain are unchanged.
 
 For Xcode debugging, prepare the tests and Hermes, then open the existing project:
 
@@ -34,6 +34,11 @@ resolve to the same package sources used by the command-line runner.
 
 `RuntimeTests.swift` loads the JavaScript and case manifests from the test bundle in the Xcode project, or from `Bundle.module` when running
 the package tests directly. `NitroTestRunnerBridge` exports the Objective-C++ test entry point to Swift.
+
+`run.mjs` builds with `xcodebuild build-for-testing` for a generic simulator, then boots the selected simulator and runs
+`test-without-building` from the generated `.xctestrun` file, so the Swift package graph is only resolved once. Building first matters on
+3-core CI machines: with a freshly booted simulator as the destination, xcodebuild took minutes to start and compiled slower while the
+simulator migrated data. `--derived-data PATH` moves DerivedData outside the repository. CI uses it and builds with one job per CPU core.
 
 Simulator OS, device, architecture, build jobs and deployment target defaults live in [`config.json`](config.json). By default, the runner
 selects the newest installed iOS 26 simulator and the host architecture. Override them on the command line:
@@ -78,7 +83,7 @@ Each mode has its own `DerivedData` and timestamped result directories under `te
 process, and the runner also fails on sanitizer diagnostics or report files. Open a result bundle in Xcode to inspect failures and logs. The
 shared JavaScript assertions include the assertion message and JS stack in the native test failure.
 
-CI caches the completed Hermes XCFramework. The exact cache key includes the Hermes pin, architecture, Xcode/SDK and build-tool versions,
-checkout path, build helpers and iOS defaults. A cache hit passes `--skip-hermes-build`; a toolchain or engine update gets a fresh build.
-Only use that flag when the existing XCFramework matches the selected architecture and toolchain. Local builds compile Hermes incrementally
-by default.
+`tests/standalone/hermes/build.mjs` writes a fingerprint of the Hermes pin, architecture, deployment target, Xcode/SDK and build-tool
+versions, and its own build scripts next to the XCFramework. A later build with the same fingerprint reuses the XCFramework; any change
+rebuilds it. CMake cannot make that decision for a restored build tree, because a fresh checkout makes every source newer. CI caches the
+XCFramework with its fingerprint under a key with the same inputs and runs the normal build, which then only checks the fingerprint.
