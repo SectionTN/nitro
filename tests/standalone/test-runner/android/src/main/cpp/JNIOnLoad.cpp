@@ -1,4 +1,12 @@
 #include "TestRuntime.hpp"
+#include <NitroModules/JNIConverter+Promise.hpp>
+#include <NitroModules/JNull.hpp>
+#include <NitroModules/JUnit.hpp>
+#include <barrier>
+#include <exception>
+#include <mutex>
+#include <thread>
+#include <vector>
 #include <fbjni/fbjni.h>
 #include <jni.h>
 
@@ -14,8 +22,58 @@ public:
     return jni::make_jstring(margelo::nitro::testing::runTest(bundle->toStdString(), name->toStdString(), timeoutMs));
   }
 
+  static jni::local_ref<margelo::nitro::JNull> singletonNull(jni::alias_ref<JNativeTestRuntime>) {
+    return jni::make_local(margelo::nitro::JNull::null());
+  }
+
+  static jni::local_ref<margelo::nitro::JTypedPromise<void>> resolvedVoidPromise(jni::alias_ref<JNativeTestRuntime>) {
+    using namespace margelo::nitro;
+    return JNIConverter<Promise<void>, jni::local_ref<JTypedPromise<void>>>::toJNI(Promise<void>::resolved());
+  }
+
+  static void checkConcurrentSingletons(jni::alias_ref<JNativeTestRuntime>) {
+    constexpr size_t count = 8;
+    std::barrier start(count);
+    std::mutex errorMutex;
+    std::exception_ptr error;
+    std::vector<std::thread> workers;
+    for (size_t i = 0; i < count; ++i) {
+      workers.emplace_back([&] {
+        start.arrive_and_wait();
+        try {
+          jni::ThreadScope::WithClassLoader([] {
+            for (size_t iteration = 0; iteration < 100; ++iteration) {
+              jni::JniLocalScope frame(jni::Environment::current(), 8);
+              const auto nullValue = margelo::nitro::JNull::null();
+              const auto unitValue = margelo::nitro::JUnit::instance();
+              auto* env = jni::Environment::current();
+              if (env->GetObjectRefType(nullValue.get()) != JNIGlobalRefType ||
+                  env->GetObjectRefType(unitValue.get()) != JNIGlobalRefType) {
+                throw std::runtime_error("JNI singletons must borrow an owning global reference.");
+              }
+              auto localNull = jni::make_local(nullValue);
+              auto localUnit = jni::make_local(unitValue);
+            }
+          });
+        } catch (...) {
+          std::lock_guard lock(errorMutex);
+          error = std::current_exception();
+        }
+      });
+    }
+    for (auto& worker : workers) {
+      worker.join();
+    }
+    if (error) {
+      std::rethrow_exception(error);
+    }
+  }
+
   static void registerNatives() {
-    javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest)});
+    javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                      makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
+                                      makeNativeMethod("resolvedVoidPromise", JNativeTestRuntime::resolvedVoidPromise),
+                                      makeNativeMethod("checkConcurrentSingletons", JNativeTestRuntime::checkConcurrentSingletons)});
   }
 };
 } // namespace
