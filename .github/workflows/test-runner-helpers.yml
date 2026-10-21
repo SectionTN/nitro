@@ -1,0 +1,35 @@
+name: Test runner helpers
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/test-runner-helpers.yml'
+      - 'tests/standalone/test-runner/**'
+  push:
+    branches:
+      - main
+      - v1
+    paths:
+      - '.github/workflows/test-runner-helpers.yml'
+      - 'tests/standalone/test-runner/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-runner-helpers-${{ github.ref_name == 'main' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
+
+jobs:
+  helpers:
+    name: Test runner helpers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile --ignore-scripts
+      - name: Run test runner helper checks
+        working-directory: tests/standalone/test-runner
+        run: bun run test:helpers
