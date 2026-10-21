@@ -55,6 +55,8 @@ jobs:
     env:
       DEVICE_API_LEVEL: ${{ github.event.inputs.device_api_level || '36' }}
       AVD_NAME: ${{ github.event.inputs.avd_name || 'Pixel_7_API_36' }}
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
     steps:
       - uses: actions/checkout@v7
         with:
@@ -86,19 +88,15 @@ jobs:
           java-version: 17
           java-package: jdk
 
-      - name: Restore Gradle/CMake cache
-        uses: actions/cache@v6
+      - uses: gradle/actions/setup-gradle@v6.4.0
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            tests/react-native/apps/example/android/.gradle
-            tests/react-native/apps/example/android/app/.cxx
-          key:
-            ${{ runner.os }}-gradle-${{ env.DEVICE_ARCH }}-Default-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties',
-            '**/CMakeLists.txt', '**/*.cmake') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-${{ env.DEVICE_ARCH }}-Default-
+          cache-provider: enhanced
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/v1' }}
+      - uses: hendrikmuhs/ccache-action@v1.2.24
+        with:
+          key: android-harness
+          max-size: 256M
+          save: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1' }}
       - name: Build React Native Android app
         working-directory: tests/react-native/apps/example/android
         run: ./gradlew :app:assembleDebug --no-daemon --build-cache -PreactNativeArchitectures=${{ env.DEVICE_ARCH }}

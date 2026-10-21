@@ -46,6 +46,8 @@ jobs:
             api-level: 33
     env:
       CMAKE_BUILD_PARALLEL_LEVEL: 2
+      CMAKE_C_COMPILER_LAUNCHER: ccache
+      CMAKE_CXX_COMPILER_LAUNCHER: ccache
     steps:
       - uses: actions/checkout@v7
         with:
@@ -64,7 +66,8 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v6.4.0
         with:
-          cache-provider: basic
+          cache-provider: enhanced
+          cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/v1' }}
       - name: Install native build tools
         run: |
           sudo apt-get update
@@ -75,20 +78,36 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Read pinned Hermes revision
+      - uses: hendrikmuhs/ccache-action@v1.2.24
+        with:
+          key: android-standalone-${{ matrix.sanitizer.name }}
+          max-size: 512M
+          save: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1' }}
+      - name: Read Hermes build cache inputs
         id: hermes
-        run: echo "revision=$(git -C tests/standalone/hermes/hermes rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-      - uses: actions/cache@v6
+        run: |
+          echo "revision=$(git -C tests/standalone/hermes/hermes rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "compiler=$(cc --version | sha256sum | cut -d ' ' -f 1)" >> "$GITHUB_OUTPUT"
+      - name: Restore Hermes host compiler
+        id: hermes-cache
+        uses: actions/cache/restore@v6
         with:
           path: tests/standalone/.build/hermes/host
           key:
-            hermes-host-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.revision }}-${{
+            hermes-host-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.hermes.outputs.compiler }}-${{ steps.hermes.outputs.revision }}-${{
             hashFiles('tests/standalone/hermes/build.mjs', 'tests/standalone/hermes/options.cmake') }}
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun test:prepare
       - name: Build test APK
         working-directory: tests/standalone/test-runner/android
-        run: ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --no-daemon
+        run:
+          ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --no-daemon --build-cache
+      - name: Save Hermes host compiler
+        if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1') && steps.hermes-cache.outputs.cache-hit != 'true' }}
+        uses: actions/cache/save@v6
+        with:
+          path: tests/standalone/.build/hermes/host
+          key: ${{ steps.hermes-cache.outputs.cache-primary-key }}
       - name: Run JUnit tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -98,7 +117,7 @@ jobs:
           disable-animations: true
           script:
             cd tests/standalone/test-runner/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{
-            matrix.sanitizer.flag }} --no-daemon
+            matrix.sanitizer.flag }} --no-daemon --build-cache
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
