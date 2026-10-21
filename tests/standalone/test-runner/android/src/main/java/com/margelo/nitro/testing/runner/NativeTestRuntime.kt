@@ -1,5 +1,6 @@
 package com.margelo.nitro.testing.runner
 
+import com.margelo.nitro.core.ArrayBuffer
 import com.margelo.nitro.core.HybridObject
 import com.margelo.nitro.core.NullType
 import com.margelo.nitro.core.Promise
@@ -24,6 +25,11 @@ internal object NativeTestRuntime {
     value: HybridObject,
     dispose: Boolean,
   )
+
+  external fun nativeBuffer(
+    size: Int,
+    byteBufferBacking: Boolean,
+  ): ArrayBuffer
 
   external fun singletonNull(): NullType
 
