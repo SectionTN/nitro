@@ -8,24 +8,56 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
 
-@RunWith(Parameterized::class)
+@RunWith(RuntimeSuiteRunner::class)
 class HybridObjectTest(
-  private val name: String,
-  private val names: Array<String>,
-  private val skipReason: String?,
+  private val suite: Suite,
 ) {
   @Test
   fun runJavaScriptSuite() {
-    assumeTrue(skipReason, skipReason == null)
-    val failure = NativeTestRuntime.runSuite(readAsset("runtime-tests.js"), names)
-    if (failure.isNotEmpty()) throw AssertionError("$name\n$failure")
+    assumeTrue(suite.skipReason, suite.skipReason == null)
+    val failure =
+      try {
+        suite.result.get()
+      } catch (error: ExecutionException) {
+        throw error.cause ?: error
+      }
+    if (failure.isNotEmpty()) throw AssertionError("${suite.name}\n$failure")
+  }
+
+  class Suite(
+    val name: String,
+    val names: Array<String>,
+    val skipReason: String?,
+  ) {
+    lateinit var result: Future<String>
+
+    override fun toString(): String = name
   }
 
   companion object {
+    private val suites by lazy { readSuites() }
+
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun cases(): List<Array<Any?>> {
+    fun cases(): List<Array<Suite>> = suites.map { arrayOf(it) }
+
+    fun startSuites(
+      executor: ExecutorService,
+      selected: Set<String>,
+    ) {
+      val bundle = readAsset("runtime-tests.js")
+      for (suite in suites) {
+        if (suite.skipReason == null && "[${suite.name}]" in selected) {
+          suite.result = executor.submit<String> { NativeTestRuntime.runSuite(bundle, suite.names) }
+        }
+      }
+    }
+
+    private fun readSuites(): List<Suite> {
       val parser = JSONTokener(readAsset("runtime-tests.json"))
       val manifest = parser.nextValue()
       require(manifest is JSONObject && parser.nextClean() == '\u0000') {
@@ -40,7 +72,7 @@ class HybridObjectTest(
       }
 
       val names = mutableSetOf<String>()
-      val cases = mutableListOf<Array<Any?>>()
+      val cases = mutableListOf<Suite>()
       manifest.keys().forEach { suite ->
         require(suite.isNotBlank()) { "runtime-tests.json contains a blank suite name" }
         val suiteNames = manifest.get(suite)
@@ -69,10 +101,10 @@ class HybridObjectTest(
           if (reason == null) {
             enabledNames.add(name)
           } else {
-            cases.add(arrayOf(name, emptyArray<String>(), reason))
+            cases.add(Suite(name, emptyArray(), reason))
           }
         }
-        if (enabledNames.isNotEmpty()) cases.add(arrayOf(suite, enabledNames.toTypedArray(), null))
+        if (enabledNames.isNotEmpty()) cases.add(Suite(suite, enabledNames.toTypedArray(), null))
       }
       require(skips.keys().asSequence().all { it in names }) { "Exclusions contain an unknown test name" }
       return cases
