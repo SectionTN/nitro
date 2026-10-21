@@ -2,6 +2,7 @@
 #include <NitroModules/ByteBufferArrayBuffer.hpp>
 #include <NitroModules/JArrayBuffer.hpp>
 #include <NitroModules/JNIConverter+Map.hpp>
+#include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JNIConverter+Promise.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JNull.hpp>
@@ -13,10 +14,12 @@
 #include <android/hardware_buffer_jni.h>
 #include <array>
 #include <barrier>
+#include <cmath>
 #include <exception>
 #include <fbjni/fbjni.h>
 #include <hermes/hermes.h>
 #include <jni.h>
+#include <limits>
 #include <mutex>
 #include <thread>
 #include <vector>
@@ -167,12 +170,14 @@ public:
               auto object = owner->getJHybridObject();
               auto grandchild = std::dynamic_pointer_cast<test::JHybridGrandchildSpec>(object);
               if (!grandchild) {
-                throw std::runtime_error("Cross-module HybridObject conversion lost its derived type.");
+                throw std::runtime_error("Cross-module HybridObject conversion "
+                                         "lost its derived type.");
               }
               const jobject root = object->getJavaPart().get();
               if (static_cast<jobject>(grandchild->getJavaPart().get()) != root ||
                   static_cast<jobject>(grandchild->test::JHybridChildSpec::getJavaPart().get()) != root) {
-                throw std::runtime_error("HybridObject inheritance must borrow one owning global reference.");
+                throw std::runtime_error("HybridObject inheritance must borrow "
+                                         "one owning global reference.");
               }
               objects[i] = object;
               if (dispose && i == 0) {
@@ -247,8 +252,44 @@ public:
     auto object = value->getJHybridObject();
   }
 
+  template <typename Cpp, typename Box>
+  static void checkBox(Cpp expected) {
+    using Converter = margelo::nitro::JNIConverter<Cpp, jni::local_ref<Box>>;
+    auto boxed = Converter::toJNI(expected);
+    const auto actual = Converter::fromJNI(boxed);
+    bool matches = actual == expected;
+    if constexpr (std::is_floating_point_v<Cpp>) {
+      matches = (std::isnan(expected) && std::isnan(actual)) || (matches && std::signbit(actual) == std::signbit(expected));
+    }
+    if (!matches) {
+      throw std::runtime_error("Boxed JNI conversion changed its primitive value.");
+    }
+  }
+
+  static void checkBoxedPrimitives(jni::alias_ref<JNativeTestRuntime>) {
+    checkBox<bool, jni::JBoolean>(true);
+    checkBox<bool, jni::JBoolean>(false);
+    for (auto value : {INT32_MIN, -1, 0, 1, INT32_MAX})
+      checkBox<int32_t, jni::JInteger>(value);
+    for (int64_t value : {INT64_MIN, int64_t(-1), int64_t(0), int64_t(1), INT64_MAX})
+      checkBox<int64_t, jni::JLong>(value);
+    for (uint64_t value : {uint64_t(0), uint64_t(1), uint64_t(INT64_MAX), uint64_t(1) << 63, UINT64_MAX}) {
+      checkBox<uint64_t, jni::JLong>(value);
+      checkBox<uint64_t, margelo::nitro::JUInt64>(value);
+    }
+    for (float value :
+         {0.0f, -0.0f, std::numeric_limits<float>::lowest(), std::numeric_limits<float>::max(), std::numeric_limits<float>::infinity(),
+          -std::numeric_limits<float>::infinity(), std::numeric_limits<float>::quiet_NaN()})
+      checkBox<float, jni::JFloat>(value);
+    for (double value :
+         {0.0, -0.0, std::numeric_limits<double>::lowest(), std::numeric_limits<double>::max(), std::numeric_limits<double>::infinity(),
+          -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::quiet_NaN()})
+      checkBox<double, jni::JDouble>(value);
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                        makeNativeMethod("checkBoxedPrimitives", JNativeTestRuntime::checkBoxedPrimitives),
                                         makeNativeMethod("checkClosedImplementation", JNativeTestRuntime::checkClosedImplementation),
                                         makeNativeMethod("checkStringHashes", JNativeTestRuntime::checkStringHashes),
                                         makeNativeMethod("checkRetainedEnums", JNativeTestRuntime::checkRetainedEnums),
