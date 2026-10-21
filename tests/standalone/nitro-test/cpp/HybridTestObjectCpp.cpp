@@ -356,8 +356,9 @@ std::vector<ArrayBuffer> HybridTestObjectCpp::bounceArrayBuffers(const std::vect
   return arrayBuffers;
 }
 
-std::vector<std::optional<std::string>> HybridTestObjectCpp::bounceOptionals(const std::vector<std::optional<std::string>>& strings,
-                                                                             const std::vector<std::optional<ArrayBuffer>>& arrayBuffers) {
+std::vector<std::optional<std::string>>
+HybridTestObjectCpp::bounceOptionals(const std::vector<std::optional<std::string>>& strings,
+                                     const std::vector<std::optional<ArrayBuffer>>& /* arrayBuffers */) {
   return strings;
 }
 
@@ -490,7 +491,7 @@ std::string HybridTestObjectCpp::tryOptionalParams(double /* num */, bool /* val
   }
 }
 
-std::string HybridTestObjectCpp::tryMiddleParam(double /* num */, const std::optional<bool>& boo, const std::string& str) {
+std::string HybridTestObjectCpp::tryMiddleParam(double /* num */, const std::optional<bool>& /* boo */, const std::string& str) {
   return str;
 }
 
@@ -498,7 +499,7 @@ std::optional<Powertrain> HybridTestObjectCpp::tryOptionalEnum(const std::option
   return value;
 }
 
-bool HybridTestObjectCpp::tryTrailingOptional(double /* num */, const std::string& str, const std::optional<bool>& boo) {
+bool HybridTestObjectCpp::tryTrailingOptional(double /* num */, const std::string& /* str */, const std::optional<bool>& boo) {
   return boo.has_value() ? boo.value() : false;
 }
 

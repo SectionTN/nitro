@@ -30,11 +30,11 @@ namespace margelo::nitro {
     }
   }
 
-  jsi::Value JSIConverter<jni::local_ref<margelo::nitro::test::external::JSizeUnit>>::toJSI(jsi::Runtime& runtime, jni::alias_ref<margelo::nitro::test::external::JSizeUnit> value) {
+  jsi::Value JSIConverter<jni::local_ref<margelo::nitro::test::external::JSizeUnit>>::toJSI(jsi::Runtime&, jni::alias_ref<margelo::nitro::test::external::JSizeUnit> value) {
     return jsi::Value(value->value());
   }
 
-  bool JSIConverter<jni::local_ref<margelo::nitro::test::external::JSizeUnit>>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
+  bool JSIConverter<jni::local_ref<margelo::nitro::test::external::JSizeUnit>>::canConvert(jsi::Runtime&, const jsi::Value& value) {
     if (!value.isNumber()) return false;
     const double number = value.getNumber();
     if (!(number >= 10 && number <= 20)) return false;

@@ -51,6 +51,7 @@ case ${member.value}: {
   let fromJSI: string
   let toJSI: string
   let canConvert: string
+  const runtimeParameter = enumType.jsType === 'union' ? 'jsi::Runtime& runtime' : 'jsi::Runtime&'
   if (enumType.jsType === 'union') {
     const fromCases = enumType.enumMembers.map((member) => `case hashString("${member.stringValue}"): return ${member.value};`)
     const toCases = enumType.enumMembers.map((member) => `case ${member.value}: return createJSIString<"${member.stringValue}">(runtime);`)
@@ -201,11 +202,11 @@ namespace margelo::nitro {
     ${indent(fromJSI, '    ')}
   }
 
-  jsi::Value JSIConverter<${nativeType}>::toJSI(jsi::Runtime& runtime, jni::alias_ref<${jniClass}> value) {
+  jsi::Value JSIConverter<${nativeType}>::toJSI(${runtimeParameter}, jni::alias_ref<${jniClass}> value) {
     ${indent(toJSI, '    ')}
   }
 
-  bool JSIConverter<${nativeType}>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
+  bool JSIConverter<${nativeType}>::canConvert(${runtimeParameter}, const jsi::Value& value) {
     ${indent(canConvert, '    ')}
   }
 
