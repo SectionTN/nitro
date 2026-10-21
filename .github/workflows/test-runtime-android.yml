@@ -108,7 +108,11 @@ jobs:
         with:
           path: tests/standalone/.build/hermes/host
           key: ${{ steps.hermes-cache.outputs.cache-primary-key }}
-      - name: Run JUnit Test Suites
+      - name: Install Android emulator packages
+        run: >-
+          sdkmanager 'build-tools;37.0.0' platform-tools 'platforms;android-${{ matrix.sanitizer.api-level }}' emulator
+          'system-images;android-${{ matrix.sanitizer.api-level }};google_apis;x86_64'
+      - name: Boot emulator and run JUnit suites
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.sanitizer.api-level }}
