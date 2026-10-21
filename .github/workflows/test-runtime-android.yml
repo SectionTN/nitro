@@ -111,6 +111,9 @@ jobs:
       - name: Prepare Android emulator
         run: |
           sdkmanager emulator 'system-images;android-${{ matrix.sanitizer.api-level }};google_apis;x86_64'
+          export ANDROID_AVD_HOME="$RUNNER_TEMP/android-avd"
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          mkdir -p "$ANDROID_AVD_HOME"
           echo no | avdmanager create avd --force --name nitro-tests \
             --package 'system-images;android-${{ matrix.sanitizer.api-level }};google_apis;x86_64'
       - name: Boot Android emulator
