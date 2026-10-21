@@ -47,6 +47,9 @@ void JHybridTestViewStateUpdater::updateViewProps(jni::alias_ref<jni::JClass> /*
                                            jni::alias_ref<JHybridTestViewSpec::JavaPart> javaView,
                                            jni::alias_ref<JStateWrapper::javaobject> newState,
                                            jni::alias_ref<JStateWrapper::javaobject> oldState) {
+  #ifdef NITRO_DEBUG
+    JHybridTestViewSpec::CxxPart::assertExactImplementation(javaView);
+  #endif
   std::shared_ptr<const HybridTestViewProps> newProps = getPropsFromStateWrapper(newState);
   std::shared_ptr<const HybridTestViewProps> oldProps = getPropsFromStateWrapper(oldState);
   if (newProps == nullptr) [[unlikely]] {
@@ -65,14 +68,14 @@ void JHybridTestViewStateUpdater::updateViewProps(jni::alias_ref<jni::JClass> /*
     if (oldProps == nullptr
           ? newProps->isBlue.isProvided()
           : !newProps->isBlue.hasSameValue(oldProps->isBlue)) {
-      static const auto __setter = JHybridTestViewSpec::JavaPart::javaClassStatic()->getMethod<void(jboolean)>("setBlue");
-      __setter(javaView, newProps->isBlue.get());
+      static const auto __setter = JHybridTestViewSpec::CxxPart::getClass()->getNonvirtualMethod<void(jboolean)>("setBlue");
+      __setter(javaView, JHybridTestViewSpec::CxxPart::getClass(), newProps->isBlue.get());
     }
     if (oldProps == nullptr
           ? newProps->someCallback.isProvided()
           : !newProps->someCallback.hasSameValue(oldProps->someCallback)) {
-      static const auto __setter = JHybridTestViewSpec::JavaPart::javaClassStatic()->getMethod<void(jni::alias_ref<margelo::nitro::test::external::JCallback_void>)>("setSomeCallback_cxx");
-      __setter(javaView, newProps->someCallback.get().get());
+      static const auto __setter = JHybridTestViewSpec::CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<margelo::nitro::test::external::JCallback_void>)>("setSomeCallback_cxx");
+      __setter(javaView, JHybridTestViewSpec::CxxPart::getClass(), newProps->someCallback.get().get());
     }
 
     if (oldProps == nullptr

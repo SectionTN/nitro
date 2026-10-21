@@ -10,6 +10,7 @@
 #include <NitroModules/JHybridObject.hpp>
 #include <NitroModules/HybridClass.hpp>
 #include <fbjni/fbjni.h>
+#include <stdexcept>
 #include <NitroTest/private/JHybridGrandchildSpecJavaPart.hpp>
 #include <NitroModules/JNIConverter+Primitives.hpp>
 #include <NitroModules/JSIConverter+JNIPrimitives.hpp>
@@ -39,6 +40,13 @@ namespace margelo::nitro::test {
       static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
       static void registerNatives();
       static jni::alias_ref<jni::JClass> getClass();
+      #ifdef NITRO_DEBUG
+      static void assertExactImplementation(jni::alias_ref<JHybridGrandchildSpec::JavaPart> javaPart) {
+        if (!jni::isSameObject(javaPart->getClass(), getClass())) [[unlikely]] {
+          throw std::runtime_error("Grandchild requires its configured implementation when inheritance and multiple implementations are disabled.");
+        }
+      }
+      #endif
       using HybridBase::HybridBase;
     protected:
       std::shared_ptr<JHybridObject> createHybridObject(jni::alias_ref<JHybridObject::JavaPart> javaPart) override;
@@ -47,7 +55,11 @@ namespace margelo::nitro::test {
   public:
     explicit JHybridGrandchildSpec(jni::alias_ref<JHybridGrandchildSpec::JavaPart> javaPart):
       margelo::nitro::test::JHybridChildSpec(javaPart),
-      _javaPart(jni::static_ref_cast<JavaPart>(JHybridObject::getJavaPart())) {}
+      _javaPart(jni::static_ref_cast<JavaPart>(JHybridObject::getJavaPart())) {
+      #ifdef NITRO_DEBUG
+      CxxPart::assertExactImplementation(_javaPart);
+      #endif
+    }
     // Defined in the owning library so RTTI has one identity across modules.
     ~JHybridGrandchildSpec() override;
 

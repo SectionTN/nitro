@@ -1,3 +1,5 @@
+import { HybridObjectType } from '../../syntax/types/HybridObjectType.js'
+import { KotlinHybridObjectType } from '../../syntax/kotlin/types/KotlinHybridObjectType.js'
 import type { SourceFile } from '../../syntax/SourceFile.js'
 import type { HybridObjectSpec } from '../../syntax/HybridObjectSpec.js'
 import {
@@ -17,6 +19,7 @@ import { KotlinStoredType } from '../../syntax/kotlin/types/KotlinStoredType.js'
 import { KotlinHybridViewType } from './KotlinHybridViewType.js'
 
 export function createKotlinHybridViewManager(spec: HybridObjectSpec<'kotlin'>): SourceFile[] {
+  const hybridObject = new KotlinHybridObjectType(new HybridObjectType(spec))
   const javaSubNamespace = spec.config.getAndroidPackage('java/kotlin', 'views')
   const javaNamespace = spec.config.getAndroidPackage('java/kotlin')
   const cxxNamespace = spec.config.getCxxNamespace('c++', 'views')
@@ -229,15 +232,35 @@ public:
     const kotlinSetter = new KotlinInstanceMethod({ method: setter, accessor: { kind: 'setter', property: property } })
     const jniParameterType = type.type.getCode('c++', { context: 'parameter', fullyQualified: true })
     const jniValue = type.getJniValue(`newProps->${name}.get()`)
+    const useNonvirtual = hybridObject.canUseNonvirtualJniCalls || kotlinSetter.needsKotlinBridge
+    const argumentsList = ['javaView']
+    let lookup: string
+    if (useNonvirtual) {
+      lookup = `${JHybridTSpec}::CxxPart::getClass()->getNonvirtualMethod`
+      argumentsList.push(`${JHybridTSpec}::CxxPart::getClass()`)
+    } else {
+      lookup = `${JHybridTSpec}::JavaPart::javaClassStatic()->getMethod`
+    }
+    argumentsList.push(jniValue)
     return `
 if (oldProps == nullptr
       ? newProps->${name}.isProvided()
       : !newProps->${name}.hasSameValue(oldProps->${name})) {
-  static const auto __setter = ${JHybridTSpec}::JavaPart::javaClassStatic()->getMethod<void(${jniParameterType})>("${kotlinSetter.name}");
-  __setter(javaView, ${jniValue});
+  static const auto __setter = ${lookup}<void(${jniParameterType})>("${kotlinSetter.name}");
+  __setter(${argumentsList.join(', ')});
 }
     `.trim()
   })
+  let implementationCheck: string
+  if (hybridObject.canUseNonvirtualJniCalls) {
+    implementationCheck = `
+#ifdef NITRO_DEBUG
+  ${JHybridTSpec}::CxxPart::assertExactImplementation(javaView);
+#endif
+`.trim()
+  } else {
+    implementationCheck = ''
+  }
   const updaterJniCppCode = `
 ${createFileMetadataString(`J${stateUpdaterName}.cpp`)}
 
@@ -282,6 +305,7 @@ void J${stateUpdaterName}::updateViewProps(jni::alias_ref<jni::JClass> /* class 
                                            jni::alias_ref<${JHybridTSpec}::JavaPart> javaView,
                                            jni::alias_ref<JStateWrapper::javaobject> newState,
                                            jni::alias_ref<JStateWrapper::javaobject> oldState) {
+  ${indent(implementationCheck, '  ')}
   std::shared_ptr<const ${propsClassName}> newProps = getPropsFromStateWrapper(newState);
   std::shared_ptr<const ${propsClassName}> oldProps = getPropsFromStateWrapper(oldState);
   if (newProps == nullptr) [[unlikely]] {

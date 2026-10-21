@@ -3,8 +3,11 @@ import { JNITestObject, type JNIValues } from 'nitro-test'
 
 export function unsignedCarriersAndAdaptedContainers(): void {
   const object = new JNITestObject()
+  object.computedValue = 20
+  expect(object.computedValue).to.equal(42)
   const values = [0n, 1n, 9223372036854775807n, 9223372036854775808n, 18446744073709551615n]
   for (const unsigned of values) {
+    expect(object.roundtripScalar({ value: unsigned })).to.deep.equal({ value: unsigned })
     for (const optionalUnsigned of [undefined, ...values]) {
       const input: JNIValues = {
         unsignedValue: unsigned,
