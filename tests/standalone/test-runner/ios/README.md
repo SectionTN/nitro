@@ -17,7 +17,7 @@ synchronous and nonisolated; implementations synchronize shared mutable state.
 
 Hermes is a local XCFramework built from the pinned upstream CMake sources. Its binary target lives in the root manifest so the framework
 and all canonical runtime sources stay inside the Swift package boundary. Run the existing Hermes build helper before opening the package in
-Xcode. The command-line test runner builds Hermes automatically unless `--skip-hermes-build` is passed.
+Xcode. The command-line build script builds Hermes automatically unless `--skip-hermes-build` is passed.
 
 For Xcode debugging, prepare the tests and Hermes, then open the existing project:
 
@@ -40,23 +40,26 @@ selects the newest installed iOS 26 simulator and the host architecture. Overrid
 
 ```sh
 bun test:prepare
-DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
-bun tests/standalone/test-runner/ios/run.mjs --os 26.5 --device 'iPhone 17 Pro' --arch arm64 --jobs 4
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+bun tests/standalone/test-runner/ios/build.mjs --arch arm64 --jobs 4
+bun tests/standalone/test-runner/ios/run.mjs --os 26.5 --device 'iPhone 17 Pro' --arch arm64
 
 bun tests/standalone/test-runner/ios/run.mjs --destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UDID'
+bun tests/standalone/test-runner/ios/build.mjs --sanitizer address --skip-hermes-build
 bun tests/standalone/test-runner/ios/run.mjs --sanitizer address
+bun tests/standalone/test-runner/ios/build.mjs --sanitizer thread --skip-hermes-build
 bun tests/standalone/test-runner/ios/run.mjs --sanitizer thread
-bun tests/standalone/test-runner/ios/run.mjs --skip-hermes-build --build-only
-bun tests/standalone/test-runner/ios/run.mjs --skip-build
+bun tests/standalone/test-runner/ios/build.mjs --help
 bun tests/standalone/test-runner/ios/run.mjs --help
 ```
 
 `--os 26` matches any installed 26.x runtime; `--device` matches an exact name. `--destination` overrides that selection.
 `NITRO_IOS_DESTINATION` and `NITRO_TEST_JOBS` are also supported, with command-line arguments taking precedence.
 
-The runner compiles the test bundle once with `build-for-testing`, then runs every suite in one `test-without-building` invocation. CI uses
-`--build-only` and `--skip-build` in separate steps so compilation and test durations are visible. The second step uses the generated
-`.xctestrun` file directly and does not resolve packages or compile sources again.
+`ios/build.mjs` builds Hermes and compiles the test bundle once with `build-for-testing`. `ios/run.mjs` runs every suite in one
+`test-without-building` invocation, using the generated `.xctestrun` file directly. It does not resolve packages or compile sources. CI
+calls these scripts in separate steps so compilation and test durations are visible. `bun test:ios` prepares the fixtures, builds, then runs
+the tests through the workspace package commands. For a sanitizer run, build and run with the same `--sanitizer` value as shown above.
 
 `RuntimeTests.swift` reads the generated `runtime-tests.json` manifest and runs each `.test.ts` file as a Swift Testing parameter. New
 exported tests in `js/**/*.test.ts` need no Swift changes. Suites can be rerun individually in Xcode. A failed case stops its suite and

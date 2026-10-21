@@ -38,7 +38,7 @@
     "test:release": "bun --filter @nitro/scripts test:release",
     "docs": "bun --filter nitro-docs",
     "test:prepare": "bun run build:core && bun nitro-test-runner prepare-tests",
-    "test:ios": "bun test:prepare && bun nitro-test-runner test:ios",
+    "test:ios": "bun test:prepare && bun nitro-test-runner build:ios && bun nitro-test-runner test:ios",
     "test:android": "bun test:prepare && bun nitro-test-runner test:android",
     "build:core": "bun --filter @nitro/scripts build:core",
     "nitro-rn": "bun --filter react-native-nitro-modules",
