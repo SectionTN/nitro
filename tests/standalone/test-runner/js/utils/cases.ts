@@ -1,18 +1,11 @@
 import { NitroModules } from 'nitro-core'
 import { TestObjectCpp, TestObjectSwiftKotlin } from 'nitro-test'
+import { casesForImplementations, type TestCase } from './suites'
 
-type Timeout = { timeoutMs?: number }
-export type TestCase = (() => void | Promise<void>) & Timeout
+export { namedCases, withTestTimeout, type TestCase } from './suites'
+
 type TestObject = TestObjectCpp | TestObjectSwiftKotlin
-type TestObjectCase = ((object: TestObject) => void | Promise<void>) & Timeout
-
-/** Give an expensive case an explicit native execution budget. */
-export function withTestTimeout<Test extends (...args: never[]) => void | Promise<void>>(
-  timeoutMs: number,
-  test: Test
-): Test & { timeoutMs: number } {
-  return Object.assign(test, { timeoutMs })
-}
+type TestObjectCase = ((object: TestObject) => void | Promise<void>) & { timeoutMs?: number }
 type Implementation = 'TestObjectCpp' | 'TestObjectSwiftKotlin'
 
 /** Bind each case lazily so one fresh native object belongs to one native test. */
@@ -20,26 +13,11 @@ export function casesForTestObjects<Suite extends string, Cases extends Record<s
   suite: Suite,
   cases: Cases
 ): Record<`${Suite} / ${Implementation} / ${keyof Cases & string}`, TestCase> {
-  const result: Record<string, TestCase> = {}
-  for (const implementation of ['TestObjectCpp', 'TestObjectSwiftKotlin'] as const) {
-    for (const [name, test] of Object.entries(cases)) {
-      result[`${suite} / ${implementation} / ${name}`] = Object.assign(
-        () => test(implementation === 'TestObjectCpp' ? new TestObjectCpp() : new TestObjectSwiftKotlin()),
-        { timeoutMs: test.timeoutMs }
-      )
-    }
+  const implementations: Record<Implementation, () => TestObject> = {
+    TestObjectCpp: () => new TestObjectCpp(),
+    TestObjectSwiftKotlin: () => new TestObjectSwiftKotlin(),
   }
-  return result
-}
-
-export function namedCases<Suite extends string, Cases extends Record<string, TestCase>>(
-  suite: Suite,
-  cases: Cases
-): Record<`${Suite} / ${keyof Cases & string}`, TestCase> {
-  return Object.fromEntries(Object.entries(cases).map(([name, test]) => [`${suite} / ${name}`, test])) as Record<
-    `${Suite} / ${keyof Cases & string}`,
-    TestCase
-  >
+  return casesForImplementations(suite, implementations, cases)
 }
 
 // A recorder only stores calls and invokes the supplied callback. Assertions use
