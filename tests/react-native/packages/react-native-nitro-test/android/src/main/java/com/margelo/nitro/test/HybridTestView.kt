@@ -39,7 +39,7 @@ class HybridTestView(
     }
 
   // Methods
-  override fun getIsViewBlue(view: HybridTestViewSpec): Boolean = view.isBlue
+  override fun getIsViewBlue(view: HybridTestView): Boolean = view.isBlue
 
   override fun getOnDropViewCount(): Double = onDropViewCount.get().toDouble()
 
