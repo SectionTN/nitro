@@ -55,13 +55,16 @@ function isSpecialized(type: Type, nativeConfig: NitroConfig): type is ForeignHy
 
 /** Native-only conversion files. This does not emit JNI bindings or JSI conversions. */
 export function createKotlinConverters(type: Type, nativeConfig: NitroConfig = NitroConfig.current): KotlinCppConverter {
-  const representation = wrapKotlinType(getKotlinNativeType(type, nativeConfig))
+  const representation = wrapKotlinType(getKotlinNativeType(type, nativeConfig), { nativeConfig: nativeConfig })
   const directConverter = representation.getCppConverter?.(type)
   if (directConverter != null) return directConverter
   const referencedTypes = getReferencedTypes(type)
   const specializations = referencedTypes.filter((item) => isSpecialized(item, nativeConfig))
   const projectedType = getKotlinNativeType(type, nativeConfig)
-  const nativeTypeImports = [...projectedType.getRequiredImports('c++'), ...getKotlinJSIType(projectedType).getRequiredImports('c++')]
+  const nativeTypeImports = [
+    ...projectedType.getRequiredImports('c++'),
+    ...getKotlinJSIType(projectedType, { nativeConfig: nativeConfig }).getRequiredImports('c++'),
+  ]
   const imports: SourceImport[] = [runtimeImport, ...nativeTypeImports]
   const files: SourceFile[] = projectedType.getExtraFiles()
   const emitted = new Set<string>()

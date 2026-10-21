@@ -225,7 +225,7 @@ public:
     const setter = property.getSetterName('other')
     const converter = getKotlinConverter({
       cppType: property.type,
-      kotlinType: getKotlinJSIType(getKotlinNativeType(property.type, config)),
+      kotlinType: getKotlinJSIType(getKotlinNativeType(property.type, config), { nativeConfig: config }),
     })
     return `
 if (oldProps == nullptr
