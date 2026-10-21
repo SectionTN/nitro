@@ -120,7 +120,7 @@ using namespace margelo::nitro::test::external::views;
       // hybridRef changed - call it with new this
       const auto& maybeFunc = newViewProps.hybridRef.get();
       if (maybeFunc.has_value()) {
-        maybeFunc.value().callAsync(_hybridView);
+        maybeFunc.value().callAndForget(_hybridView);
       }
     }
 
