@@ -6,7 +6,7 @@
 ///
 
 #include <NitroTest/private/JColorScheme.hpp>
-#include <NitroModules/NitroHash.hpp>
+#include <NitroModules/JSIStringHash.hpp>
 #include <NitroModules/NumberUtils.hpp>
 #include <NitroModules/JSIString.hpp>
 
@@ -21,12 +21,12 @@ namespace margelo::nitro {
   }
 
   int32_t JSIConverter<jni::local_ref<margelo::nitro::test::JColorScheme>>::valueFromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    const auto string = value.asString(runtime).utf8(runtime);
-    switch (hashString(string)) {
+    const auto string = value.asString(runtime);
+    switch (hashJSIString(runtime, string)) {
       case hashString("light"): return 0;
       case hashString("dark"): return 1;
       default: [[unlikely]]
-        throw std::invalid_argument("Cannot convert \"" + string + "\" to enum ColorScheme - invalid value!");
+        throw std::invalid_argument("Cannot convert \"" + string.utf8(runtime) + "\" to enum ColorScheme - invalid value!");
     }
   }
 
@@ -41,8 +41,8 @@ namespace margelo::nitro {
 
   bool JSIConverter<jni::local_ref<margelo::nitro::test::JColorScheme>>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
     if (!value.isString()) return false;
-    const auto string = value.getString(runtime).utf8(runtime);
-    switch (hashString(string)) {
+    const auto string = value.getString(runtime);
+    switch (hashJSIString(runtime, string)) {
       case hashString("light"): return true;
       case hashString("dark"): return true;
       default: return false;

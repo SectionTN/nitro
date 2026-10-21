@@ -52,15 +52,22 @@ case ${member.value}: {
   let toJSI: string
   let canConvert: string
   if (enumType.jsType === 'union') {
+    // UTF-8 hashing is faster for Unicode labels. ASCII labels can use the raw JSI buffer.
+    let hashExpression: string
+    if (enumType.hasOnlyASCIIStringValues) {
+      hashExpression = 'hashJSIString(runtime, string)'
+    } else {
+      hashExpression = 'hashString(string.utf8(runtime))'
+    }
     const fromCases = enumType.enumMembers.map((member) => `case hashString("${member.stringValue}"): return ${member.value};`)
     const toCases = enumType.enumMembers.map((member) => `case ${member.value}: return createJSIString<"${member.stringValue}">(runtime);`)
     const checkCases = enumType.enumMembers.map((member) => `case hashString("${member.stringValue}"): return true;`)
     fromJSI = `
-const auto string = value.asString(runtime).utf8(runtime);
-switch (hashString(string)) {
+const auto string = value.asString(runtime);
+switch (${hashExpression}) {
   ${indent(fromCases.join('\n'), '  ')}
   default: [[unlikely]]
-    throw std::invalid_argument("Cannot convert \\"" + string + "\\" to enum ${enumType.enumName} - invalid value!");
+    throw std::invalid_argument("Cannot convert \\"" + string.utf8(runtime) + "\\" to enum ${enumType.enumName} - invalid value!");
 }
 `.trim()
     toJSI = `
@@ -72,8 +79,8 @@ switch (value->value()) {
 `.trim()
     canConvert = `
 if (!value.isString()) return false;
-const auto string = value.getString(runtime).utf8(runtime);
-switch (hashString(string)) {
+const auto string = value.getString(runtime);
+switch (${hashExpression}) {
   ${indent(checkCases.join('\n'), '  ')}
   default: return false;
 }
@@ -183,7 +190,7 @@ namespace margelo::nitro {
 ${createFileMetadataString(`${enumType.jniName}.cpp`)}
 
 ${ownInclude}
-#include <NitroModules/NitroHash.hpp>
+#include <NitroModules/JSIStringHash.hpp>
 #include <NitroModules/NumberUtils.hpp>
 #include <NitroModules/JSIString.hpp>
 

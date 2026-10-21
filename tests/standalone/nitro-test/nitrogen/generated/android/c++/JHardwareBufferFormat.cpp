@@ -6,7 +6,7 @@
 ///
 
 #include <NitroTest/private/JHardwareBufferFormat.hpp>
-#include <NitroModules/NitroHash.hpp>
+#include <NitroModules/JSIStringHash.hpp>
 #include <NitroModules/NumberUtils.hpp>
 #include <NitroModules/JSIString.hpp>
 
@@ -21,14 +21,14 @@ namespace margelo::nitro {
   }
 
   int32_t JSIConverter<jni::local_ref<margelo::nitro::test::JHardwareBufferFormat>>::valueFromJSI(jsi::Runtime& runtime, const jsi::Value& value) {
-    const auto string = value.asString(runtime).utf8(runtime);
-    switch (hashString(string)) {
+    const auto string = value.asString(runtime);
+    switch (hashJSIString(runtime, string)) {
       case hashString("rgba-8888"): return 0;
       case hashString("rgb-565"): return 1;
       case hashString("rgba-fp16"): return 2;
       case hashString("blob"): return 3;
       default: [[unlikely]]
-        throw std::invalid_argument("Cannot convert \"" + string + "\" to enum HardwareBufferFormat - invalid value!");
+        throw std::invalid_argument("Cannot convert \"" + string.utf8(runtime) + "\" to enum HardwareBufferFormat - invalid value!");
     }
   }
 
@@ -45,8 +45,8 @@ namespace margelo::nitro {
 
   bool JSIConverter<jni::local_ref<margelo::nitro::test::JHardwareBufferFormat>>::canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
     if (!value.isString()) return false;
-    const auto string = value.getString(runtime).utf8(runtime);
-    switch (hashString(string)) {
+    const auto string = value.getString(runtime);
+    switch (hashJSIString(runtime, string)) {
       case hashString("rgba-8888"): return true;
       case hashString("rgb-565"): return true;
       case hashString("rgba-fp16"): return true;

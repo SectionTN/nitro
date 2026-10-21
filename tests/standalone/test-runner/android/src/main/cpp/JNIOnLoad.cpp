@@ -6,6 +6,7 @@
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JNull.hpp>
 #include <NitroModules/JSIConverter+JOptional.hpp>
+#include <NitroModules/JSIStringHash.hpp>
 #include <NitroModules/JUnit.hpp>
 #include <NitroTest/private/JHybridGrandchildSpec.hpp>
 #include <NitroTest/private/JPowertrain.hpp>
@@ -229,8 +230,22 @@ public:
     }
   }
 
+  static void checkStringHashes(jni::alias_ref<JNativeTestRuntime>) {
+    auto runtime = facebook::hermes::makeHermesRuntime();
+    const auto source = std::make_shared<facebook::jsi::StringBuffer>(
+        R"(['', 'gas', 'hello\0world', '世界🚀', '\ud800', '\udc00', ('x'.repeat(300) + '世界'), ('世' + 'x'.repeat(300)), Array.from({length: 300}, (_, i) => String.fromCharCode(i)).join('')])");
+    auto values = runtime->evaluateJavaScript(source, "string-hashes.js").asObject(*runtime).asArray(*runtime);
+    for (size_t i = 0; i < values.size(*runtime); ++i) {
+      const auto string = values.getValueAtIndex(*runtime, i).asString(*runtime);
+      if (margelo::nitro::hashJSIString(*runtime, string) != margelo::nitro::hashString(string.utf8(*runtime))) {
+        throw std::runtime_error("Direct JSI string hash differs from UTF-8 hashing.");
+      }
+    }
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                        makeNativeMethod("checkStringHashes", JNativeTestRuntime::checkStringHashes),
                                         makeNativeMethod("checkRetainedEnums", JNativeTestRuntime::checkRetainedEnums),
                                         makeNativeMethod("nativeBuffer", JNativeTestRuntime::nativeBuffer),
                                         makeNativeMethod("checkHybridObjectCache", JNativeTestRuntime::checkHybridObjectCache),

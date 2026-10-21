@@ -8,6 +8,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class JNILifetimeTest {
   @Test
+  fun stringHashesPreserveUnicodeAndEmbeddedNulls() {
+    NativeTestRuntime.checkStringHashes()
+  }
+
+  @Test
   fun retainedEnumsShareOneGlobalAcrossLocalFrames() {
     NativeTestRuntime.checkRetainedEnums()
   }

@@ -13,6 +13,10 @@ export class KotlinEnumType extends EnumType implements KotlinType {
   readonly needsKotlinConversion = false
   readonly hasStaticJNIReference = true
 
+  get hasOnlyASCIIStringValues(): boolean {
+    return this.enumMembers.every((member) => Array.from(member.stringValue).every((character) => character.charCodeAt(0) <= 0x7f))
+  }
+
   constructor(
     readonly type: EnumType,
     readonly config: NitroConfig = NitroConfig.current
