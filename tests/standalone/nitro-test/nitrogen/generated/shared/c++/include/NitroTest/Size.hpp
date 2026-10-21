@@ -23,7 +23,6 @@ namespace margelo::nitro::test {
     SizeUnit unit     SWIFT_PRIVATE;
 
   public:
-    Size() = default;
     explicit Size(double width, double height, SizeUnit unit): width(width), height(height), unit(unit) {}
 
   public:

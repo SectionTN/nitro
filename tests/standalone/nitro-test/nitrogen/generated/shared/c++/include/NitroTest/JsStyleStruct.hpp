@@ -24,7 +24,6 @@ namespace margelo::nitro::test {
     Callback<void(double /* num */)> onChanged     SWIFT_PRIVATE;
 
   public:
-    JsStyleStruct() = default;
     explicit JsStyleStruct(double value, Callback<void(double /* num */)> onChanged): value(value), onChanged(std::move(onChanged)) {}
 
   public:

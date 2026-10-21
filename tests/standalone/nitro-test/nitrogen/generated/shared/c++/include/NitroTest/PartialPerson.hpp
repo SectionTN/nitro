@@ -24,7 +24,6 @@ namespace margelo::nitro::test {
     std::optional<double> age     SWIFT_PRIVATE;
 
   public:
-    PartialPerson() = default;
     explicit PartialPerson(std::optional<std::string> name, std::optional<double> age): name(std::move(name)), age(std::move(age)) {}
 
   public:

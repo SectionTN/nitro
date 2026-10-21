@@ -25,7 +25,6 @@ namespace margelo::nitro::test {
     std::optional<std::string> optionalString     SWIFT_PRIVATE;
 
   public:
-    OptionalWrapper() = default;
     explicit OptionalWrapper(std::optional<ArrayBuffer> optionalArrayBuffer, std::optional<std::string> optionalString): optionalArrayBuffer(std::move(optionalArrayBuffer)), optionalString(std::move(optionalString)) {}
 
   public:

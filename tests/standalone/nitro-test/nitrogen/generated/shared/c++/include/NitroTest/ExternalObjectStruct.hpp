@@ -22,7 +22,6 @@ namespace margelo::nitro::test {
     margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx someExternal     SWIFT_PRIVATE;
 
   public:
-    ExternalObjectStruct() = default;
     explicit ExternalObjectStruct(margelo::nitro::test::adapters::NitroTestExternal::HybridSomeExternalObjectSpecCxx someExternal): someExternal(std::move(someExternal)) {}
 
   public:

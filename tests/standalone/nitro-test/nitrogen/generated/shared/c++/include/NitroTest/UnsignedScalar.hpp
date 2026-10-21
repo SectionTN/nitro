@@ -20,7 +20,6 @@ namespace margelo::nitro::test {
     uint64_t value     SWIFT_PRIVATE;
 
   public:
-    UnsignedScalar() = default;
     explicit UnsignedScalar(uint64_t value): value(value) {}
 
   public:
