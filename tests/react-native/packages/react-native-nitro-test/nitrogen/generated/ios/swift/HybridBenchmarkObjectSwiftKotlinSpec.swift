@@ -50,7 +50,8 @@ public extension HybridBenchmarkObjectSwiftKotlinSpec_protocol {
 /// See ``HybridBenchmarkObjectSwiftKotlinSpec``
 open class HybridBenchmarkObjectSwiftKotlinSpec_base {
   private weak var cxxWrapper: HybridBenchmarkObjectSwiftKotlinSpec_cxx? = nil
-  public init() { }
+  public init() throws {
+  }
   public final func getCxxWrapper() -> HybridBenchmarkObjectSwiftKotlinSpec_cxx {
   #if DEBUG
     guard self is any HybridBenchmarkObjectSwiftKotlinSpec else {

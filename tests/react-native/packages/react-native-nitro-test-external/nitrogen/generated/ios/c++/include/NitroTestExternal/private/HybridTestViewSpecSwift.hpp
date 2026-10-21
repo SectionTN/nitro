@@ -63,6 +63,8 @@ namespace margelo::nitro::test::external {
     // Methods
     void someMethod();
     swift::String getModuleName();
+    // Native view constructor
+    static ::NitroTestExternal::HybridTestViewSpec_cxx createTestViewView();
 
   protected:
     const std::shared_ptr<const HybridClass>& getHybridClass() override {

@@ -7,7 +7,7 @@
 
 public import NitroModules
 internal import CxxStdlib
-public import NitroTestExternalAppleCxx
+internal import NitroTestExternalAppleCxx
 
 public typealias Callback___NitroTestExternal__Size___NitroTestExternal__Size = margelo.nitro.test.external.swift_bridge.Callback___NitroTestExternal__Size___NitroTestExternal__Size
 

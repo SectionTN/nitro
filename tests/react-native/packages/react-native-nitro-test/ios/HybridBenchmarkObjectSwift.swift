@@ -6,8 +6,8 @@ import NitroModules
 #endif
 
 class HybridBenchmarkObjectSwift: HybridBenchmarkObjectSwiftKotlinSpec {
-  required override init() {
-    super.init()
+  required override init() throws {
+    try super.init()
   }
 
   private var pendingPromise: (any Promise<Double>)?
@@ -33,7 +33,7 @@ class HybridBenchmarkObjectSwift: HybridBenchmarkObjectSwiftKotlinSpec {
     return array
   }
 
-  func bounceCar(car: Car) -> Car {
+  func bounceCar(car: Car) throws -> Car {
     return car
   }
 
@@ -63,7 +63,7 @@ class HybridBenchmarkObjectSwift: HybridBenchmarkObjectSwiftKotlinSpec {
   }
 
   func newBenchmarkObject() throws -> any HybridBenchmarkObjectSwiftKotlinSpec {
-    return HybridBenchmarkObjectSwift()
+    return try HybridBenchmarkObjectSwift()
   }
 
   func bounceArrayBuffer(buffer: ArrayBuffer) throws -> ArrayBuffer {

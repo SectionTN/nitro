@@ -107,7 +107,8 @@ using namespace ${namespace}::views;
 - (instancetype) init {
   if (self = [super init]) {
     _props = ${shadowNodeClassName}::defaultSharedProps();
-    auto hybridView = ${swiftNamespace}::${HybridTSpecCxx}::create${spec.name}View();
+    auto swiftView = ${HybridTSpecSwift}::create${spec.name}View();
+    auto hybridView = ${swiftNamespace}::${HybridTSpecCxx}::getCxxPart(swiftView);
     _hybridView = std::dynamic_pointer_cast<${HybridTSpecSwift}>(hybridView);
     [self updateView];
   }

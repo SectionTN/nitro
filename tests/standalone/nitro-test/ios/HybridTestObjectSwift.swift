@@ -13,8 +13,8 @@ import NitroTestExternal
 import os
 
 class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
-  required override init() {
-    super.init()
+  required override init() throws {
+    try super.init()
   }
 
   static let readonlyNumber: Double = 42.0
@@ -355,11 +355,11 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   }
 
   func newTestObject() throws -> (any HybridTestObjectSwiftKotlinSpec) {
-    return HybridTestObjectSwift()
+    return try HybridTestObjectSwift()
   }
 
   func newTestObjectAsync() throws -> any Promise<(any HybridTestObjectSwiftKotlinSpec)> {
-    return .parallel { HybridTestObjectSwift() }
+    return .parallel { try HybridTestObjectSwift() }
   }
 
   func funcThatThrows() throws -> Double {
@@ -705,27 +705,27 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   }
 
   func createChild() throws -> (any HybridChildSpec) {
-    return HybridChild()
+    return try HybridChild()
   }
 
   func createBase() throws -> (any HybridBaseSpec) {
-    return HybridBase()
+    return try HybridBase()
   }
 
   func createBaseActualChild() throws -> (any HybridBaseSpec) {
-    return HybridChild()
+    return try HybridChild()
   }
 
   func createGrandchild() throws -> (any HybridGrandchildSpec) {
-    return HybridGrandchild()
+    return try HybridGrandchild()
   }
 
   func createChildActualGrandchild() throws -> (any HybridChildSpec) {
-    return HybridGrandchild()
+    return try HybridGrandchild()
   }
 
   func createBaseActualGrandchild() throws -> (any HybridBaseSpec) {
-    return HybridGrandchild()
+    return try HybridGrandchild()
   }
 
   func bounceGrandchild(grandchild: (any HybridGrandchildSpec)) throws -> (any HybridGrandchildSpec) {
@@ -792,7 +792,7 @@ class HybridTestObjectSwift: HybridTestObjectSwiftKotlinSpec {
   }
 
   func createInternalObject() throws -> (any HybridSomeExternalObjectSpec) {
-    return HybridSomeInternalObject()
+    return try HybridSomeInternalObject()
   }
 
   func dispose() {

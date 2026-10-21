@@ -6,7 +6,7 @@
 ///
 
 public import NitroModules
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 internal import CxxStdlib
 
 @_expose(Cxx)

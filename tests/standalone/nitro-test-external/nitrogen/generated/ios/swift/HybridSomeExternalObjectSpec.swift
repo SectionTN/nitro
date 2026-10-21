@@ -36,7 +36,8 @@ public extension HybridSomeExternalObjectSpec_protocol {
 /// See ``HybridSomeExternalObjectSpec``
 open class HybridSomeExternalObjectSpec_base {
   private weak var cxxWrapper: HybridSomeExternalObjectSpec_cxx? = nil
-  public init() { }
+  public init() throws {
+  }
   public final func getCxxWrapper() -> HybridSomeExternalObjectSpec_cxx {
   #if DEBUG
     guard self is any HybridSomeExternalObjectSpec else {

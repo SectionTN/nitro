@@ -7,7 +7,7 @@
 
 public import NitroModules
 internal import CxxStdlib
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 public typealias Callback_int64_t_int64_t = margelo.nitro.test.swift_bridge.Callback_int64_t_int64_t
 

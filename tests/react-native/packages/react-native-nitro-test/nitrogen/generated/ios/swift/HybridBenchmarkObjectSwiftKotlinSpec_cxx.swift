@@ -6,7 +6,7 @@
 ///
 public import NitroModules
 internal import CxxStdlib
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 /**
  * A class implementation that bridges HybridBenchmarkObjectSwiftKotlinSpec over to C++.

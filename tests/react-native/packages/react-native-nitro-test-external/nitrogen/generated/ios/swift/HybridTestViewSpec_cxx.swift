@@ -6,7 +6,7 @@
 ///
 internal import NitroModules
 internal import CxxStdlib
-public import NitroTestExternalAppleCxx
+internal import NitroTestExternalAppleCxx
 
 /**
  * A class implementation that bridges HybridTestViewSpec over to C++.
@@ -166,13 +166,20 @@ public final class HybridTestViewSpec_cxx {
     }
   }
 
-  // Fabric creates views on the UI thread, independently of JavaScript constructors.
-  public static func createTestViewView() -> bridge.std__shared_ptr_margelo__nitro__test__external__HybridTestViewSpec_ {
-    return HybridTestView().getCxxWrapper().getCxxPart()
+  // Native view constructor
+
+  public class func createTestViewView() -> bridge.Result_void_ {
+    do {
+      let value = try HybridTestView()
+      return bridge.Result_void_.withValue(value.getCxxWrapper().toUnsafe())
+    } catch {
+      return bridge.Result_void_.withError(error.toCpp())
+    }
   }
 
   public static func isTestViewRecyclable() -> Bool {
-    return HybridTestView.self is any RecyclableView.Type
+    let viewType: any HybridView.Type = HybridTestView.self
+    return viewType is any RecyclableView.Type
   }
 
   public final func getView() -> UnsafeMutableRawPointer {
@@ -188,7 +195,7 @@ public final class HybridTestViewSpec_cxx {
   }
 
   public final func maybePrepareForRecycle() {
-    guard let recyclable = __implementation as? any RecyclableView else { return }
+    guard let recyclable = getHybridTestViewSpec() as? any RecyclableView else { return }
     recyclable.prepareForRecycle()
   }
 

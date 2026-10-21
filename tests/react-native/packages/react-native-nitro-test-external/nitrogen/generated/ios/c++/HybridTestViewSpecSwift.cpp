@@ -53,6 +53,16 @@ namespace margelo::nitro::test::external {
     return std::move(__result.value());
   }
 
+  // Native view constructor
+
+  ::NitroTestExternal::HybridTestViewSpec_cxx HybridTestViewSpecSwift::createTestViewView() {
+    auto __result = ::NitroTestExternal::HybridTestViewSpec_cxx::createTestViewView();
+    if (__result.hasError()) [[unlikely]] {
+      std::rethrow_exception(__result.error());
+    }
+    return ::NitroTestExternal::HybridTestViewSpec_cxx::fromUnsafe(__result.value());
+  }
+
   const std::shared_ptr<const HybridClass>& HybridTestViewSpecSwift::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
       clazz.registerHybridProperty("isBlue", &HybridTestViewSpecSwift::getIsBlue, &HybridTestViewSpecSwift::setIsBlue);

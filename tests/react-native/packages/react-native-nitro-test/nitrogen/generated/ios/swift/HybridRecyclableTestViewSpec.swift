@@ -39,7 +39,8 @@ public extension HybridRecyclableTestViewSpec_protocol {
 /// See ``HybridRecyclableTestViewSpec``
 open class HybridRecyclableTestViewSpec_base {
   private weak var cxxWrapper: HybridRecyclableTestViewSpec_cxx? = nil
-  public init() { }
+  public init() throws {
+  }
   public final func getCxxWrapper() -> HybridRecyclableTestViewSpec_cxx {
   #if DEBUG
     guard self is any HybridRecyclableTestViewSpec else {

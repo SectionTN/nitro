@@ -66,7 +66,7 @@ export class SwiftErrorType extends ErrorType implements SwiftType {
     const imports = super.getRequiredImports(language)
     switch (language) {
       case 'swift':
-        imports.push({ language, name: 'CxxStdlib', access: 'public' })
+        imports.push({ language: language, name: 'CxxStdlib', access: 'internal' })
         break
     }
     return imports

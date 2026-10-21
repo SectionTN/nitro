@@ -7,7 +7,7 @@
 
 public import NitroModules
 internal import CxxStdlib
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 public typealias InlineCallback_double_double = margelo.nitro.test.swift_bridge.InlineCallback_double_double
 

@@ -7,7 +7,7 @@
 
 internal import CxxStdlib
 public import Foundation
-public import NitroModulesAppleCxx
+internal import NitroModulesAppleCxx
 
 public typealias ArrayBuffer = margelo.nitro.ArrayBuffer
 

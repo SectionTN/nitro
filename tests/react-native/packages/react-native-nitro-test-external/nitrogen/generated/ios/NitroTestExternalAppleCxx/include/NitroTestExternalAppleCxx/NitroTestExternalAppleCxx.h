@@ -33,4 +33,5 @@ namespace margelo::nitro::test::external::swift_bridge {
   using Callback_void = Callback<void()>;
   Result<void, margelo::nitro::test::external::swift_bridge::ResultTag> callSync_Callback_void(const Callback_void& callback) noexcept;
   Callback_void create_Callback_void(std::function<Result<void, margelo::nitro::test::external::swift_bridge::ResultTag>()> closure);
+  using Result_void_ = Result<void*, margelo::nitro::test::external::swift_bridge::ResultTag>;
 } // namespace margelo::nitro::test::external::swift_bridge

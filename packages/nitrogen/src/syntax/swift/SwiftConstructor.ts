@@ -17,6 +17,7 @@ import type { SwiftType } from './types/SwiftType.js'
 interface SwiftConstructorOptions {
   spec: HybridObjectSpec<'swift'>
   constructor: Constructor
+  factoryName?: string
 }
 
 export class SwiftConstructor extends Constructor {
@@ -26,13 +27,13 @@ export class SwiftConstructor extends Constructor {
   private readonly cppInvocationTarget: string
   private readonly callable: SwiftMethodInfo
 
-  constructor({ spec, constructor }: SwiftConstructorOptions) {
+  constructor({ spec, constructor, factoryName = 'constructor' }: SwiftConstructorOptions) {
     const implementation = spec.implementation
     if (implementation == null) {
       throw new Error(`${spec.name}: Cannot generate a constructor without a Swift implementation.`)
     }
     const returnType = new HybridObjectType(spec)
-    const nativeFactory = constructor.toStaticMethod(returnType)
+    const nativeFactory = constructor.toStaticMethod(returnType, factoryName)
     const callable = prepareSwiftMethod(nativeFactory, true, spec.config)
     const parameters = callable.parameters.map((parameter) => parameter.swift)
     super(constructor.name, callable.returnType, parameters, {

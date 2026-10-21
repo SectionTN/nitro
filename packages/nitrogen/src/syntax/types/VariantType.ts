@@ -65,10 +65,12 @@ export class VariantType implements Type {
     switch (language) {
       case 'c++':
         imports.push({
-          language,
+          language: language,
           declaration: { header: 'variant', space: 'system' },
         })
         break
+      case 'swift':
+        return []
     }
     return imports
   }

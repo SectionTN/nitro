@@ -15,6 +15,7 @@ import { SwiftConstructor } from './SwiftConstructor.js'
 import { getImportCode, getImportsCode } from '../getImportCode.js'
 import { getProtocolConformanceImports, getSwiftImports } from './getSwiftImports.js'
 import type { SwiftMethodBridge } from './SwiftMethodHelpers.js'
+import { Constructor } from '../Constructor.js'
 
 function getCxxPartName(type: HybridObjectType): string {
   const name = getHybridObjectName(type.hybridObjectName).HybridTSpecSwift
@@ -151,6 +152,19 @@ self.__implementation = implementation
       cppMethodRegistrations.push(property.getCppRegistration(cppClassName))
     }
   }
+  if (spec.isHybridView) {
+    const viewConstructor = new SwiftConstructor({
+      spec: spec,
+      constructor: new Constructor(spec.name, type, []),
+      factoryName: `create${spec.name}View`,
+    })
+    const viewConstructorBridge = viewConstructor.createBridge(cppClassName)
+    callableGroups.push({
+      name: 'Native view constructor',
+      // Fabric creates views directly, without a JavaScript constructor.
+      bridges: [{ ...viewConstructorBridge, cppRegistrations: [] }],
+    })
+  }
 
   for (const { name, bridges } of callableGroups) {
     const comment = `// ${name}`
@@ -183,13 +197,9 @@ self.__implementation = implementation
     }
     swiftMethodImplementations.push(
       `
-// Fabric creates views on the UI thread, independently of JavaScript constructors.
-public static func create${spec.name}View() -> bridge.${bridgeNames.strong} {
-  return ${implementation.className}().getCxxWrapper().getCxxPart()
-}
-
 public static func is${spec.name}Recyclable() -> Bool {
-  return ${implementation.className}.self is any RecyclableView.Type
+  let viewType: any HybridView.Type = ${implementation.className}.self
+  return viewType is any RecyclableView.Type
 }
 `.trim()
     )
@@ -209,7 +219,7 @@ public final func afterUpdate() {
 }
 
 public final func maybePrepareForRecycle() {
-  guard let recyclable = __implementation as? any RecyclableView else { return }
+  guard let recyclable = get${hybridObjectNames.HybridTSpec}() as? any RecyclableView else { return }
   recyclable.prepareForRecycle()
 }
 
@@ -244,7 +254,7 @@ ${swiftMemberAccess} override func getCxxPart() -> bridge.${getHybridObjectBridg
     {
       language: 'swift',
       name: `${swiftModuleName}AppleCxx`,
-      access: 'public',
+      access: 'internal',
     },
     ...getSwiftImports(type.baseTypes, 'public'),
     ...getSwiftImports([...spec.methods, ...spec.properties, ...spec.staticMethods, ...spec.staticProperties], 'internal'),

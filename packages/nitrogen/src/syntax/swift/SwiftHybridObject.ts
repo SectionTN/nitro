@@ -66,9 +66,20 @@ export function createSwiftHybridObject(spec: HybridObjectSpec<'swift'>): Source
   const baseMembers: string[] = []
   baseMembers.push(`private weak var cxxWrapper: ${name.HybridTSpecCxx}? = nil`)
   if (hasBaseClass) {
-    baseMembers.push(`public override init() { super.init() }`)
+    baseMembers.push(
+      `
+public override init() throws {
+  try super.init()
+}
+`.trim()
+    )
   } else {
-    baseMembers.push(`public init() { }`)
+    baseMembers.push(
+      `
+public init() throws {
+}
+`.trim()
+    )
   }
   baseMembers.push(
     `

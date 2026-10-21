@@ -183,7 +183,8 @@ public extension HybridTestObjectSwiftKotlinSpec_protocol {
 /// See ``HybridTestObjectSwiftKotlinSpec``
 open class HybridTestObjectSwiftKotlinSpec_base {
   private weak var cxxWrapper: HybridTestObjectSwiftKotlinSpec_cxx? = nil
-  public init() { }
+  public init() throws {
+  }
   public final func getCxxWrapper() -> HybridTestObjectSwiftKotlinSpec_cxx {
   #if DEBUG
     guard self is any HybridTestObjectSwiftKotlinSpec else {

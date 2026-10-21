@@ -7,7 +7,7 @@
 
 public import NitroModules
 internal import CxxStdlib
-public import NitroTestAppleCxx
+internal import NitroTestAppleCxx
 
 public typealias Callback_Promise_ArrayBuffer_ = margelo.nitro.test.swift_bridge.Callback_Promise_ArrayBuffer_
 

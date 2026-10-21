@@ -53,7 +53,8 @@ using namespace margelo::nitro::test::views;
 - (instancetype) init {
   if (self = [super init]) {
     _props = HybridTestViewShadowNode::defaultSharedProps();
-    auto hybridView = NitroTest::HybridTestViewSpec_cxx::createTestViewView();
+    auto swiftView = HybridTestViewSpecSwift::createTestViewView();
+    auto hybridView = NitroTest::HybridTestViewSpec_cxx::getCxxPart(swiftView);
     _hybridView = std::dynamic_pointer_cast<HybridTestViewSpecSwift>(hybridView);
     [self updateView];
   }

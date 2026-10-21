@@ -45,7 +45,7 @@ public:
    */
   struct Class {
     using Base = void;
-    static constexpr const char* name = "HybridObject";
+    static constexpr const char* NON_NULL name = "HybridObject";
     static const std::shared_ptr<const HybridClass>& get();
   };
 
