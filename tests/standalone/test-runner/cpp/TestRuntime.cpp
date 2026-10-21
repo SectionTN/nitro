@@ -1,9 +1,5 @@
 #include "TestRuntime.hpp"
 
-#ifdef __APPLE__
-#include <NitroTest/NitroTestAutolinking.hpp>
-#include <NitroTestExternal/NitroTestExternalAutolinking.hpp>
-#endif
 #ifdef __ANDROID__
 #include <fbjni/fbjni.h>
 #endif
@@ -163,10 +159,6 @@ namespace {
       const auto timeoutMessage = "Timed out after " + std::to_string(timeoutMs) + "ms";
       const auto bundleDeadline = Clock::now() + timeout;
       runtime->watchTimeLimit(timeoutMs);
-#ifdef __APPLE__
-      margelo::nitro::test::external::registerHybridClasses();
-      margelo::nitro::test::registerHybridClasses();
-#endif
       install(*runtime, dispatcher);
       // Expose platform information and explicit garbage collection to the tests.
 #ifdef __ANDROID__
