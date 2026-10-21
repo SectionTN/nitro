@@ -100,17 +100,16 @@ jobs:
             hashFiles('tests/standalone/hermes/build.mjs', 'tests/standalone/hermes/options.cmake') }}
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun test:prepare
-      - name: Build test APK
+      - name: Build JUnit Test Runner
         working-directory: tests/standalone/test-runner/android
-        run:
-          ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --no-daemon --build-cache
+        run: ./gradlew :assembleDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{ matrix.sanitizer.flag }} --build-cache
       - name: Save Hermes host compiler
         if: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1') && steps.hermes-cache.outputs.cache-hit != 'true' }}
         uses: actions/cache/save@v6
         with:
           path: tests/standalone/.build/hermes/host
           key: ${{ steps.hermes-cache.outputs.cache-primary-key }}
-      - name: Run JUnit tests
+      - name: Run JUnit Test Suites
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.sanitizer.api-level }}
@@ -119,7 +118,36 @@ jobs:
           disable-animations: true
           script:
             cd tests/standalone/test-runner/android && ./gradlew :connectedDebugAndroidTest -PnitroTestAbi=x86_64 -PnitroSanitizer=${{
-            matrix.sanitizer.flag }} --no-daemon --build-cache
+            matrix.sanitizer.flag }} --build-cache
+      - name: Summarize JUnit results
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+
+          reports = Path('tests/standalone/test-runner/android/build/outputs/androidTest-results/connected').rglob('TEST-*.xml')
+          cases = [case for report in sorted(reports) for case in ET.parse(report).getroot().iter('testcase')]
+          lines = []
+          passed = failed = skipped = 0
+          for case in cases:
+              name = f"{case.get('classname', '').rsplit('.', 1)[-1]}.{case.get('name', '')}"
+              if case.find('failure') is not None or case.find('error') is not None:
+                  failed += 1
+                  lines.append(f'✗ {name}')
+              elif case.find('skipped') is not None:
+                  skipped += 1
+                  lines.append(f'- {name} (skipped)')
+              else:
+                  passed += 1
+                  lines.append(f'✓ {name}')
+          lines.append(f'{passed} passed, {failed} failed, {skipped} skipped' if cases else 'No JUnit results were produced.')
+          result = '\n'.join(lines)
+          print(result)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write(f'### Android JUnit results\n\n```text\n{result}\n```\n')
+          PY
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7
