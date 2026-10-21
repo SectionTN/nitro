@@ -192,6 +192,9 @@ Since Nitro bridges props directly to JS, you are responsible for ensuring threa
 - If the user sets props on the view `hybridRef` (e.g. also if the `HybridView` is passed to a `HybridObject` in native), props _could_ be
   set on a different Thread, like the JS Thread.
 
+Kotlin arrays and maps passed to React prop setters are retained by Fabric's prop snapshots. Treat their contents as read-only; copy them
+first if your implementation needs to mutate them.
+
 ### Before/After update
 
 To batch prop changes, you can override `beforeUpdate()` and `afterUpdate()` in your views:
