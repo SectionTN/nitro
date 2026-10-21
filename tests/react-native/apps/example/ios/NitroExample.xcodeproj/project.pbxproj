@@ -253,6 +253,7 @@
 			);
 			inputPaths = (
 			);
+			alwaysOutOfDate = 1;
 			name = "Sync SPM Autolinking";
 			outputFileListPaths = (
 			);
