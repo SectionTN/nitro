@@ -190,8 +190,8 @@ namespace margelo::nitro::test {
     return __result->cthis()->getArrayBuffer();
   }
   double JHybridBenchmarkObjectSwiftKotlinSpec::callbackSync(const Callback<double()>& callback) {
-    static const auto __method = JavaPart::javaClassStatic()->getMethod<double(jni::alias_ref<JCallback_double::javaobject> /* callback */)>("callbackSync_cxx");
-    auto __result = __method(_javaPart, JCallback_double_cxx::fromCpp(callback));
+    static const auto __method = JavaPart::javaClassStatic()->getNonvirtualMethod<double(jni::alias_ref<JCallback_double::javaobject> /* callback */)>("callbackSync_cxx");
+    auto __result = __method(_javaPart, JavaPart::javaClassStatic(), JCallback_double_cxx::fromCpp(callback));
     return __result;
   }
   Promise<double> JHybridBenchmarkObjectSwiftKotlinSpec::promiseReturnsInstantly() {

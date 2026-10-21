@@ -95,8 +95,8 @@ namespace margelo::nitro::test::external {
     return __result->toCpp();
   }
   Promise<SizeKotlin> JHybridBaseSpec::mapSize(const SizeKotlin& size, const Callback<SizeKotlin(const SizeKotlin& /* size */)>& callback) {
-    static const auto __method = JavaPart::javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<JSize> /* size */, jni::alias_ref<JCallback_SizeKotlin_SizeKotlin::javaobject> /* callback */)>("mapSize_cxx");
-    auto __result = __method(_javaPart, JSize::fromCpp(size), JCallback_SizeKotlin_SizeKotlin_cxx::fromCpp(callback));
+    static const auto __method = JavaPart::javaClassStatic()->getNonvirtualMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<JSize> /* size */, jni::alias_ref<JCallback_SizeKotlin_SizeKotlin::javaobject> /* callback */)>("mapSize_cxx");
+    auto __result = __method(_javaPart, JavaPart::javaClassStatic(), JSize::fromCpp(size), JCallback_SizeKotlin_SizeKotlin_cxx::fromCpp(callback));
     return [&]() {
       auto __promise = Promise<SizeKotlin>::pending();
       __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {

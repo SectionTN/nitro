@@ -91,7 +91,7 @@ interface CppJniCallBodyOptions {
   jniMethodLookup: string
   /** The Java instance, or the class for static methods. */
   jniReceiver: string
-  /** The concrete class passed to fbjni's nonvirtual invocation. */
+  /** The lookup class passed to fbjni's nonvirtual invocation. */
   jniDeclaringClass?: string
 }
 
