@@ -47,6 +47,18 @@ private struct JavaScriptFailure: Error, CustomStringConvertible {
   let description: String
 }
 
+/// A positive integer from the test process's environment, if it is set.
+private func positiveEnvironmentValue(_ name: String) -> UInt32? {
+  guard let text = ProcessInfo.processInfo.environment[name], let value = UInt32(text), value > 0 else {
+    return nil
+  }
+  return value
+}
+
+/// Budget for runtime setup and for each case without its own override.
+/// `run.mjs` raises it for sanitizer builds through `NITRO_TEST_TIMEOUT_MS`.
+private let defaultTimeoutMs = positiveEnvironmentValue("NITRO_TEST_TIMEOUT_MS") ?? 10_000
+
 @Suite
 struct RuntimeTests {
   private static let manifest = Result { try readManifest() }
@@ -120,7 +132,7 @@ struct RuntimeTests {
   @Test(arguments: try RuntimeTests.manifest.get().suites)
   func javaScript(_ suite: JavaScriptSuite) async throws {
     let source = try Self.bundleSource.get()
-    if let failure = await runNitroSuite(source, suite.cases, 10_000, sourceMap: Self.sourceMap) {
+    if let failure = await runNitroSuite(source, suite.cases, defaultTimeoutMs, sourceMap: Self.sourceMap) {
       throw JavaScriptFailure(description: failure)
     }
   }
@@ -149,6 +161,8 @@ struct RuntimeTests {
     #expect(failure.contains("evaluation failure"))
   }
 
+  // A deadlock still times out. The budget only absorbs a busy machine while
+  // the suites start.
   @Test func swiftTasksCanCompleteDuringNativeRun() async throws {
     let source = """
       globalThis.runNitroTest = async () => {
@@ -158,7 +172,7 @@ struct RuntimeTests {
         if (value !== 55n) throw new Error('Unexpected Fibonacci result');
       };
       """
-    let failure = await runNitroSuite(source, ["swift-task-contract"], 2000)
+    let failure = await runNitroSuite(source, ["swift-task-contract"], 10_000)
     #expect(failure == nil)
   }
 

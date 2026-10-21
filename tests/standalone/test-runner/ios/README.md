@@ -65,6 +65,9 @@ thread, so Swift tasks started by `Promise.async` inherit that priority. The sha
 The static-property cases belong to `objects.test.ts`, so their writes to shared native storage run sequentially. They restore the original
 values before returning.
 
+The default budget for runtime setup and for each case is 10 seconds, or 30 seconds with `--sanitizer address` or `--sanitizer thread`;
+`run.mjs` passes it as `NITRO_TEST_TIMEOUT_MS`. Explicit `withTestTimeout` budgets do not change.
+
 The Objective-C++ bridge converts a failed assertion or native exception into a Swift error. Handwritten tests check error propagation,
 cached bytecode with shared state within a suite and fresh state between suites, per-case timeout overrides, independent setup and execution
 budgets, and timeouts for unresolved promises, synchronous loops, and endless microtask chains. A concurrency contract uses a separate queue
