@@ -1,3 +1,4 @@
+import type { KotlinCppConverter } from '../KotlinConverter.js'
 import type { SourceImport } from '../../SourceFile.js'
 import type { Type, TypeContext } from '../../types/Type.js'
 
@@ -57,6 +58,10 @@ export interface KotlinType extends Type {
   readonly fromCppReturnType?: string
   /** Whether the public Kotlin API needs conversion to this representation. */
   readonly needsKotlinConversion: boolean
+  /** The owned JNI representation consumed by direct JSI conversions, when supported. */
+  getJSIType?(): Type | undefined
+  /** Native conversion requirements requested only by a C++ consumer. */
+  getCppConverter?(cppType: Type): KotlinCppConverter
   /** Native methods required by this type, owned by the module that declares them. */
   getJniNativeRegistrations?(): readonly JNINativeRegistration[]
   /** Converts `value` across JNI, see `KotlinConversion`. */

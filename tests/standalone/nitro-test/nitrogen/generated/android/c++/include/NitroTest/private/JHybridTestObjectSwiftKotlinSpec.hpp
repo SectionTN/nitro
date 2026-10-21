@@ -50,6 +50,12 @@ namespace margelo::nitro::test::external { class JHybridSomeExternalObjectSpec; 
 #include <NitroModules/InlineCallback.hpp>
 #include <NitroTest/private/JsStyleStructKotlin.hpp>
 #include <NitroTest/HardwareBufferFormat.hpp>
+#include <NitroModules/JNIConverter+String.hpp>
+#include <NitroModules/JSIConverter+JString.hpp>
+#include <NitroModules/JAnyJSON.hpp>
+#include <NitroModules/JNIConverter+AnyJSON.hpp>
+#include <NitroModules/JSIConverter+JNIAnyJSON.hpp>
+#include <NitroTest/private/JHybridTestObjectSwiftKotlinSpec.hpp>
 
 namespace margelo::nitro::test {
 
@@ -96,8 +102,8 @@ namespace margelo::nitro::test {
     void setNumberValue(double numberValue);
     bool getBoolValue();
     void setBoolValue(bool boolValue);
-    std::string getStringValue();
-    void setStringValue(const std::string& stringValue);
+    jni::local_ref<jni::JString> getStringValue();
+    void setStringValue(const jni::local_ref<jni::JString>& stringValue);
     int64_t getInt64Value();
     void setInt64Value(int64_t int64Value);
     uint64_t getUint64Value();
@@ -128,8 +134,8 @@ namespace margelo::nitro::test {
     void setIsBooleanWritable(bool isBooleanWritable);
     bool getIsolatedBoolean();
     void setIsolatedBoolean(bool isolatedBoolean);
-    std::string getIsTextValue();
-    void setIsTextValue(const std::string& isTextValue);
+    jni::local_ref<jni::JString> getIsTextValue();
+    void setIsTextValue(const jni::local_ref<jni::JString>& isTextValue);
     std::variant<double, std::string> getSomeVariant();
     void setSomeVariant(const std::variant<double, std::string>& someVariant);
     std::shared_ptr<JHybridTestObjectSwiftKotlinSpec> getThisObject();
@@ -140,15 +146,15 @@ namespace margelo::nitro::test {
     // Methods
     void simpleFunc();
     double addNumbers(double a, double b);
-    std::string addStrings(const std::string& a, const std::string& b);
-    void multipleArguments(double num, const std::string& str, bool boo);
+    jni::local_ref<jni::JString> addStrings(const jni::local_ref<jni::JString>& a, const jni::local_ref<jni::JString>& b);
+    void multipleArguments(double num, const jni::local_ref<jni::JString>& str, bool boo);
     nitro::NullType bounceNull(nitro::NullType value);
     std::vector<std::string> bounceStrings(const std::vector<std::string>& array);
     std::vector<double> bounceNumbers(const std::vector<double>& array);
     std::vector<PersonKotlin> bounceStructs(const std::vector<PersonKotlin>& array);
     std::vector<std::vector<PersonKotlin>> bounceNestedArray(const std::vector<std::vector<PersonKotlin>>& array);
     PartialPersonKotlin bouncePartialStruct(const PartialPersonKotlin& person);
-    std::string sumUpAllPassengers(const std::vector<CarKotlin>& cars);
+    jni::local_ref<jni::JString> sumUpAllPassengers(const std::vector<CarKotlin>& cars);
     std::vector<Powertrain> bounceEnums(const std::vector<Powertrain>& array);
     void complexEnumCallback(const std::vector<Powertrain>& array, const Callback<void(const std::vector<Powertrain>& /* array */)>& callback);
     std::vector<Powertrain> callEnumArrayCallback(const std::vector<Powertrain>& array, const Callback<std::vector<Powertrain>(const std::vector<Powertrain>& /* array */)>& callback);
@@ -164,11 +170,11 @@ namespace margelo::nitro::test {
     std::vector<std::optional<std::string>> bounceOptionals(const std::vector<std::optional<std::string>>& strings, const std::vector<std::optional<ArrayBuffer>>& arrayBuffers);
     std::vector<std::variant<nitro::NullType, std::string>> bounceNulls(const std::vector<std::variant<nitro::NullType, std::string>>& strings);
     std::vector<std::optional<std::variant<nitro::NullType, std::string>>> bounceOptionalNulls(const std::vector<std::optional<std::variant<nitro::NullType, std::string>>>& strings);
-    AnyJSON createMap();
-    AnyJSON mapRoundtrip(const AnyJSON& map);
-    std::vector<std::string> getMapKeys(const AnyJSON& map);
-    AnyJSON mergeMaps(const AnyJSON& a, const AnyJSON& b);
-    AnyJSON copyAnyMap(const AnyJSON& map);
+    jni::local_ref<JAnyJSON> createMap();
+    jni::local_ref<JAnyJSON> mapRoundtrip(const jni::local_ref<JAnyJSON>& map);
+    std::vector<std::string> getMapKeys(const jni::local_ref<JAnyJSON>& map);
+    jni::local_ref<JAnyJSON> mergeMaps(const jni::local_ref<JAnyJSON>& a, const jni::local_ref<JAnyJSON>& b);
+    jni::local_ref<JAnyJSON> copyAnyMap(const jni::local_ref<JAnyJSON>& map);
     std::unordered_map<std::string, std::variant<bool, double>> bounceMap(const std::unordered_map<std::string, std::variant<bool, double>>& map);
     std::unordered_map<std::string, double> bounceSimpleMap(const std::unordered_map<std::string, double>& map);
     std::unordered_map<std::string, std::optional<std::string>> bounceOptionalMap(const std::unordered_map<std::string, std::optional<std::string>>& map);
@@ -178,10 +184,10 @@ namespace margelo::nitro::test {
     double funcThatThrows();
     Promise<void> funcThatThrowsBeforePromise();
     void throwError(const std::exception_ptr& error);
-    std::string tryOptionalParams(double num, bool boo, const std::optional<std::string>& str);
-    std::string tryMiddleParam(double num, const std::optional<bool>& boo, const std::string& str);
+    jni::local_ref<jni::JString> tryOptionalParams(double num, bool boo, const std::optional<std::string>& str);
+    jni::local_ref<jni::JString> tryMiddleParam(double num, const std::optional<bool>& boo, const jni::local_ref<jni::JString>& str);
     std::optional<Powertrain> tryOptionalEnum(const std::optional<Powertrain>& value);
-    bool tryTrailingOptional(double num, const std::string& str, const std::optional<bool>& boo);
+    bool tryTrailingOptional(double num, const jni::local_ref<jni::JString>& str, const std::optional<bool>& boo);
     int64_t calculateFibonacciSync(double value);
     Promise<int64_t> calculateFibonacciAsync(double value);
     Promise<void> wait(double seconds);
