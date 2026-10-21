@@ -87,14 +87,12 @@ interface CppJniCallBodyOptions {
   callable: KotlinMethodInfo
   /** The JVM method C++ calls, e.g. `addNumbers_cxx`. */
   jvmName: string
-  /** Looks up the fbjni method, e.g. `_javaPart->javaClassStatic()->getMethod`. */
+  /** Looks up the fbjni method, e.g. `CxxPart::getClass()->getMethod`. */
   jniMethodLookup: string
   /** The Java instance, or the class for static methods. */
   jniReceiver: string
   /** The concrete class passed to fbjni's nonvirtual invocation. */
   jniDeclaringClass?: string
-  /** JNI setup before the cached method lookup. */
-  jniSetupCode?: string
 }
 
 /**
@@ -108,7 +106,6 @@ export function createCppJniCallBody({
   jniMethodLookup,
   jniReceiver,
   jniDeclaringClass,
-  jniSetupCode = '',
 }: CppJniCallBodyOptions): string {
   const jniReturnType = callable.returnType.getCode('c++', {
     context: 'return',
@@ -132,7 +129,6 @@ export function createCppJniCallBody({
     )
   )
   const methodLookupCode = `
-${indent(jniSetupCode, '')}
 static const auto __method = ${jniMethodLookup}<${jniSignature}>("${jvmName}");
 `.trim()
   if (callable.nativeMethod.returnType.kind === 'void') {

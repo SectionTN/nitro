@@ -21,25 +21,17 @@ export function createFbjniHybridObject(spec: HybridObjectSpec<'kotlin'>): Sourc
     (method) => new KotlinInstanceMethod({ method: method }).createBridge({ nonvirtual: nonvirtual }).cppMethods
   )
   const bindings = createKotlinHybridClassBindings(spec)
-  const classDefinitions = [...bindings.definitions]
-  const cxxPartMethods = `
-static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
-static void registerNatives();
-`.trim()
-  const cxxPartDeclarations = [cxxPartMethods]
+  let getClassBody: string
   if (nonvirtual) {
-    const implementationClassDeclaration = `
-static jni::alias_ref<jni::JClass> getImplementationClass();
+    getClassBody = `
+static const auto __field = CxxPart::javaClassStatic()->getStaticField<jni::JClass>("implementationClass_cxx");
+static const auto __class = jni::make_global(CxxPart::javaClassStatic()->getStaticFieldValue(__field));
+return __class;
 `.trim()
-    cxxPartDeclarations.push(implementationClassDeclaration)
-    const implementationClassDefinition = `
-jni::alias_ref<jni::JClass> ${name.JHybridTSpec}::CxxPart::getImplementationClass() {
-  static const auto __field = CxxPart::javaClassStatic()->getStaticField<jni::JClass>("implementationClass_cxx");
-  static const auto __class = jni::make_global(CxxPart::javaClassStatic()->getStaticFieldValue(__field));
-  return __class;
-}
+  } else {
+    getClassBody = `
+return ${name.JHybridTSpec}::JavaPart::javaClassStatic();
 `.trim()
-    classDefinitions.push(implementationClassDefinition)
   }
   const registrations: string[] = []
   for (const property of properties) {
@@ -118,7 +110,9 @@ namespace ${cxxNamespace} {
     };
     struct CxxPart : public jni::HybridClass<CxxPart, ${cxxPartBaseClass}> {
       static constexpr auto kJavaDescriptor = "L${cxxPartJniClassDescriptor};";
-      ${indent(cxxPartDeclarations.join('\n'), '      ')}
+      static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
+      static void registerNatives();
+      static jni::alias_ref<jni::JClass> getClass();
       using HybridBase::HybridBase;
     protected:
       std::shared_ptr<JHybridObject> createHybridObject(const jni::local_ref<JHybridObject::JavaPart>& javaPart) override;
@@ -204,7 +198,7 @@ namespace ${cxxNamespace} {
     jni::ThreadScope::WithClassLoader([&] { _javaPart.reset(); });
   }
 
-  ${indent(classDefinitions.join('\n\n'), '  ')}
+  ${indent(bindings.definitions.join('\n\n'), '  ')}
 
   const std::shared_ptr<const HybridClass>& ${name.JHybridTSpec}::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
@@ -224,6 +218,10 @@ namespace ${cxxNamespace} {
 
   jni::local_ref<${name.JHybridTSpec}::CxxPart::jhybriddata> ${name.JHybridTSpec}::CxxPart::initHybrid(jni::alias_ref<jhybridobject> jThis) {
     return makeCxxInstance(jThis);
+  }
+
+  jni::alias_ref<jni::JClass> ${name.JHybridTSpec}::CxxPart::getClass() {
+    ${indent(getClassBody, '    ')}
   }
 
   std::shared_ptr<JHybridObject> ${name.JHybridTSpec}::CxxPart::createHybridObject(const jni::local_ref<JHybridObject::JavaPart>& javaPart) {

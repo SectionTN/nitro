@@ -21,12 +21,6 @@ namespace margelo::nitro::test {
     return __result->getJHybridPlatformObjectSpec();
   }
 
-  jni::alias_ref<jni::JClass> JHybridPlatformObjectSpec::CxxPart::getImplementationClass() {
-    static const auto __field = CxxPart::javaClassStatic()->getStaticField<jni::JClass>("implementationClass_cxx");
-    static const auto __class = jni::make_global(CxxPart::javaClassStatic()->getStaticFieldValue(__field));
-    return __class;
-  }
-
   const std::shared_ptr<const HybridClass>& JHybridPlatformObjectSpec::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
       clazz.registerHybridMethod("getOSVersion", &JHybridPlatformObjectSpec::getOSVersion);
@@ -48,6 +42,12 @@ namespace margelo::nitro::test {
     return makeCxxInstance(jThis);
   }
 
+  jni::alias_ref<jni::JClass> JHybridPlatformObjectSpec::CxxPart::getClass() {
+    static const auto __field = CxxPart::javaClassStatic()->getStaticField<jni::JClass>("implementationClass_cxx");
+    static const auto __class = jni::make_global(CxxPart::javaClassStatic()->getStaticFieldValue(__field));
+    return __class;
+  }
+
   std::shared_ptr<JHybridObject> JHybridPlatformObjectSpec::CxxPart::createHybridObject(const jni::local_ref<JHybridObject::JavaPart>& javaPart) {
     auto castJavaPart = jni::dynamic_ref_cast<JHybridPlatformObjectSpec::JavaPart>(javaPart);
     if (castJavaPart == nullptr) [[unlikely]] {
@@ -67,9 +67,8 @@ namespace margelo::nitro::test {
 
   // Methods
   std::string JHybridPlatformObjectSpec::getOSVersion() {
-    static const auto __class = CxxPart::getImplementationClass();
-    static const auto __method = __class->getNonvirtualMethod<jni::local_ref<jni::JString>()>("getOSVersion");
-    auto __result = __method(_javaPart, __class);
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<jni::JString>()>("getOSVersion");
+    auto __result = __method(_javaPart, CxxPart::getClass());
     return __result->toStdString();
   }
 

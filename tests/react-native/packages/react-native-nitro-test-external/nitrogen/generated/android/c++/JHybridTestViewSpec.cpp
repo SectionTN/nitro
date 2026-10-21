@@ -19,11 +19,7 @@ namespace margelo::nitro::test::external {
     jni::ThreadScope::WithClassLoader([&] { _javaPart.reset(); });
   }
 
-  jni::alias_ref<jni::JClass> JHybridTestViewSpec::CxxPart::getImplementationClass() {
-    static const auto __field = CxxPart::javaClassStatic()->getStaticField<jni::JClass>("implementationClass_cxx");
-    static const auto __class = jni::make_global(CxxPart::javaClassStatic()->getStaticFieldValue(__field));
-    return __class;
-  }
+
 
   const std::shared_ptr<const HybridClass>& JHybridTestViewSpec::Class::get() {
     static const auto hybridClass = HybridClass::create<Class>([](HybridClass& clazz) {
@@ -48,6 +44,12 @@ namespace margelo::nitro::test::external {
     return makeCxxInstance(jThis);
   }
 
+  jni::alias_ref<jni::JClass> JHybridTestViewSpec::CxxPart::getClass() {
+    static const auto __field = CxxPart::javaClassStatic()->getStaticField<jni::JClass>("implementationClass_cxx");
+    static const auto __class = jni::make_global(CxxPart::javaClassStatic()->getStaticFieldValue(__field));
+    return __class;
+  }
+
   std::shared_ptr<JHybridObject> JHybridTestViewSpec::CxxPart::createHybridObject(const jni::local_ref<JHybridObject::JavaPart>& javaPart) {
     auto castJavaPart = jni::dynamic_ref_cast<JHybridTestViewSpec::JavaPart>(javaPart);
     if (castJavaPart == nullptr) [[unlikely]] {
@@ -64,18 +66,16 @@ namespace margelo::nitro::test::external {
 
   // Properties
   bool JHybridTestViewSpec::getIsBlue() {
-    static const auto __class = CxxPart::getImplementationClass();
-    static const auto __method = __class->getNonvirtualMethod<jboolean()>("isBlue");
-    auto __result = __method(_javaPart, __class);
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jboolean()>("isBlue");
+    auto __result = __method(_javaPart, CxxPart::getClass());
     return static_cast<bool>(__result);
   }
   void JHybridTestViewSpec::setIsBlue(bool isBlue) {
-    static const auto __class = CxxPart::getImplementationClass();
-    static const auto __method = __class->getNonvirtualMethod<void(jboolean /* isBlue */)>("setBlue");
-    __method(_javaPart, __class, isBlue);
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jboolean /* isBlue */)>("setBlue");
+    __method(_javaPart, CxxPart::getClass(), isBlue);
   }
   Callback<void()> JHybridTestViewSpec::getSomeCallback() {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JCallback_void::javaobject>()>("getSomeCallback_cxx");
+    static const auto __method = JavaPart::javaClassStatic()->getMethod<jni::local_ref<JCallback_void::javaobject>()>("getSomeCallback_cxx");
     auto __result = __method(_javaPart);
     return [&]() -> Callback<void()> {
       if (__result->isInstanceOf(JCallback_void_cxx::javaClassStatic())) [[likely]] {
@@ -88,20 +88,18 @@ namespace margelo::nitro::test::external {
     }();
   }
   void JHybridTestViewSpec::setSomeCallback(const Callback<void()>& someCallback) {
-    static const auto __method = _javaPart->javaClassStatic()->getMethod<void(jni::alias_ref<JCallback_void::javaobject> /* someCallback */)>("setSomeCallback_cxx");
+    static const auto __method = JavaPart::javaClassStatic()->getMethod<void(jni::alias_ref<JCallback_void::javaobject> /* someCallback */)>("setSomeCallback_cxx");
     __method(_javaPart, JCallback_void_cxx::fromCpp(someCallback));
   }
 
   // Methods
   void JHybridTestViewSpec::someMethod() {
-    static const auto __class = CxxPart::getImplementationClass();
-    static const auto __method = __class->getNonvirtualMethod<void()>("someMethod");
-    __method(_javaPart, __class);
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void()>("someMethod");
+    __method(_javaPart, CxxPart::getClass());
   }
   std::string JHybridTestViewSpec::getModuleName() {
-    static const auto __class = CxxPart::getImplementationClass();
-    static const auto __method = __class->getNonvirtualMethod<jni::local_ref<jni::JString>()>("getModuleName");
-    auto __result = __method(_javaPart, __class);
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<jni::JString>()>("getModuleName");
+    auto __result = __method(_javaPart, CxxPart::getClass());
     return __result->toStdString();
   }
 

@@ -84,28 +84,18 @@ export class KotlinInstanceMethod extends InstanceMethod {
     const cppMethod = new InstanceMethod(nativeMethod.name, nativeMethod.returnType, nativeMethod.parameters, {
       generated: true,
     })
-    let jniMethodLookup: string
-    let jniDeclaringClass: string | undefined
-    let jniSetupCode: string
-    if (nonvirtual && !this.needsKotlinForwarder) {
-      jniMethodLookup = '__class->getNonvirtualMethod'
-      jniDeclaringClass = '__class'
-      jniSetupCode = `
-static const auto __class = CxxPart::getImplementationClass();
-`.trim()
-    } else {
-      // Conversion forwarders belong to the generated abstract spec.
-      jniMethodLookup = '_javaPart->javaClassStatic()->getMethod'
-      jniDeclaringClass = undefined
-      jniSetupCode = ''
-    }
+    const isNonvirtual = nonvirtual && !this.needsKotlinForwarder
+    // Conversion forwarders belong to the generated abstract spec.
+    const jniClass = this.needsKotlinForwarder ? 'JavaPart::javaClassStatic()' : 'CxxPart::getClass()'
+    const jniMethod = isNonvirtual ? 'getNonvirtualMethod' : 'getMethod'
+    const jniMethodLookup = `${jniClass}->${jniMethod}`
+    const jniDeclaringClass = isNonvirtual ? 'CxxPart::getClass()' : undefined
     const cppBody = createCppJniCallBody({
       callable: this.callable,
       jvmName: this.name,
       jniMethodLookup: jniMethodLookup,
       jniReceiver: '_javaPart',
       jniDeclaringClass: jniDeclaringClass,
-      jniSetupCode: jniSetupCode,
     })
     const kotlinMethods: KotlinMethodDefinition[] = []
     if (this.needsKotlinForwarder) {
