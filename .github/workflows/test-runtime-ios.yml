@@ -131,7 +131,7 @@ jobs:
         id: runtime-tests
         env:
           SANITIZER: ${{ matrix.sanitizer.value }}
-        run: bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" --skip-hermes-build
+        run: bun tests/standalone/test-runner/ios/run.mjs --os 27 --sanitizer "$SANITIZER" --skip-hermes-build --jobs "$(sysctl -n hw.ncpu)"
       - name: Save compilation cache
         if: >-
           !cancelled() && steps.runtime-tests.outcome != 'skipped' && steps.native-cache.outputs.cache-hit != 'true' && github.event_name !=
