@@ -1,7 +1,9 @@
 name: Harness iOS
 
 concurrency:
-  group: harness-ios-${{ inputs.ref && github.run_id || github.ref }}
+  group:
+    harness-ios-${{ (github.event_name == 'push' || github.event_name == 'pull_request') && github.ref_name != 'main' && github.ref ||
+    github.run_id }}
   cancel-in-progress: ${{ github.ref_name != 'main' }}
 
 on:
