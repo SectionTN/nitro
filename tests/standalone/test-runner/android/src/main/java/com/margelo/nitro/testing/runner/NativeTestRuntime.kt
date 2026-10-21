@@ -1,5 +1,6 @@
 package com.margelo.nitro.testing.runner
 
+import com.margelo.nitro.core.HybridObject
 import com.margelo.nitro.core.NullType
 import com.margelo.nitro.core.Promise
 import com.margelo.nitro.test.NitroTest
@@ -18,6 +19,11 @@ internal object NativeTestRuntime {
   external fun roundtripStringMap(value: Map<*, *>): Map<String, String>
 
   external fun checkGlobalRefCleanup()
+
+  external fun checkHybridObjectCache(
+    value: HybridObject,
+    dispose: Boolean,
+  )
 
   external fun singletonNull(): NullType
 
