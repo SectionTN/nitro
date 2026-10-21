@@ -1,5 +1,6 @@
 package com.margelo.nitro.testing.runner
 
+import com.margelo.nitro.core.NullType
 import com.margelo.nitro.test.NitroTest
 
 internal object NativeTestRuntime {
@@ -7,6 +8,10 @@ internal object NativeTestRuntime {
     NitroTest.initialize()
     System.loadLibrary("NitroTestRunner")
   }
+
+  external fun singletonNull(): NullType
+
+  external fun checkConcurrentSingletons()
 
   /** Returns an empty string on success, or the JavaScript failure and its stack. */
   external fun runTest(
