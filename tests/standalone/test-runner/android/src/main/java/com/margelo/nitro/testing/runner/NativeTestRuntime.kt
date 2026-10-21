@@ -35,6 +35,8 @@ internal object NativeTestRuntime {
 
   external fun checkStringHashes()
 
+  external fun checkInvalidNativeConversions()
+
   external fun checkBoxedPrimitives()
 
   external fun checkClosedImplementation(value: HybridObject)

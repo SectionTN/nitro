@@ -6,7 +6,10 @@
 #include <NitroModules/JNIConverter+Promise.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JNull.hpp>
+#include <NitroModules/JSIConverter+ArrayBuffer.hpp>
+#include <NitroModules/JSIConverter+HostObject.hpp>
 #include <NitroModules/JSIConverter+JOptional.hpp>
+#include <NitroModules/JSIConverter+NativeState.hpp>
 #include <NitroModules/JSIStringHash.hpp>
 #include <NitroModules/JUnit.hpp>
 #include <NitroTest/private/JHybridGrandchildSpec.hpp>
@@ -252,6 +255,52 @@ public:
     auto object = value->getJHybridObject();
   }
 
+  struct TestHostObject final : jsi::HostObject {};
+  struct TestNativeState final : jsi::NativeState {};
+
+  template <typename T>
+  static void expectInvalidNativeConversion(jsi::Runtime& runtime, const jsi::Value& value) {
+    try {
+      margelo::nitro::JSIConverter<T>::fromJSI(runtime, value);
+    } catch (const jsi::JSError&) {
+      return;
+    } catch (const std::invalid_argument&) {
+      return;
+    }
+    throw std::runtime_error("An invalid JavaScript native value was accepted.");
+  }
+
+  static void checkInvalidNativeConversions(jni::alias_ref<JNativeTestRuntime>) {
+    auto runtime = facebook::hermes::makeHermesRuntime();
+    const std::array<jsi::Value, 7> invalid = {
+        jsi::Value::undefined(), jsi::Value::null(),     jsi::Value(true), jsi::Value(42), jsi::String::createFromAscii(*runtime, "value"),
+        jsi::Object(*runtime),   jsi::Array(*runtime, 0)};
+    for (const auto& value : invalid) {
+      expectInvalidNativeConversion<std::shared_ptr<TestNativeState>>(*runtime, value);
+      expectInvalidNativeConversion<std::shared_ptr<TestHostObject>>(*runtime, value);
+      expectInvalidNativeConversion<margelo::nitro::ArrayBuffer>(*runtime, value);
+    }
+    auto host = std::make_shared<TestHostObject>();
+    auto hostValue = jsi::Value(jsi::Object::createFromHostObject(*runtime, host));
+    if (margelo::nitro::JSIConverter<std::shared_ptr<TestHostObject>>::fromJSI(*runtime, hostValue) != host) {
+      throw std::runtime_error("A valid HostObject lost its identity.");
+    }
+    auto state = std::make_shared<TestNativeState>();
+    jsi::Object stateObject(*runtime);
+    stateObject.setNativeState(*runtime, state);
+    jsi::Value stateValue(std::move(stateObject));
+    if (margelo::nitro::JSIConverter<std::shared_ptr<TestNativeState>>::fromJSI(*runtime, stateValue) != state) {
+      throw std::runtime_error("A valid NativeState lost its identity.");
+    }
+    expectInvalidNativeConversion<std::shared_ptr<TestNativeState>>(*runtime, hostValue);
+    expectInvalidNativeConversion<std::shared_ptr<TestHostObject>>(*runtime, stateValue);
+    const auto buffer = margelo::nitro::ArrayBuffer::allocate(8);
+    auto bufferValue = margelo::nitro::JSIConverter<margelo::nitro::ArrayBuffer>::toJSI(*runtime, buffer);
+    if (margelo::nitro::JSIConverter<margelo::nitro::ArrayBuffer>::fromJSI(*runtime, bufferValue).size() != 8) {
+      throw std::runtime_error("A valid ArrayBuffer lost its storage.");
+    }
+  }
+
   template <typename Cpp, typename Box>
   static void checkBox(Cpp expected) {
     using Converter = margelo::nitro::JNIConverter<Cpp, jni::local_ref<Box>>;
@@ -288,19 +337,21 @@ public:
   }
 
   static void registerNatives() {
-    javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
-                                        makeNativeMethod("checkBoxedPrimitives", JNativeTestRuntime::checkBoxedPrimitives),
-                                        makeNativeMethod("checkClosedImplementation", JNativeTestRuntime::checkClosedImplementation),
-                                        makeNativeMethod("checkStringHashes", JNativeTestRuntime::checkStringHashes),
-                                        makeNativeMethod("checkRetainedEnums", JNativeTestRuntime::checkRetainedEnums),
-                                        makeNativeMethod("nativeBuffer", JNativeTestRuntime::nativeBuffer),
-                                        makeNativeMethod("checkHybridObjectCache", JNativeTestRuntime::checkHybridObjectCache),
-                                        makeNativeMethod("checkGlobalRefCleanup", JNativeTestRuntime::checkGlobalRefCleanup),
-                                        makeNativeMethod("roundtripStringMap", JNativeTestRuntime::roundtripStringMap),
-                                        makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
-                                        makeNativeMethod("checkHardwareBufferBytes", JNativeTestRuntime::checkHardwareBufferBytes),
-                                        makeNativeMethod("resolvedVoidPromise", JNativeTestRuntime::resolvedVoidPromise),
-                                        makeNativeMethod("checkConcurrentSingletons", JNativeTestRuntime::checkConcurrentSingletons)});
+    javaClassStatic()->registerNatives(
+        {makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+         makeNativeMethod("checkInvalidNativeConversions", JNativeTestRuntime::checkInvalidNativeConversions),
+         makeNativeMethod("checkBoxedPrimitives", JNativeTestRuntime::checkBoxedPrimitives),
+         makeNativeMethod("checkClosedImplementation", JNativeTestRuntime::checkClosedImplementation),
+         makeNativeMethod("checkStringHashes", JNativeTestRuntime::checkStringHashes),
+         makeNativeMethod("checkRetainedEnums", JNativeTestRuntime::checkRetainedEnums),
+         makeNativeMethod("nativeBuffer", JNativeTestRuntime::nativeBuffer),
+         makeNativeMethod("checkHybridObjectCache", JNativeTestRuntime::checkHybridObjectCache),
+         makeNativeMethod("checkGlobalRefCleanup", JNativeTestRuntime::checkGlobalRefCleanup),
+         makeNativeMethod("roundtripStringMap", JNativeTestRuntime::roundtripStringMap),
+         makeNativeMethod("singletonNull", JNativeTestRuntime::singletonNull),
+         makeNativeMethod("checkHardwareBufferBytes", JNativeTestRuntime::checkHardwareBufferBytes),
+         makeNativeMethod("resolvedVoidPromise", JNativeTestRuntime::resolvedVoidPromise),
+         makeNativeMethod("checkConcurrentSingletons", JNativeTestRuntime::checkConcurrentSingletons)});
   }
 };
 } // namespace

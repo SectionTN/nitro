@@ -21,22 +21,18 @@ using namespace facebook;
 template <>
 struct JSIConverter<ArrayBuffer> final {
   static inline ArrayBuffer fromJSI(jsi::Runtime& runtime, const jsi::Value& arg) {
-#ifdef NITRO_DEBUG
     if (!arg.isObject()) [[unlikely]] {
       throw std::invalid_argument("Value \"" + arg.toString(runtime).utf8(runtime) +
                                   "\" is not an ArrayBuffer - "
                                   "in fact, it's not even an object!");
     }
-#endif
 
     jsi::Object object = arg.asObject(runtime);
-#ifdef NITRO_DEBUG
     if (!object.isArrayBuffer(runtime)) [[unlikely]] {
       throw std::invalid_argument("Object \"" + arg.toString(runtime).utf8(runtime) +
                                   "\" is not an ArrayBuffer! "
                                   "Are you maybe passing a TypedArray (e.g. Uint8Array)? Try to pass its `.buffer` value.");
     }
-#endif
 
     jsi::ArrayBuffer jsArrayBuffer = std::move(object).getArrayBuffer(runtime);
     if (auto mutableBuffer = jsArrayBuffer.tryGetMutableBuffer(runtime)) {

@@ -8,6 +8,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class NativeTestRuntimeTest {
   @Test
+  fun rejectsInvalidNativeValuesInDebugAndRelease() {
+    NativeTestRuntime.checkInvalidNativeConversions()
+  }
+
+  @Test
   fun reportsJavaScriptFailures() {
     val failure =
       NativeTestRuntime.runTest(
