@@ -334,8 +334,6 @@ To implement `Math` now, you just need to implement the spec:
     }
     ```
 
-    The `_cxx` suffix is reserved for Nitrogen's generated JNI bindings. Do not use it for methods or properties in your Kotlin implementation.
-
   </TabItem>
   <TabItem value="cpp" label="C++">
     ```cpp title="HybridMath.hpp"
