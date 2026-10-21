@@ -36,7 +36,12 @@ export class KotlinStoredType implements Type {
           throw new Error(`Kotlin ${this.kind} does not provide a direct JNI representation for native storage.`)
         }
         const jniClass = this.type.getCode(language, { ...options, context: 'type-argument', representation: 'jsi' })
-        const storedType = `jni::global_ref<${jniClass}>`
+        let storedType: string
+        if (this.type.hasStaticJNIReference) {
+          storedType = `jni::alias_ref<${jniClass}>`
+        } else {
+          storedType = `jni::global_ref<${jniClass}>`
+        }
         if (options.context === 'parameter') return `const ${storedType}&`
         return storedType
       }

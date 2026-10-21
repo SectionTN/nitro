@@ -8,6 +8,11 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class JNILifetimeTest {
   @Test
+  fun retainedEnumsShareOneGlobalAcrossLocalFrames() {
+    NativeTestRuntime.checkRetainedEnums()
+  }
+
+  @Test
   fun sharesJavaOwnershipAcrossCrossModuleInheritance() {
     val value = HybridGrandchild()
     NativeTestRuntime.checkHybridObjectCache(value, false)

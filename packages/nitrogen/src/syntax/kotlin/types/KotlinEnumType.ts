@@ -12,6 +12,7 @@ import { getJniReferenceCode, type KotlinConversion, type KotlinType } from './K
 export class KotlinEnumType extends EnumType implements KotlinType {
   readonly jniValueKind = 'object'
   readonly needsKotlinConversion = false
+  readonly hasStaticJNIReference = true
 
   constructor(
     readonly type: EnumType,
