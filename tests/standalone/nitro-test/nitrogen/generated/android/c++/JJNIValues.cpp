@@ -12,7 +12,8 @@
 #include <NitroModules/JNIConverter+Optional.hpp>
 #include <NitroModules/JSIConverter+JOptional.hpp>
 #include <NitroModules/JNIConverter+Array.hpp>
-#include <NitroModules/JSIConverter+JNIArray.hpp>
+#include <NitroModules/JSIConverter+JPrimitiveArray.hpp>
+#include <NitroModules/JSIConverter+JArrayClass.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JSIConverter+JString.hpp>
 #include <NitroModules/JNIConverter+Map.hpp>

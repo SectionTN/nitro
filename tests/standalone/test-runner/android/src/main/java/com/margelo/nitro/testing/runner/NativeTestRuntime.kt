@@ -17,6 +17,8 @@ internal object NativeTestRuntime {
 
   external fun roundtripStringMap(value: Map<*, *>): Map<String, String>
 
+  external fun checkGlobalRefCleanup()
+
   external fun singletonNull(): NullType
 
   external fun resolvedVoidPromise(): Promise<Unit>
