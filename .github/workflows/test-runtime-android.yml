@@ -47,7 +47,6 @@ jobs:
             flag: address
             api-level: 33
     env:
-      CMAKE_BUILD_PARALLEL_LEVEL: 2
       CMAKE_C_COMPILER_LAUNCHER: ccache
       CMAKE_CXX_COMPILER_LAUNCHER: ccache
     steps:
