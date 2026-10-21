@@ -134,7 +134,7 @@ jobs:
             COMPILATION_CACHE_ENABLE_CACHING=YES \
             COMPILATION_CACHE_ENABLE_DIAGNOSTIC_REMARKS=YES \
             COMPILATION_CACHE_LIMIT_SIZE=512M \
-            -derivedDataPath build -UseModernBuildSystem=YES \
+            -derivedDataPath build \
             -project NitroExample.xcodeproj \
             -scheme NitroExample \
             -sdk iphonesimulator \
@@ -166,6 +166,7 @@ jobs:
           projectRoot: tests/react-native/apps/example
           app: ios/build/Build/Products/Debug-iphonesimulator/NitroExample.app
           packageManager: bun
+          cacheSavePolicy: ${{ (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1') && 'always' || 'never' }}
 
       - name: Print native crash reports
         if: failure()
