@@ -31,6 +31,8 @@ internal object NativeTestRuntime {
     byteBufferBacking: Boolean,
   ): ArrayBuffer
 
+  external fun checkRetainedEnums()
+
   external fun singletonNull(): NullType
 
   external fun resolvedVoidPromise(): Promise<Unit>

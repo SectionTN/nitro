@@ -5,13 +5,16 @@
 #include <NitroModules/JNIConverter+Promise.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
 #include <NitroModules/JNull.hpp>
+#include <NitroModules/JSIConverter+JOptional.hpp>
 #include <NitroModules/JUnit.hpp>
 #include <NitroTest/private/JHybridGrandchildSpec.hpp>
+#include <NitroTest/private/JPowertrain.hpp>
 #include <android/hardware_buffer_jni.h>
 #include <array>
 #include <barrier>
 #include <exception>
 #include <fbjni/fbjni.h>
+#include <hermes/hermes.h>
 #include <jni.h>
 #include <mutex>
 #include <thread>
@@ -205,8 +208,30 @@ public:
     return JArrayBuffer::wrap(ArrayBuffer::allocate(size));
   }
 
+  static void checkRetainedEnums(jni::alias_ref<JNativeTestRuntime>) {
+    using namespace margelo::nitro;
+    using Enum = test::JPowertrain;
+    auto runtime = facebook::hermes::makeHermesRuntime();
+    auto value = facebook::jsi::Value(facebook::jsi::String::createFromAscii(*runtime, "gas"));
+    const auto first = JSIConverter<jni::alias_ref<Enum>>::fromJSI(*runtime, value);
+    for (size_t i = 0; i < 100; ++i) {
+      jni::JniLocalScope frame(jni::Environment::current(), 16);
+      const auto next = JSIConverter<jni::alias_ref<Enum>>::fromJSI(*runtime, value);
+      const auto optional = JSIConverter<jni::alias_ref<JOptional<Enum>>>::fromJSI(*runtime, value);
+      if (static_cast<jobject>(first.get()) != static_cast<jobject>(next.get()) ||
+          static_cast<jobject>(first.get()) != static_cast<jobject>(optional.get())) {
+        throw std::runtime_error("Retained enum conversions must share the cached global owner.");
+      }
+    }
+    const auto missing = JSIConverter<jni::alias_ref<JOptional<Enum>>>::fromJSI(*runtime, facebook::jsi::Value::undefined());
+    if (missing) {
+      throw std::runtime_error("An absent enum must remain absent.");
+    }
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                        makeNativeMethod("checkRetainedEnums", JNativeTestRuntime::checkRetainedEnums),
                                         makeNativeMethod("nativeBuffer", JNativeTestRuntime::nativeBuffer),
                                         makeNativeMethod("checkHybridObjectCache", JNativeTestRuntime::checkHybridObjectCache),
                                         makeNativeMethod("checkGlobalRefCleanup", JNativeTestRuntime::checkGlobalRefCleanup),
