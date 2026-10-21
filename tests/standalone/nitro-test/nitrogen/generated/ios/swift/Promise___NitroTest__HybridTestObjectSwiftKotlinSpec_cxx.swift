@@ -13,10 +13,10 @@ internal import NitroTestAppleCxx
 public typealias Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx = margelo.nitro.test.swift_bridge.Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx
 
 extension Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx: Promise {
-  public typealias T = (any HybridTestObjectSwiftKotlinSpec)
+  public typealias T = HybridTestObjectSwift
   private typealias bridge = margelo.nitro.test.swift_bridge
 
-  public func resolve(result: (any HybridTestObjectSwiftKotlinSpec)) {
+  public func resolve(result: HybridTestObjectSwift) {
     withUnsafePointer(to: result.getCxxWrapper()) { (pointer: UnsafePointer<HybridTestObjectSwiftKotlinSpec_cxx>) -> Void in
       bridge.resolve_Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx(self, pointer)
     }
@@ -25,7 +25,7 @@ extension Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx: Promise {
     bridge.reject_Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx(self, error.toCpp())
   }
 
-  public func addOnResolvedListener(_ listener: @escaping @Sendable ((any HybridTestObjectSwiftKotlinSpec)) -> Void) {
+  public func addOnResolvedListener(_ listener: @escaping @Sendable (HybridTestObjectSwift) -> Void) {
     bridge.listen_Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx(self, .init { (value: UnsafeRawPointer!) -> Void in
       listener(value.load(as: HybridTestObjectSwiftKotlinSpec_cxx.self).getHybridTestObjectSwiftKotlinSpec())
     })
@@ -39,12 +39,12 @@ extension Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx: Promise {
 
 extension Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx: @unchecked Sendable {}
 
-extension Promise<(any HybridTestObjectSwiftKotlinSpec)> where Self == Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx {
+extension Promise<HybridTestObjectSwift> where Self == Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx {
   public static func pending() -> Self {
     return margelo.nitro.test.swift_bridge.create_Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx()
   }
 
-  public static func resolved(with result: (any HybridTestObjectSwiftKotlinSpec)) -> Self {
+  public static func resolved(with result: HybridTestObjectSwift) -> Self {
     let promise = Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx.pending()
     promise.resolve(result: result)
     return promise
@@ -57,7 +57,7 @@ extension Promise<(any HybridTestObjectSwiftKotlinSpec)> where Self == Promise__
 
   public static func `async`(
     _ priority: TaskPriority? = nil,
-    _ run: sending @escaping @isolated(any) () async throws -> sending (any HybridTestObjectSwiftKotlinSpec)
+    _ run: sending @escaping @isolated(any) () async throws -> sending HybridTestObjectSwift
   ) -> Self {
     let promise = Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx.pending()
     Task(priority: priority) { () async -> Void in
@@ -72,7 +72,7 @@ extension Promise<(any HybridTestObjectSwiftKotlinSpec)> where Self == Promise__
 
   public static func parallel(
     _ queue: DispatchQueue = .global(),
-    _ run: @escaping @Sendable () throws -> (any HybridTestObjectSwiftKotlinSpec)
+    _ run: @escaping @Sendable () throws -> HybridTestObjectSwift
   ) -> Self {
     let promise = Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx.pending()
     queue.async { () -> Void in
@@ -86,13 +86,13 @@ extension Promise<(any HybridTestObjectSwiftKotlinSpec)> where Self == Promise__
   }
 }
 
-extension Promise<(any HybridTestObjectSwiftKotlinSpec)> {
+extension Promise<HybridTestObjectSwift> {
   func toCpp() -> Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx {
     if let self = self as? Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx {
       return self
     } else {
       let promise = Promise___NitroTest__HybridTestObjectSwiftKotlinSpec_cxx.pending()
-      self.addOnResolvedListener { (result: (any HybridTestObjectSwiftKotlinSpec)) -> Void in
+      self.addOnResolvedListener { (result: HybridTestObjectSwift) -> Void in
         promise.resolve(result: result)
       }
       self.addOnRejectedListener { (error: any Error) -> Void in

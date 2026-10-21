@@ -40,15 +40,15 @@ open class HybridBaseSpec_base {
   public init() throws {
   }
   public final func getCxxWrapper() -> HybridBaseSpec_cxx {
-  #if DEBUG
-    guard self is any HybridBaseSpec else {
-      fatalError("`self` is not a `HybridBaseSpec`! Did you accidentally inherit from `HybridBaseSpec_base` instead of `HybridBaseSpec`?")
+  #if NITRO_DEBUG
+    guard self is HybridBase else {
+      fatalError("`self` is not a `HybridBase`! Did you accidentally inherit from `HybridBaseSpec_base` instead of `HybridBaseSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridBaseSpec_cxx(self as! any HybridBaseSpec)
+      let cxxWrapper = HybridBaseSpec_cxx(self as! HybridBase)
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -65,3 +65,6 @@ open class HybridBaseSpec_base {
  * ```
  */
 public typealias HybridBaseSpec = HybridBaseSpec_protocol & HybridBaseSpec_base
+
+/// The concrete implementation used by other Swift modules.
+public typealias NitroTestExternal_BaseImplementation = HybridBase

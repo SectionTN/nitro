@@ -70,20 +70,7 @@ export function createSwiftHybridObjectCxxBridge(spec: HybridObjectSpec<'swift'>
     hybridClassBase = 'HybridObject'
     hybridClassBaseConstructorCall = 'HybridObject()'
   }
-  let swiftImplementationType: string
-  let swiftImplementationAssignment: string
-  if (spec.implementation != null && !spec.allowMultipleImplementations) {
-    swiftImplementationType = spec.implementation.className
-    swiftImplementationAssignment = `
-guard let implementation = implementation as? ${swiftImplementationType} else {
-  preconditionFailure("${spec.name} selects ${swiftImplementationType} as its Swift implementation. Every instance must inherit ${swiftImplementationType}.")
-}
-self.__implementation = implementation
-`.trim()
-  } else {
-    swiftImplementationType = `any ${hybridObjectNames.HybridTSpec}`
-    swiftImplementationAssignment = 'self.__implementation = implementation'
-  }
+  const swiftImplementationType = type.getCode('swift', { context: 'value' })
   const cppFinality = spec.allowInheritance ? '' : ' final'
   const swiftClassDeclaration = spec.allowInheritance ? 'open class' : 'public final class'
   const swiftMemberAccess = spec.allowInheritance ? 'open' : 'public'
@@ -292,16 +279,18 @@ ${swiftClassDeclaration} ${hybridObjectNames.HybridTSpecCxx}${swiftSuperclass} {
   /**
    * Create a new \`${hybridObjectNames.HybridTSpecCxx}\` that wraps the given \`${hybridObjectNames.HybridTSpec}\`.
    */
-  public init(_ implementation: any ${hybridObjectNames.HybridTSpec}) {
-    ${indent(swiftImplementationAssignment, '    ')}
+  @_expose(!Cxx)
+  public init(_ implementation: ${swiftImplementationType}) {
+    self.__implementation = implementation
     ${hasBase ? 'super.init(implementation)' : ''}
   }
 
   /**
    * Get the actual \`${hybridObjectNames.HybridTSpec}\` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func get${hybridObjectNames.HybridTSpec}() -> any ${hybridObjectNames.HybridTSpec} {
+  public func get${hybridObjectNames.HybridTSpec}() -> ${swiftImplementationType} {
     return __implementation
   }
 

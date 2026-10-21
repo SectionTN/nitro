@@ -25,7 +25,7 @@ open class HybridBaseSpec_cxx {
   /**
    * Holds the Swift implementation of `HybridBaseSpec`.
    */
-  private let __implementation: any HybridBaseSpec
+  private let __implementation: (any HybridBaseSpec)
 
   /**
    * Holds a weak pointer to the C++ class that wraps the Swift class.
@@ -35,7 +35,8 @@ open class HybridBaseSpec_cxx {
   /**
    * Create a new `HybridBaseSpec_cxx` that wraps the given `HybridBaseSpec`.
    */
-  public init(_ implementation: any HybridBaseSpec) {
+  @_expose(!Cxx)
+  public init(_ implementation: (any HybridBaseSpec)) {
     self.__implementation = implementation
 
   }
@@ -43,8 +44,9 @@ open class HybridBaseSpec_cxx {
   /**
    * Get the actual `HybridBaseSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridBaseSpec() -> any HybridBaseSpec {
+  public func getHybridBaseSpec() -> (any HybridBaseSpec) {
     return __implementation
   }
 

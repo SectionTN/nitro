@@ -5,16 +5,16 @@
 //  Created by Marc Rousavy on 03.10.24.
 //
 
-import NitroModules
-import UIKit
+public import NitroModules
+public import UIKit
 
-class HybridRecyclableTestView: HybridRecyclableTestViewSpec, RecyclableView {
-  override init() throws {
+public class HybridRecyclableTestView: HybridRecyclableTestViewSpec, RecyclableView {
+  public override init() throws {
     try super.init()
   }
 
   // UIView
-  var view: UIView = MainActor.assumeIsolated { UIView() }
+  public var view: UIView = MainActor.assumeIsolated { UIView() }
   private let lifecycleLock = NSLock()
   private var isRecycled = false
   private var invalidLifecycleOrderCount: Double = 0
@@ -24,7 +24,7 @@ class HybridRecyclableTestView: HybridRecyclableTestViewSpec, RecyclableView {
   private var nativeDefaultValueStorage: Double? = 42
 
   // Props
-  var isBlue: Bool = false {
+  public var isBlue: Bool = false {
     didSet {
       if !isRecycled {
         MainActor.assumeIsolated { [view, isBlue] in
@@ -33,7 +33,7 @@ class HybridRecyclableTestView: HybridRecyclableTestViewSpec, RecyclableView {
       }
     }
   }
-  var nativeDefaultValue: Double? {
+  public var nativeDefaultValue: Double? {
     get {
       return nativeDefaultValueStorage
     }
@@ -43,35 +43,35 @@ class HybridRecyclableTestView: HybridRecyclableTestViewSpec, RecyclableView {
     }
   }
 
-  func onDropView() {
+  public func onDropView() {
     print("View dropped!")
     lifecycleLock.withLock {
       onDropViewCount += 1
     }
   }
 
-  func getOnDropViewCount() throws -> Double {
+  public func getOnDropViewCount() throws -> Double {
     return lifecycleLock.withLock { onDropViewCount }
   }
 
-  func getInvalidLifecycleOrderCount() throws -> Double {
+  public func getInvalidLifecycleOrderCount() throws -> Double {
     return lifecycleLock.withLock { invalidLifecycleOrderCount }
   }
 
-  func getPrepareForRecycleCount() throws -> Double {
+  public func getPrepareForRecycleCount() throws -> Double {
     return lifecycleLock.withLock { prepareForRecycleCount }
   }
 
-  func getNativeDefaultValueSetterCallCount() throws -> Double {
+  public func getNativeDefaultValueSetterCallCount() throws -> Double {
     return nativeDefaultValueSetterCallCount
   }
 
-  func beforeUpdate() {
+  public func beforeUpdate() {
     isRecycled = false
   }
 
   // Recycling conformance
-  func prepareForRecycle() {
+  public func prepareForRecycle() {
     nativeDefaultValueStorage = 42
     nativeDefaultValueSetterCallCount = 0
     MainActor.assumeIsolated { [view] in

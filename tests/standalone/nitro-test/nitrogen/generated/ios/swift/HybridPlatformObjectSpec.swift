@@ -38,15 +38,15 @@ open class HybridPlatformObjectSpec_base {
   public init() throws {
   }
   public final func getCxxWrapper() -> HybridPlatformObjectSpec_cxx {
-  #if DEBUG
-    guard self is any HybridPlatformObjectSpec else {
-      fatalError("`self` is not a `HybridPlatformObjectSpec`! Did you accidentally inherit from `HybridPlatformObjectSpec_base` instead of `HybridPlatformObjectSpec`?")
+  #if NITRO_DEBUG
+    guard self is HybridPlatformObject else {
+      fatalError("`self` is not a `HybridPlatformObject`! Did you accidentally inherit from `HybridPlatformObjectSpec_base` instead of `HybridPlatformObjectSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridPlatformObjectSpec_cxx(self as! any HybridPlatformObjectSpec)
+      let cxxWrapper = HybridPlatformObjectSpec_cxx(self as! HybridPlatformObject)
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -63,3 +63,6 @@ open class HybridPlatformObjectSpec_base {
  * ```
  */
 public typealias HybridPlatformObjectSpec = HybridPlatformObjectSpec_protocol & HybridPlatformObjectSpec_base
+
+/// The concrete implementation used by other Swift modules.
+public typealias NitroTest_PlatformObjectImplementation = HybridPlatformObject

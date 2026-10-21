@@ -1,46 +1,46 @@
-import NitroModules
-import NitroTestExternal
+public import NitroModules
+public import NitroTestExternal
 
-class HybridGrandchild: HybridGrandchildSpec {
-  required override init() throws {
+public class HybridGrandchild: HybridGrandchildSpec {
+  public required override init() throws {
     try super.init()
   }
 
-  static func createAlternativeBase() throws -> any HybridBaseSpec {
+  public static func createAlternativeBase() throws -> any HybridBaseSpec {
     return try HybridBase.createAlternativeBase()
   }
 
-  static func createInternalExternalObject() throws -> any HybridSomeExternalObjectSpec {
+  public static func createInternalExternalObject() throws -> any HybridSomeExternalObjectSpec {
     return try HybridBase.createInternalExternalObject()
   }
 
-  var baseValue: Double {
+  public var baseValue: Double {
     return 20
   }
-  var childValue: Double {
+  public var childValue: Double {
     return 30
   }
-  var grandchildValue: Double {
+  public var grandchildValue: Double {
     return 40
   }
 
-  func bounceSize(size: Size) throws -> Size {
+  public func bounceSize(size: Size) throws -> Size {
     return size
   }
 
-  func bounceSizeUnit(unit: SizeUnit) throws -> SizeUnit {
+  public func bounceSizeUnit(unit: SizeUnit) throws -> SizeUnit {
     return unit
   }
 
-  func mapSize(size: Size, callback: any Callback<Size, Size>) throws -> any Promise<Size> {
+  public func mapSize(size: Size, callback: any Callback<Size, Size>) throws -> any Promise<Size> {
     return callback(size)
   }
 
-  func bounceVariant(variant: NamedVariant) throws -> NamedVariant {
+  public func bounceVariant(variant: NamedVariant) throws -> NamedVariant {
     return variant
   }
 
-  func toString() -> String {
+  public func toString() -> String {
     return "HybridChild custom toString() :)"
   }
 }

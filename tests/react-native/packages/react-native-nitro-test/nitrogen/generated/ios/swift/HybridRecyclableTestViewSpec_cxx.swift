@@ -34,10 +34,8 @@ public final class HybridRecyclableTestViewSpec_cxx {
   /**
    * Create a new `HybridRecyclableTestViewSpec_cxx` that wraps the given `HybridRecyclableTestViewSpec`.
    */
-  public init(_ implementation: any HybridRecyclableTestViewSpec) {
-    guard let implementation = implementation as? HybridRecyclableTestView else {
-      preconditionFailure("RecyclableTestView selects HybridRecyclableTestView as its Swift implementation. Every instance must inherit HybridRecyclableTestView.")
-    }
+  @_expose(!Cxx)
+  public init(_ implementation: HybridRecyclableTestView) {
     self.__implementation = implementation
 
   }
@@ -45,8 +43,9 @@ public final class HybridRecyclableTestViewSpec_cxx {
   /**
    * Get the actual `HybridRecyclableTestViewSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridRecyclableTestViewSpec() -> any HybridRecyclableTestViewSpec {
+  public func getHybridRecyclableTestViewSpec() -> HybridRecyclableTestView {
     return __implementation
   }
 

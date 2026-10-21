@@ -19,6 +19,16 @@ export function createSwiftHybridObject(spec: HybridObjectSpec<'swift'>): Source
   const conformances = swiftType.getProtocolConformances()
   const name = getHybridObjectName(spec.name)
   const protocolName = name.HybridTSpec
+  const implementationType = hybridObjectType.getCode('swift', { context: 'value' })
+  let implementationAliasCode: string
+  if (!spec.allowMultipleImplementations) {
+    implementationAliasCode = `
+/// The concrete implementation used by other Swift modules.
+public typealias ${hybridObjectType.swiftImplementationAlias} = ${implementationType}
+`.trim()
+  } else {
+    implementationAliasCode = ''
+  }
   const constructor = spec.constructor?.getDeclaration('swift') ?? ''
   const properties = spec.properties.map((p) => p.getCode('swift')).join('\n')
   const methods = spec.methods.map((method) => method.getDeclaration('swift')).join('\n')
@@ -122,15 +132,15 @@ public init() throws {
   baseMembers.push(
     `
 ${wrapperAccessorModifiers} func getCxxWrapper() -> ${name.HybridTSpecCxx} {
-#if DEBUG
-  guard self is any ${name.HybridTSpec} else {
-    fatalError("\`self\` is not a \`${name.HybridTSpec}\`! Did you accidentally inherit from \`${name.HybridTSpec}_base\` instead of \`${name.HybridTSpec}\`?")
+#if NITRO_DEBUG
+  guard self is ${implementationType} else {
+    fatalError("\`self\` is not a \`${implementationType}\`! Did you accidentally inherit from \`${name.HybridTSpec}_base\` instead of \`${name.HybridTSpec}\`?")
   }
 #endif
   if let cxxWrapper = self.cxxWrapper {
     return cxxWrapper
   } else {
-    let cxxWrapper = ${name.HybridTSpecCxx}(self as! any ${name.HybridTSpec})
+    let cxxWrapper = ${name.HybridTSpecCxx}(self as! ${implementationType})
     self.cxxWrapper = cxxWrapper
     return cxxWrapper
   }
@@ -185,6 +195,8 @@ open class ${protocolName}_base${classBaseClasses.length > 0 ? `: ${classBaseCla
  * \`\`\`
  */
 public typealias ${protocolName} = ${protocolName}_protocol & ${protocolName}_base
+
+${implementationAliasCode}
 
 ${classProtocolCode}
 `.trim()

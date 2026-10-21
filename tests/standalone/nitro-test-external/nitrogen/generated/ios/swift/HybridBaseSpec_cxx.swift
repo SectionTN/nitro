@@ -34,10 +34,8 @@ public final class HybridBaseSpec_cxx {
   /**
    * Create a new `HybridBaseSpec_cxx` that wraps the given `HybridBaseSpec`.
    */
-  public init(_ implementation: any HybridBaseSpec) {
-    guard let implementation = implementation as? HybridBase else {
-      preconditionFailure("Base selects HybridBase as its Swift implementation. Every instance must inherit HybridBase.")
-    }
+  @_expose(!Cxx)
+  public init(_ implementation: HybridBase) {
     self.__implementation = implementation
 
   }
@@ -45,8 +43,9 @@ public final class HybridBaseSpec_cxx {
   /**
    * Get the actual `HybridBaseSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridBaseSpec() -> any HybridBaseSpec {
+  public func getHybridBaseSpec() -> HybridBase {
     return __implementation
   }
 

@@ -68,7 +68,7 @@ Now, ensure `HybridMath` is implemented:
     ```swift title="HybridMath.swift"
     import NitroModules
 
-    class HybridMath: HybridMathSpec {
+    public class HybridMath: HybridMathSpec {
       ...
     }
     ```
@@ -98,6 +98,28 @@ Now, ensure `HybridMath` is implemented:
   </TabItem>
 
 </Tabs>
+
+### Concrete Swift references
+
+When `allowMultipleImplementations` is omitted, Swift APIs use the configured implementation class directly. An `Image` implemented by
+`HybridImage` appears as `HybridImage` in parameters and return values, including inside arrays, optionals, callbacks, and promises. Swift
+rejects a different class that only conforms to `HybridImageSpec` at those API boundaries.
+
+References from other modules use a generated alias such as `NitroImages_ImageImplementation` for the same class.
+
+The implementation class and its protocol requirements must be `public`, because the generated bridge exposes them in public APIs:
+
+```swift
+public import NitroModules
+
+public final class HybridImage: HybridImageSpec {
+  public let width: Double = 1920
+  public let height: Double = 1080
+}
+```
+
+With `allowMultipleImplementations: true`, Swift APIs continue to use `any HybridImageSpec`, so each implementation can have its own
+initializer and native state. A configured `implementation` supplies the JavaScript constructor and static members.
 
 ### Allow inheritance
 
@@ -187,8 +209,8 @@ class HybridGPUImage: HybridImageSpec {
 }
 ```
 
-`Image` can no longer have a constructor or static methods, but you can still create other Hybrid Objects that can create `Image`
-instances - this is a factory pattern:
+Without a configured `implementation`, JavaScript cannot call an `Image` constructor or static members. Another Hybrid Object can create its
+native implementations:
 
 ```ts title="ImageFactory.nitro.ts"
 import { type HybridObject, iOS } from 'nitro-core'
@@ -208,14 +230,14 @@ export * from '#nitro/ImageFactory'
 Then, simply create your instances natively:
 
 ```swift title="HybridImageFactory.swift"
-class HybridImageFactory: HybridImageFactorySpec {
-  static func createUIImage() -> any HybridImageSpec {
+public final class HybridImageFactory: HybridImageFactorySpec {
+  public static func createUIImage() -> any HybridImageSpec {
     return HybridUIImage()
   }
-  static func createCGImage() -> any HybridImageSpec {
+  public static func createCGImage() -> any HybridImageSpec {
     return HybridCGImage()
   }
-  static func createGPUImage() -> any HybridImageSpec {
+  public static func createGPUImage() -> any HybridImageSpec {
     return HybridGPUImage()
   }
 }
@@ -223,8 +245,8 @@ class HybridImageFactory: HybridImageFactorySpec {
 
 ## Additional native interface/protocol conformances
 
-Hybrid Objects are natively represented as interfaces in Kotlin and protocols in Swift. If you often pass Hybrid Objects around, you may end
-up writing such cast-patterns repeatedly:
+With `allowMultipleImplementations: true`, native APIs use the generated Kotlin spec type or Swift protocol. Accessing an implementation's
+native properties can require a downcast:
 
 ```swift
 class HybridImage: HybridImageSpec {
@@ -232,8 +254,8 @@ class HybridImage: HybridImageSpec {
   ...
 }
 
-class HybridImageCropper: HybridImageCropperSpec {
-  static func crop(image: any HybridImageSpec) throws -> any HybridImageSpec {
+public final class HybridImageCropper: HybridImageCropperSpec {
+  public static func crop(image: any HybridImageSpec) throws -> any HybridImageSpec {
     // If we want to access image.uiImage, we have to downcast from
     // the HybridImageSpec protocol to the HybridImage class first:
     guard let image = image as? HybridImage else {
@@ -302,8 +324,8 @@ class HybridImage: HybridImageSpec {
   ...
 }
 
-class HybridImageCropper: HybridImageCropperSpec {
-  static func crop(image: any HybridImageSpec) throws -> any HybridImageSpec {
+public final class HybridImageCropper: HybridImageCropperSpec {
+  public static func crop(image: any HybridImageSpec) throws -> any HybridImageSpec {
     // any HybridImageSpec now conforms to NativeImage:
     let uiImage = image.uiImage
     return ...

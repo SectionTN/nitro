@@ -34,10 +34,8 @@ public final class HybridGrandchildSpec_cxx: HybridChildSpec_cxx {
   /**
    * Create a new `HybridGrandchildSpec_cxx` that wraps the given `HybridGrandchildSpec`.
    */
-  public init(_ implementation: any HybridGrandchildSpec) {
-    guard let implementation = implementation as? HybridGrandchild else {
-      preconditionFailure("Grandchild selects HybridGrandchild as its Swift implementation. Every instance must inherit HybridGrandchild.")
-    }
+  @_expose(!Cxx)
+  public init(_ implementation: HybridGrandchild) {
     self.__implementation = implementation
     super.init(implementation)
   }
@@ -45,8 +43,9 @@ public final class HybridGrandchildSpec_cxx: HybridChildSpec_cxx {
   /**
    * Get the actual `HybridGrandchildSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridGrandchildSpec() -> any HybridGrandchildSpec {
+  public func getHybridGrandchildSpec() -> HybridGrandchild {
     return __implementation
   }
 

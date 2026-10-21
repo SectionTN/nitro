@@ -41,15 +41,15 @@ open class HybridBaseSpec_base {
   public init() throws {
   }
   open func getCxxWrapper() -> HybridBaseSpec_cxx {
-  #if DEBUG
-    guard self is any HybridBaseSpec else {
-      fatalError("`self` is not a `HybridBaseSpec`! Did you accidentally inherit from `HybridBaseSpec_base` instead of `HybridBaseSpec`?")
+  #if NITRO_DEBUG
+    guard self is (any HybridBaseSpec) else {
+      fatalError("`self` is not a `(any HybridBaseSpec)`! Did you accidentally inherit from `HybridBaseSpec_base` instead of `HybridBaseSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridBaseSpec_cxx(self as! any HybridBaseSpec)
+      let cxxWrapper = HybridBaseSpec_cxx(self as! (any HybridBaseSpec))
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -66,6 +66,8 @@ open class HybridBaseSpec_base {
  * ```
  */
 public typealias HybridBaseSpec = HybridBaseSpec_protocol & HybridBaseSpec_base
+
+
 
 /// Constructor and static requirements for the implementation selected by JavaScript.
 internal protocol HybridBaseSpec_class {

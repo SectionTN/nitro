@@ -5,6 +5,8 @@ export interface SwiftHybridObjectImplementation {
   /**
    * The concrete Swift class you wrote to implement this HybridObject spec.
    * Must be defined in the same Swift module as the generated spec.
+   * Without `allowMultipleImplementations: true`, generated Swift APIs use this class directly.
+   * The class and its protocol requirements must be public.
    * @example "HybridImage"
    */
   className: string

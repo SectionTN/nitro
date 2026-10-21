@@ -39,15 +39,15 @@ open class HybridGrandchildSpec_base: HybridChildSpec_base {
     try super.init()
   }
   public final override func getCxxWrapper() -> HybridGrandchildSpec_cxx {
-  #if DEBUG
-    guard self is any HybridGrandchildSpec else {
-      fatalError("`self` is not a `HybridGrandchildSpec`! Did you accidentally inherit from `HybridGrandchildSpec_base` instead of `HybridGrandchildSpec`?")
+  #if NITRO_DEBUG
+    guard self is HybridGrandchild else {
+      fatalError("`self` is not a `HybridGrandchild`! Did you accidentally inherit from `HybridGrandchildSpec_base` instead of `HybridGrandchildSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridGrandchildSpec_cxx(self as! any HybridGrandchildSpec)
+      let cxxWrapper = HybridGrandchildSpec_cxx(self as! HybridGrandchild)
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -64,3 +64,6 @@ open class HybridGrandchildSpec_base: HybridChildSpec_base {
  * ```
  */
 public typealias HybridGrandchildSpec = HybridGrandchildSpec_protocol & HybridGrandchildSpec_base
+
+/// The concrete implementation used by other Swift modules.
+public typealias NitroTest_GrandchildImplementation = HybridGrandchild

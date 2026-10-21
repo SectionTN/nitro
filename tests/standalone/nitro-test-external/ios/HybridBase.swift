@@ -1,23 +1,23 @@
-import NitroModules
+public import NitroModules
 
-class HybridBase: HybridBaseSpec {
-  required override init() throws {
+public class HybridBase: HybridBaseSpec {
+  public required override init() throws {
     try super.init()
   }
 
-  var baseValue: Double {
+  public var baseValue: Double {
     return 20
   }
 
-  func bounceSize(size: Size) throws -> Size {
+  public func bounceSize(size: Size) throws -> Size {
     return size
   }
 
-  func bounceSizeUnit(unit: SizeUnit) throws -> SizeUnit {
+  public func bounceSizeUnit(unit: SizeUnit) throws -> SizeUnit {
     return unit
   }
 
-  func mapSize(size: Size, callback: any Callback<Size, Size>) throws -> any Promise<Size> {
+  public func mapSize(size: Size, callback: any Callback<Size, Size>) throws -> any Promise<Size> {
     return callback(size)
   }
 }

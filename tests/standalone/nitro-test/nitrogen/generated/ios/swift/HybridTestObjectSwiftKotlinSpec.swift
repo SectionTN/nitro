@@ -36,8 +36,8 @@ public protocol HybridTestObjectSwiftKotlinSpec_protocol: HybridTestObjectSwiftK
   var isolatedBoolean: Bool { get set }
   var isTextValue: String { get set }
   var someVariant: Variant_Double_String { get set }
-  var thisObject: (any HybridTestObjectSwiftKotlinSpec) { get }
-  var optionalHybrid: (any HybridTestObjectSwiftKotlinSpec)? { get set }
+  var thisObject: HybridTestObjectSwift { get }
+  var optionalHybrid: HybridTestObjectSwift? { get set }
 
   // Methods
   func simpleFunc() throws -> Void
@@ -144,10 +144,10 @@ public protocol HybridTestObjectSwiftKotlinSpec_protocol: HybridTestObjectSwiftK
   func createChild() throws -> (any HybridChildSpec)
   func createBase() throws -> (any HybridBaseSpec)
   func createBaseActualChild() throws -> (any HybridBaseSpec)
-  func createGrandchild() throws -> (any HybridGrandchildSpec)
+  func createGrandchild() throws -> HybridGrandchild
   func createChildActualGrandchild() throws -> (any HybridChildSpec)
   func createBaseActualGrandchild() throws -> (any HybridBaseSpec)
-  func bounceGrandchild(grandchild: (any HybridGrandchildSpec)) throws -> (any HybridGrandchildSpec)
+  func bounceGrandchild(grandchild: HybridGrandchild) throws -> HybridGrandchild
   func bounceChild(child: (any HybridChildSpec)) throws -> (any HybridChildSpec)
   func bounceBase(base: (any HybridBaseSpec)) throws -> (any HybridBaseSpec)
   func bounceChildBase(child: (any HybridChildSpec)) throws -> (any HybridBaseSpec)
@@ -161,9 +161,9 @@ public protocol HybridTestObjectSwiftKotlinSpec_protocol: HybridTestObjectSwiftK
   func bounceExternalVariant(variant: StringOrExternal) throws -> StringOrExternal
   func createExternalVariantFromFunc(factory: any Callback<(), (any HybridSomeExternalObjectSpec)>) throws -> (any HybridSomeExternalObjectSpec)
   func bounceCppOnlyValue(value: CppOnlyValue) throws -> CppOnlyValue
-  func newTestObject() throws -> (any HybridTestObjectSwiftKotlinSpec)
-  func newTestObjectAsync() throws -> any Promise<(any HybridTestObjectSwiftKotlinSpec)>
-  func getVariantHybrid(variant: Variant__any_HybridTestObjectSwiftKotlinSpec__Person) throws -> Variant__any_HybridTestObjectSwiftKotlinSpec__Person
+  func newTestObject() throws -> HybridTestObjectSwift
+  func newTestObjectAsync() throws -> any Promise<HybridTestObjectSwift>
+  func getVariantHybrid(variant: Variant_HybridTestObjectSwift_Person) throws -> Variant_HybridTestObjectSwift_Person
 
   // Static Properties
   static var readonlyNumber: Double { get }
@@ -186,15 +186,15 @@ open class HybridTestObjectSwiftKotlinSpec_base {
   public init() throws {
   }
   public final func getCxxWrapper() -> HybridTestObjectSwiftKotlinSpec_cxx {
-  #if DEBUG
-    guard self is any HybridTestObjectSwiftKotlinSpec else {
-      fatalError("`self` is not a `HybridTestObjectSwiftKotlinSpec`! Did you accidentally inherit from `HybridTestObjectSwiftKotlinSpec_base` instead of `HybridTestObjectSwiftKotlinSpec`?")
+  #if NITRO_DEBUG
+    guard self is HybridTestObjectSwift else {
+      fatalError("`self` is not a `HybridTestObjectSwift`! Did you accidentally inherit from `HybridTestObjectSwiftKotlinSpec_base` instead of `HybridTestObjectSwiftKotlinSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridTestObjectSwiftKotlinSpec_cxx(self as! any HybridTestObjectSwiftKotlinSpec)
+      let cxxWrapper = HybridTestObjectSwiftKotlinSpec_cxx(self as! HybridTestObjectSwift)
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -211,3 +211,6 @@ open class HybridTestObjectSwiftKotlinSpec_base {
  * ```
  */
 public typealias HybridTestObjectSwiftKotlinSpec = HybridTestObjectSwiftKotlinSpec_protocol & HybridTestObjectSwiftKotlinSpec_base
+
+/// The concrete implementation used by other Swift modules.
+public typealias NitroTest_TestObjectSwiftKotlinImplementation = HybridTestObjectSwift

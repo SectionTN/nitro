@@ -42,15 +42,15 @@ open class HybridRecyclableTestViewSpec_base {
   public init() throws {
   }
   public final func getCxxWrapper() -> HybridRecyclableTestViewSpec_cxx {
-  #if DEBUG
-    guard self is any HybridRecyclableTestViewSpec else {
-      fatalError("`self` is not a `HybridRecyclableTestViewSpec`! Did you accidentally inherit from `HybridRecyclableTestViewSpec_base` instead of `HybridRecyclableTestViewSpec`?")
+  #if NITRO_DEBUG
+    guard self is HybridRecyclableTestView else {
+      fatalError("`self` is not a `HybridRecyclableTestView`! Did you accidentally inherit from `HybridRecyclableTestViewSpec_base` instead of `HybridRecyclableTestViewSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridRecyclableTestViewSpec_cxx(self as! any HybridRecyclableTestViewSpec)
+      let cxxWrapper = HybridRecyclableTestViewSpec_cxx(self as! HybridRecyclableTestView)
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -67,3 +67,6 @@ open class HybridRecyclableTestViewSpec_base {
  * ```
  */
 public typealias HybridRecyclableTestViewSpec = HybridRecyclableTestViewSpec_protocol & HybridRecyclableTestViewSpec_base
+
+/// The concrete implementation used by other Swift modules.
+public typealias NitroTest_RecyclableTestViewImplementation = HybridRecyclableTestView

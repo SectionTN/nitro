@@ -39,15 +39,15 @@ open class HybridSomeExternalObjectSpec_base {
   public init() throws {
   }
   public final func getCxxWrapper() -> HybridSomeExternalObjectSpec_cxx {
-  #if DEBUG
-    guard self is any HybridSomeExternalObjectSpec else {
-      fatalError("`self` is not a `HybridSomeExternalObjectSpec`! Did you accidentally inherit from `HybridSomeExternalObjectSpec_base` instead of `HybridSomeExternalObjectSpec`?")
+  #if NITRO_DEBUG
+    guard self is (any HybridSomeExternalObjectSpec) else {
+      fatalError("`self` is not a `(any HybridSomeExternalObjectSpec)`! Did you accidentally inherit from `HybridSomeExternalObjectSpec_base` instead of `HybridSomeExternalObjectSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridSomeExternalObjectSpec_cxx(self as! any HybridSomeExternalObjectSpec)
+      let cxxWrapper = HybridSomeExternalObjectSpec_cxx(self as! (any HybridSomeExternalObjectSpec))
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -64,6 +64,8 @@ open class HybridSomeExternalObjectSpec_base {
  * ```
  */
 public typealias HybridSomeExternalObjectSpec = HybridSomeExternalObjectSpec_protocol & HybridSomeExternalObjectSpec_base
+
+
 
 /// Constructor and static requirements for the implementation selected by JavaScript.
 internal protocol HybridSomeExternalObjectSpec_class {

@@ -1275,8 +1275,8 @@ namespace margelo::nitro::test {
     return std::move(__result.value());
   }
 
-  ::NitroTest::Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx HybridTestObjectSwiftKotlinSpecSwift::getVariantHybrid(const ::NitroTest::Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx& variant) {
-    auto __result = withSwiftResult<::NitroTest::Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx>([&](void* __outResult) {
+  ::NitroTest::Variant_HybridTestObjectSwift_Person_cxx HybridTestObjectSwiftKotlinSpecSwift::getVariantHybrid(const ::NitroTest::Variant_HybridTestObjectSwift_Person_cxx& variant) {
+    auto __result = withSwiftResult<::NitroTest::Variant_HybridTestObjectSwift_Person_cxx>([&](void* __outResult) {
       return _swiftPart.getVariantHybrid(variant, __outResult);
     });
     if (__result.hasError()) [[unlikely]] {

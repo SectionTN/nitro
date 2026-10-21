@@ -34,10 +34,8 @@ public final class HybridBenchmarkObjectSwiftKotlinSpec_cxx {
   /**
    * Create a new `HybridBenchmarkObjectSwiftKotlinSpec_cxx` that wraps the given `HybridBenchmarkObjectSwiftKotlinSpec`.
    */
-  public init(_ implementation: any HybridBenchmarkObjectSwiftKotlinSpec) {
-    guard let implementation = implementation as? HybridBenchmarkObjectSwift else {
-      preconditionFailure("BenchmarkObjectSwiftKotlin selects HybridBenchmarkObjectSwift as its Swift implementation. Every instance must inherit HybridBenchmarkObjectSwift.")
-    }
+  @_expose(!Cxx)
+  public init(_ implementation: HybridBenchmarkObjectSwift) {
     self.__implementation = implementation
 
   }
@@ -45,8 +43,9 @@ public final class HybridBenchmarkObjectSwiftKotlinSpec_cxx {
   /**
    * Get the actual `HybridBenchmarkObjectSwiftKotlinSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridBenchmarkObjectSwiftKotlinSpec() -> any HybridBenchmarkObjectSwiftKotlinSpec {
+  public func getHybridBenchmarkObjectSwiftKotlinSpec() -> HybridBenchmarkObjectSwift {
     return __implementation
   }
 

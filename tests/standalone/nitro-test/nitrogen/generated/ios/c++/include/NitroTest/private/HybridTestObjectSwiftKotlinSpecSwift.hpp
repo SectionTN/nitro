@@ -225,7 +225,7 @@ namespace margelo::nitro::test {
     ::NitroTest::CppOnlyValue bounceCppOnlyValue(const ::NitroTest::CppOnlyValue& value);
     ::NitroTest::HybridTestObjectSwiftKotlinSpec_cxx newTestObject();
     Promise<::NitroTest::HybridTestObjectSwiftKotlinSpec_cxx> newTestObjectAsync();
-    ::NitroTest::Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx getVariantHybrid(const ::NitroTest::Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx& variant);
+    ::NitroTest::Variant_HybridTestObjectSwift_Person_cxx getVariantHybrid(const ::NitroTest::Variant_HybridTestObjectSwift_Person_cxx& variant);
     // Constructor
     static ::NitroTest::HybridTestObjectSwiftKotlinSpec_cxx constructor();
     // Static properties

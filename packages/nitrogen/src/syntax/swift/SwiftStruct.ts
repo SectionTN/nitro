@@ -9,17 +9,37 @@ import type { SourceFile } from '../SourceFile.js'
 import type { SwiftStructType } from './types/SwiftStructType.js'
 import { getImportsCode } from '../getImportCode.js'
 import { getProtocolConformanceImports, getSwiftImports } from './getSwiftImports.js'
+import { getReferencedTypes } from '../getReferencedTypes.js'
+import { HybridObjectType } from '../types/HybridObjectType.js'
 
 export function createSwiftStructBridge(swiftType: SwiftStructType): SourceFile[] {
   const structType = swiftType.type
   const conformances = swiftType.getProtocolConformances()
   const protocolNames = conformances.map((conformance) => conformance.name)
   const conformancePrefix = protocolNames.length > 0 ? ': ' : ''
-  const swiftProperties = structType.properties.map((p) => `public let ${p.escapedName}: ${p.getCode('swift', { context: 'property' })}`)
+  const nativeProperties = structType.properties.map((property) => {
+    const referencedTypes = getReferencedTypes(property)
+    const isSwiftOnly = referencedTypes.some((type) => type instanceof HybridObjectType && type.usesConcreteSwiftType)
+    const attributes = isSwiftOnly ? ['@_expose(!Cxx)'] : []
+    const declaration = `
+${attributes.join('\n')}
+public let ${property.escapedName}: ${property.getCode('swift', { context: 'property' })}
+`.trim()
+    return { declaration: declaration, isSwiftOnly: isSwiftOnly }
+  })
+  const swiftProperties = nativeProperties.map((property) => property.declaration)
   const swiftInitializerParameters = structType.properties
     .map((p) => `${p.escapedName}: ${p.getCode('swift', { context: 'property' })}`)
     .join(', ')
   const swiftPropertyInitializers = structType.properties.map((p) => `self.${p.escapedName} = ${p.escapedName}`)
+  const isSwiftOnlyInitializer = nativeProperties.some((property) => property.isSwiftOnly)
+  const swiftInitializerAttributes = isSwiftOnlyInitializer ? ['@_expose(!Cxx)'] : []
+  const swiftInitializerCode = `
+${swiftInitializerAttributes.join('\n')}
+public init(${swiftInitializerParameters}) {
+  ${indent(swiftPropertyInitializers.join('\n'), '  ')}
+}
+`.trim()
   const swiftBridgeInitializerParameters = swiftType.properties
     .map((p) => `_ ${p.escapedName}: ${p.getCode('swift', { context: 'property' })}`)
     .join(', ')
@@ -53,9 +73,7 @@ ${swiftImports}
 public struct ${structType.structName}${conformancePrefix}${protocolNames.join(', ')} {
   ${indent(swiftProperties.join('\n'), '  ')}
 
-  public init(${swiftInitializerParameters}) {
-    ${indent(swiftPropertyInitializers.join('\n'), '    ')}
-  }
+  ${indent(swiftInitializerCode, '  ')}
 
   @_spi(NitroCxx)
   public static func init_cxx(${swiftBridgeInitializerParameters}) -> Self {

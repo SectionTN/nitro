@@ -34,10 +34,8 @@ public final class HybridPlatformObjectSpec_cxx {
   /**
    * Create a new `HybridPlatformObjectSpec_cxx` that wraps the given `HybridPlatformObjectSpec`.
    */
-  public init(_ implementation: any HybridPlatformObjectSpec) {
-    guard let implementation = implementation as? HybridPlatformObject else {
-      preconditionFailure("PlatformObject selects HybridPlatformObject as its Swift implementation. Every instance must inherit HybridPlatformObject.")
-    }
+  @_expose(!Cxx)
+  public init(_ implementation: HybridPlatformObject) {
     self.__implementation = implementation
 
   }
@@ -45,8 +43,9 @@ public final class HybridPlatformObjectSpec_cxx {
   /**
    * Get the actual `HybridPlatformObjectSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridPlatformObjectSpec() -> any HybridPlatformObjectSpec {
+  public func getHybridPlatformObjectSpec() -> HybridPlatformObject {
     return __implementation
   }
 

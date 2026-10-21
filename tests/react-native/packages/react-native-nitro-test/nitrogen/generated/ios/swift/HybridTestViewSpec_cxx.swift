@@ -34,10 +34,8 @@ public final class HybridTestViewSpec_cxx {
   /**
    * Create a new `HybridTestViewSpec_cxx` that wraps the given `HybridTestViewSpec`.
    */
-  public init(_ implementation: any HybridTestViewSpec) {
-    guard let implementation = implementation as? HybridTestView else {
-      preconditionFailure("TestView selects HybridTestView as its Swift implementation. Every instance must inherit HybridTestView.")
-    }
+  @_expose(!Cxx)
+  public init(_ implementation: HybridTestView) {
     self.__implementation = implementation
 
   }
@@ -45,8 +43,9 @@ public final class HybridTestViewSpec_cxx {
   /**
    * Get the actual `HybridTestViewSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridTestViewSpec() -> any HybridTestViewSpec {
+  public func getHybridTestViewSpec() -> HybridTestView {
     return __implementation
   }
 

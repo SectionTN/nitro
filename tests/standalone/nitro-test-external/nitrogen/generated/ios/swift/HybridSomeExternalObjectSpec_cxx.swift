@@ -24,7 +24,7 @@ public final class HybridSomeExternalObjectSpec_cxx {
   /**
    * Holds the Swift implementation of `HybridSomeExternalObjectSpec`.
    */
-  private let __implementation: any HybridSomeExternalObjectSpec
+  private let __implementation: (any HybridSomeExternalObjectSpec)
 
   /**
    * Holds a weak pointer to the C++ class that wraps the Swift class.
@@ -34,7 +34,8 @@ public final class HybridSomeExternalObjectSpec_cxx {
   /**
    * Create a new `HybridSomeExternalObjectSpec_cxx` that wraps the given `HybridSomeExternalObjectSpec`.
    */
-  public init(_ implementation: any HybridSomeExternalObjectSpec) {
+  @_expose(!Cxx)
+  public init(_ implementation: (any HybridSomeExternalObjectSpec)) {
     self.__implementation = implementation
 
   }
@@ -42,8 +43,9 @@ public final class HybridSomeExternalObjectSpec_cxx {
   /**
    * Get the actual `HybridSomeExternalObjectSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridSomeExternalObjectSpec() -> any HybridSomeExternalObjectSpec {
+  public func getHybridSomeExternalObjectSpec() -> (any HybridSomeExternalObjectSpec) {
     return __implementation
   }
 

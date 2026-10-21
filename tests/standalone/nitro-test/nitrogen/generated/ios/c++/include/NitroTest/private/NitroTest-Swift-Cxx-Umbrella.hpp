@@ -94,7 +94,7 @@
 #include <NitroTest/private/StringOrExternal-Swift.hpp>
 #include <NitroTest/private/CppOnlyValueKind-Swift.hpp>
 #include <NitroTest/private/CppOnlyValue-Swift.hpp>
-#include <NitroTest/private/Variant__any_HybridTestObjectSwiftKotlinSpec__Person-Swift.hpp>
+#include <NitroTest/private/Variant_HybridTestObjectSwift_Person-Swift.hpp>
 #include <NitroTest/private/SwiftContainer_swift__Array_swift__Array_swift__Optional___NitroTest__Person___-Swift.hpp>
 #include <NitroTest/private/SecondMapWrapper-Swift.hpp>
 #include <NitroTest/private/MapWrapper-Swift.hpp>

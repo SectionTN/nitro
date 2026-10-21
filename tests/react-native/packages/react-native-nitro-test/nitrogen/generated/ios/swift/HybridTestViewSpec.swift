@@ -21,7 +21,7 @@ public protocol HybridTestViewSpec_protocol: HybridTestViewSpec_base, HybridObje
   var nativeDefaultValue: Double? { get set }
 
   // Methods
-  func getIsViewBlue(view: (any HybridTestViewSpec)) throws -> Bool
+  func getIsViewBlue(view: HybridTestView) throws -> Bool
   func getOnDropViewCount() throws -> Double
   func getIsBlueSetterCallCount() throws -> Double
   func getNativeDefaultValueSetterCallCount() throws -> Double
@@ -47,15 +47,15 @@ open class HybridTestViewSpec_base {
   public init() throws {
   }
   public final func getCxxWrapper() -> HybridTestViewSpec_cxx {
-  #if DEBUG
-    guard self is any HybridTestViewSpec else {
-      fatalError("`self` is not a `HybridTestViewSpec`! Did you accidentally inherit from `HybridTestViewSpec_base` instead of `HybridTestViewSpec`?")
+  #if NITRO_DEBUG
+    guard self is HybridTestView else {
+      fatalError("`self` is not a `HybridTestView`! Did you accidentally inherit from `HybridTestViewSpec_base` instead of `HybridTestViewSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridTestViewSpec_cxx(self as! any HybridTestViewSpec)
+      let cxxWrapper = HybridTestViewSpec_cxx(self as! HybridTestView)
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -72,3 +72,6 @@ open class HybridTestViewSpec_base {
  * ```
  */
 public typealias HybridTestViewSpec = HybridTestViewSpec_protocol & HybridTestViewSpec_base
+
+/// The concrete implementation used by other Swift modules.
+public typealias NitroTest_TestViewImplementation = HybridTestView

@@ -113,8 +113,8 @@ namespace NitroTest { class StringOrExternal_cxx; }
 namespace NitroTest { class CppOnlyValueKind; }
 // Forward declaration of `CppOnlyValue` to properly resolve imports.
 namespace NitroTest { class CppOnlyValue; }
-// Forward declaration of `Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx` to properly resolve imports.
-namespace NitroTest { class Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx; }
+// Forward declaration of `Variant_HybridTestObjectSwift_Person_cxx` to properly resolve imports.
+namespace NitroTest { class Variant_HybridTestObjectSwift_Person_cxx; }
 // Forward declaration of `SwiftContainer_swift__Array_swift__Array_swift__Optional___NitroTest__Person___` to properly resolve imports.
 namespace NitroTest { class SwiftContainer_swift__Array_swift__Array_swift__Optional___NitroTest__Person___; }
 // Forward declaration of `SecondMapWrapper` to properly resolve imports.

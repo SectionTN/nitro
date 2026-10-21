@@ -1,27 +1,27 @@
-import NitroModules
-import UIKit
+public import NitroModules
+public import UIKit
 
-class HybridTestView: HybridTestViewSpec {
-  override init() throws {
+public class HybridTestView: HybridTestViewSpec {
+  public override init() throws {
     try super.init()
   }
 
-  var view: UIView = MainActor.assumeIsolated { UIView() }
+  public var view: UIView = MainActor.assumeIsolated { UIView() }
 
-  var isBlue: Bool = false {
+  public var isBlue: Bool = false {
     didSet {
       MainActor.assumeIsolated { [view, isBlue] in
         view.backgroundColor = isBlue ? .systemBlue : .systemRed
       }
     }
   }
-  var someCallback: any Callback<(), Void> = .native {}
+  public var someCallback: any Callback<(), Void> = .native {}
 
-  func someMethod() throws {
+  public func someMethod() throws {
     someCallback()
   }
 
-  func getModuleName() throws -> String {
+  public func getModuleName() throws -> String {
     return "NitroTestExternal"
   }
 }

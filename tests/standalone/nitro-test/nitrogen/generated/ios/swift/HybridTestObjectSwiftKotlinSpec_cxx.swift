@@ -35,10 +35,8 @@ public final class HybridTestObjectSwiftKotlinSpec_cxx {
   /**
    * Create a new `HybridTestObjectSwiftKotlinSpec_cxx` that wraps the given `HybridTestObjectSwiftKotlinSpec`.
    */
-  public init(_ implementation: any HybridTestObjectSwiftKotlinSpec) {
-    guard let implementation = implementation as? HybridTestObjectSwift else {
-      preconditionFailure("TestObjectSwiftKotlin selects HybridTestObjectSwift as its Swift implementation. Every instance must inherit HybridTestObjectSwift.")
-    }
+  @_expose(!Cxx)
+  public init(_ implementation: HybridTestObjectSwift) {
     self.__implementation = implementation
 
   }
@@ -46,8 +44,9 @@ public final class HybridTestObjectSwiftKotlinSpec_cxx {
   /**
    * Get the actual `HybridTestObjectSwiftKotlinSpec` instance this class wraps.
    */
+  @_expose(!Cxx)
   @inline(__always)
-  public func getHybridTestObjectSwiftKotlinSpec() -> any HybridTestObjectSwiftKotlinSpec {
+  public func getHybridTestObjectSwiftKotlinSpec() -> HybridTestObjectSwift {
     return __implementation
   }
 
@@ -1493,10 +1492,10 @@ public final class HybridTestObjectSwiftKotlinSpec_cxx {
     }
   }
 
-  public final func getVariantHybrid(variant: Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx, __outResult: UnsafeMutableRawPointer) -> bridge.Result_void {
+  public final func getVariantHybrid(variant: Variant_HybridTestObjectSwift_Person_cxx, __outResult: UnsafeMutableRawPointer) -> bridge.Result_void {
     do {
       let value = try __implementation.getVariantHybrid(variant: variant.value)
-      __outResult.assumingMemoryBound(to: Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx.self).initialize(to: Variant__any_HybridTestObjectSwiftKotlinSpec__Person_cxx(value))
+      __outResult.assumingMemoryBound(to: Variant_HybridTestObjectSwift_Person_cxx.self).initialize(to: Variant_HybridTestObjectSwift_Person_cxx(value))
       return bridge.Result_void.withValue()
     } catch {
       return bridge.Result_void.withError(error.toCpp())

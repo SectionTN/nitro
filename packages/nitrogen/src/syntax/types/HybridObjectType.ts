@@ -51,6 +51,15 @@ export class HybridObjectType implements Type {
     return true
   }
 
+  get swiftImplementationAlias(): string {
+    return `${this.sourceConfig.getIosModuleName()}_${this.hybridObjectName}Implementation`
+  }
+
+  get usesConcreteSwiftType(): boolean {
+    const ios = this.platforms.ios
+    return ios?.language === 'swift' && !ios.allowMultipleImplementations
+  }
+
   getCode(language: Language, options: GetHybridObjectCodeOptions): string {
     const name = getHybridObjectName(this.hybridObjectName)
     const mode = options.mode ?? 'strong'
@@ -75,6 +84,16 @@ export class HybridObjectType implements Type {
           throw new Error(
             `HybridObject "${this.hybridObjectName}" is implemented in ${ios.language} on iOS, but this reference requires Swift. Cross-language HybridObject references are currently supported only in C++ APIs.`
           )
+        }
+        if (this.usesConcreteSwiftType) {
+          const implementation = ios.implementation
+          if (implementation == null) {
+            throw new Error(`HybridObject "${this.hybridObjectName}" needs a concrete Swift implementation.`)
+          }
+          if (fullyQualified) {
+            return this.swiftImplementationAlias
+          }
+          return implementation.className
         }
         return `(any ${name.HybridTSpec})`
       }

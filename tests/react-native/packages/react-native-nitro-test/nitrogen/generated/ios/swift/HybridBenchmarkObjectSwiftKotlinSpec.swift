@@ -14,7 +14,7 @@ public protocol HybridBenchmarkObjectSwiftKotlinSpec_protocol: HybridBenchmarkOb
 
   // Properties
   var numberValue: Double { get set }
-  var thisObject: (any HybridBenchmarkObjectSwiftKotlinSpec) { get }
+  var thisObject: HybridBenchmarkObjectSwift { get }
 
   // Methods
   func simpleFunc() throws -> Void
@@ -31,7 +31,7 @@ public protocol HybridBenchmarkObjectSwiftKotlinSpec_protocol: HybridBenchmarkOb
   func promiseReturnsInstantly() throws -> any Promise<Double>
   func createPendingPromise() throws -> any Promise<Double>
   func resolvePendingPromiseOnWorker() throws -> Void
-  func newBenchmarkObject() throws -> (any HybridBenchmarkObjectSwiftKotlinSpec)
+  func newBenchmarkObject() throws -> HybridBenchmarkObjectSwift
 
   // Static Properties
 
@@ -53,15 +53,15 @@ open class HybridBenchmarkObjectSwiftKotlinSpec_base {
   public init() throws {
   }
   public final func getCxxWrapper() -> HybridBenchmarkObjectSwiftKotlinSpec_cxx {
-  #if DEBUG
-    guard self is any HybridBenchmarkObjectSwiftKotlinSpec else {
-      fatalError("`self` is not a `HybridBenchmarkObjectSwiftKotlinSpec`! Did you accidentally inherit from `HybridBenchmarkObjectSwiftKotlinSpec_base` instead of `HybridBenchmarkObjectSwiftKotlinSpec`?")
+  #if NITRO_DEBUG
+    guard self is HybridBenchmarkObjectSwift else {
+      fatalError("`self` is not a `HybridBenchmarkObjectSwift`! Did you accidentally inherit from `HybridBenchmarkObjectSwiftKotlinSpec_base` instead of `HybridBenchmarkObjectSwiftKotlinSpec`?")
     }
   #endif
     if let cxxWrapper = self.cxxWrapper {
       return cxxWrapper
     } else {
-      let cxxWrapper = HybridBenchmarkObjectSwiftKotlinSpec_cxx(self as! any HybridBenchmarkObjectSwiftKotlinSpec)
+      let cxxWrapper = HybridBenchmarkObjectSwiftKotlinSpec_cxx(self as! HybridBenchmarkObjectSwift)
       self.cxxWrapper = cxxWrapper
       return cxxWrapper
     }
@@ -78,3 +78,6 @@ open class HybridBenchmarkObjectSwiftKotlinSpec_base {
  * ```
  */
 public typealias HybridBenchmarkObjectSwiftKotlinSpec = HybridBenchmarkObjectSwiftKotlinSpec_protocol & HybridBenchmarkObjectSwiftKotlinSpec_base
+
+/// The concrete implementation used by other Swift modules.
+public typealias NitroTest_BenchmarkObjectSwiftKotlinImplementation = HybridBenchmarkObjectSwift
