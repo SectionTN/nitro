@@ -65,18 +65,16 @@ jobs:
           path: ~/Library/Caches/ReactNative
           key: react-native-downloads-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock') }}
 
-      - name: Restore compilation cache
-        id: native-cache
+      # Reuse compatible SDK/module entries without saving a second Release snapshot.
+      - name: Restore existing compilation cache
         uses: actions/cache/restore@v6
         with:
           path: |
             tests/react-native/apps/example/ios/build/CompilationCache.noindex
             tests/react-native/apps/example/ios/build/SourcePackages
-          key:
-            react-native-ios-release-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.native.outputs.toolchain }}-${{ inputs.release-tag ||
-            github.sha }}
+          key: react-native-ios-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.native.outputs.toolchain }}-${{ github.sha }}
           restore-keys: |
-            react-native-ios-release-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.native.outputs.toolchain }}-
+            react-native-ios-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.native.outputs.toolchain }}-
 
       - name: Resolve Swift packages
         working-directory: tests/react-native/apps/example
@@ -108,17 +106,6 @@ jobs:
             -showBuildTimingSummary \
             build \
             CODE_SIGNING_ALLOWED=NO | xcbeautify --renderer github-actions
-
-      - name: Save compilation cache
-        if: >-
-          steps.native-cache.outputs.cache-hit != 'true' && github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' ||
-          github.ref == 'refs/heads/v1')
-        uses: actions/cache/save@v6
-        with:
-          path: |
-            tests/react-native/apps/example/ios/build/CompilationCache.noindex
-            tests/react-native/apps/example/ios/build/SourcePackages
-          key: ${{ steps.native-cache.outputs.cache-primary-key }}
 
       - name: Package .app for Simulator
         run: |

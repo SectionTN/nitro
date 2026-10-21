@@ -31,9 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    env:
-      CMAKE_C_COMPILER_LAUNCHER: ccache
-      CMAKE_CXX_COMPILER_LAUNCHER: ccache
     steps:
       - uses: actions/checkout@v7
         with:
@@ -59,11 +56,6 @@ jobs:
         with:
           cache-provider: enhanced
           cache-read-only: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/v1' }}
-      - uses: hendrikmuhs/ccache-action@v1.2.24
-        with:
-          key: android-release
-          max-size: 256M
-          save: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v1' }}
       - name: Run Gradle Build for tests/react-native/apps/example/android/
         working-directory: tests/react-native/apps/example/android
         run: ./gradlew :app:assembleRelease --build-cache
