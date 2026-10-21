@@ -6,7 +6,7 @@ import { StructType } from '../../types/StructType.js'
 import type { GetCodeOptions, NamedType } from '../../types/Type.js'
 
 /** Keeps Kotlin fallback fields independent of the public C++ struct projection. */
-export class KotlinNativeStructType extends StructType {
+export class KotlinCxxStructType extends StructType {
   readonly nativeConfig: NitroConfig
 
   constructor(

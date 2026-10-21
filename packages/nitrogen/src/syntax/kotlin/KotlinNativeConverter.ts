@@ -10,7 +10,7 @@ import { EnumType } from '../types/EnumType.js'
 import { StructType } from '../types/StructType.js'
 import type { Type, TypeContext } from '../types/Type.js'
 import { getKotlinNativeType } from './getKotlinNativeType.js'
-import { KotlinNativeStructType } from './types/KotlinNativeStructType.js'
+import { KotlinCxxStructType } from './types/KotlinCxxStructType.js'
 
 interface KotlinNativeConverterOptions {
   cppType: Type
@@ -51,7 +51,7 @@ function getConverterFileName(type: ForeignHybridObjectType | StructType | EnumT
 function isSpecialized(type: Type, nativeConfig: NitroConfig): type is ForeignHybridObjectType | StructType | EnumType {
   return (
     type instanceof ForeignHybridObjectType ||
-    (type instanceof StructType && !(type instanceof KotlinNativeStructType)) ||
+    (type instanceof StructType && !(type instanceof KotlinCxxStructType)) ||
     (type instanceof EnumType && nativeConfig.isExternalConfig)
   )
 }

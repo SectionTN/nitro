@@ -5,7 +5,7 @@ import { EnumType } from '../../types/EnumType.js'
 import type { GetCodeOptions } from '../../types/Type.js'
 
 /** Enum ownership follows the module whose private Kotlin bridge is being called. */
-export class KotlinNativeEnumType extends EnumType {
+export class KotlinCxxEnumType extends EnumType {
   readonly nativeConfig: NitroConfig
 
   constructor(type: EnumType, nativeConfig: NitroConfig = NitroConfig.current) {
@@ -14,17 +14,26 @@ export class KotlinNativeEnumType extends EnumType {
   }
 
   override getCode(language: Language, options: GetCodeOptions): string {
-    if (language === 'c++' && (options.fullyQualified || this.nativeConfig.isExternalConfig)) {
-      return this.nativeConfig.getCxxNamespace('c++', this.enumName)
+    switch (language) {
+      case 'c++':
+        if (options.fullyQualified || this.nativeConfig.isExternalConfig) {
+          return this.nativeConfig.getCxxNamespace('c++', this.enumName)
+        }
+        return super.getCode(language, options)
+      case 'kotlin':
+      case 'swift':
+        return super.getCode(language, options)
     }
-    return super.getCode(language, options)
   }
 
   override getRequiredImports(language: Language): SourceImport[] {
-    if (language === 'c++') {
-      return [{ language: 'c++', declaration: this.nativeConfig.getCxxHeader(this.declarationFile.name) }]
+    switch (language) {
+      case 'c++':
+        return [{ language: 'c++', declaration: this.nativeConfig.getCxxHeader(this.declarationFile.name) }]
+      case 'kotlin':
+      case 'swift':
+        return super.getRequiredImports(language)
     }
-    return super.getRequiredImports(language)
   }
 
   override getExtraFiles(): SourceFile[] {
