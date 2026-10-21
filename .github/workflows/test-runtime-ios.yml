@@ -73,7 +73,9 @@ jobs:
           bun -e '
             const config = require("./tests/standalone/test-runner/ios/config.json")
             const arch = config.arch === "auto" ? { arm64: "arm64", x64: "x86_64" }[process.arch] : config.arch
-            console.log(`arch=${arch}\njobs=${config.jobs}\ndeployment-target=${config.deploymentTarget}`)
+            console.log("arch=" + arch)
+            console.log("jobs=" + config.jobs)
+            console.log("deployment-target=" + config.deploymentTarget)
           ' >> "$GITHUB_OUTPUT"
       - name: Restore Hermes simulator XCFramework
         id: hermes-cache
