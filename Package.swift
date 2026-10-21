@@ -169,8 +169,7 @@ func addFixtureTargets(
       name: "\(name)Cxx",
       dependencies: ["NitroModulesCxx"] + dependencies,
       path: ".",
-      exclude: excludes(keeping: cxxSources)
-        + ["\(directory)/cpp/vendor/json/LICENSE.MIT", "\(directory)/cpp/vendor/json/README.md"].filter(exists),
+      exclude: excludes(keeping: cxxSources),
       sources: cxxSources,
       publicHeadersPath: "\(generated)/shared/c++/include",
       cxxSettings: cxxSettings + userHeaderSearchPaths(relativeTo: ".")
@@ -194,7 +193,6 @@ func addFixtureTargets(
       name: "\(name)SwiftBridge",
       dependencies: [.target(name: name), .target(name: "\(name)AppleCxx"), "NitroModulesSwiftBridge"] + dependencies,
       path: ios,
-      exclude: ["c++/include/module.modulemap"],
       sources: bridgeSources,
       publicHeadersPath: "c++/include",
       cxxSettings: cxxSettings + bridgeSettings + userHeaderSearchPaths(relativeTo: ios)
