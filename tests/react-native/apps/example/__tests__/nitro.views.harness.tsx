@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { PixelRatio, Platform, type LayoutRectangle, View } from 'react-native'
-import { describe, expect, fn, it, render, waitUntil } from 'react-native-harness'
+import { describe, expect, fn, it, render, waitFor, waitUntil } from 'react-native-harness'
 import { screen } from '@react-native-harness/ui'
 import { RecyclableTestView, type RecyclableTestViewRef, TestView, type TestViewRef } from 'react-native-nitro-test'
 import { TestView as TestViewClass } from 'react-native-nitro-test/src/specs/TestView.nitro'
@@ -138,11 +138,19 @@ async function waitForRecyclableViewRemoval(
   expectedOnDropViewCount: number,
   expectedPrepareForRecycleCount: number
 ): Promise<void> {
-  await waitUntil(
-    () =>
-      screen.queryByTestId(testID) === null &&
-      view.getOnDropViewCount() === expectedOnDropViewCount &&
-      view.getPrepareForRecycleCount() === expectedPrepareForRecycleCount,
+  await waitFor(
+    () => {
+      const actual = {
+        isMounted: screen.queryByTestId(testID) !== null,
+        onDropViewCount: view.getOnDropViewCount(),
+        prepareForRecycleCount: view.getPrepareForRecycleCount(),
+      }
+      expect(actual, `View "${testID}" removal`).toEqual({
+        isMounted: false,
+        onDropViewCount: expectedOnDropViewCount,
+        prepareForRecycleCount: expectedPrepareForRecycleCount,
+      })
+    },
     { timeout: RENDER_TIMEOUT }
   )
 }
