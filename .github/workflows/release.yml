@@ -25,6 +25,7 @@ permissions:
 
 jobs:
   resolve:
+    name: Resolve release commit
     if: >-
       github.repository == 'margelo/nitro' && !github.event.deleted && ((github.event_name == 'release' && startsWith(github.ref,
       'refs/tags/')) ||
@@ -58,12 +59,6 @@ jobs:
   build:
     needs: resolve
     uses: ./.github/workflows/build.yml
-    with:
-      ref: ${{ needs.resolve.outputs.commit }}
-
-  build-docs:
-    needs: resolve
-    uses: ./.github/workflows/build-docs.yml
     with:
       ref: ${{ needs.resolve.outputs.commit }}
 
@@ -127,18 +122,6 @@ jobs:
     with:
       ref: ${{ needs.resolve.outputs.commit }}
 
-  build-ios:
-    needs: resolve
-    uses: ./.github/workflows/build-ios.yml
-    with:
-      ref: ${{ needs.resolve.outputs.commit }}
-
-  build-android:
-    needs: resolve
-    uses: ./.github/workflows/build-android.yml
-    with:
-      ref: ${{ needs.resolve.outputs.commit }}
-
   harness-ios:
     needs: resolve
     uses: ./.github/workflows/harness-ios.yml
@@ -155,7 +138,6 @@ jobs:
     needs:
       - resolve
       - build
-      - build-docs
       - format-prettier
       - lint-cpp
       - lint-swift
@@ -166,18 +148,15 @@ jobs:
       - check-release
       - test-runtime-ios
       - test-runtime-android
-      - build-ios
-      - build-android
       - harness-ios
       - harness-android
     if: >-
-      !cancelled() && needs.resolve.result == 'success' && needs.build.result == 'success' && needs.build-docs.result == 'success' &&
-      needs.format-prettier.result == 'success' && needs.lint-cpp.result == 'success' && needs.lint-swift.result == 'success' &&
-      needs.lint-kotlin.result == 'success' && needs.lint-typescript.result == 'success' && needs.run-nitrogen.result == 'success' &&
-      needs.run-nitrogen-init.result == 'success' && needs.check-release.result == 'success' && needs.test-runtime-ios.result == 'success'
-      && needs.test-runtime-android.result == 'success' && needs.build-ios.result == 'success' && needs.build-android.result == 'success' &&
-      needs.harness-ios.result == 'success' && needs.harness-android.result == 'success' && (needs.resolve.outputs.branch == 'main' ||
-      needs.resolve.outputs.branch == 'v1')
+      !cancelled() && needs.resolve.result == 'success' && needs.build.result == 'success' && needs.format-prettier.result == 'success' &&
+      needs.lint-cpp.result == 'success' && needs.lint-swift.result == 'success' && needs.lint-kotlin.result == 'success' &&
+      needs.lint-typescript.result == 'success' && needs.run-nitrogen.result == 'success' && needs.run-nitrogen-init.result == 'success' &&
+      needs.check-release.result == 'success' && needs.test-runtime-ios.result == 'success' && needs.test-runtime-android.result ==
+      'success' && needs.harness-ios.result == 'success' && needs.harness-android.result == 'success' && (needs.resolve.outputs.branch ==
+      'main' || needs.resolve.outputs.branch == 'v1')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     concurrency:

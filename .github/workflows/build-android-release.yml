@@ -52,9 +52,6 @@ jobs:
           java-version: 17
           java-package: jdk
 
-      - name: Set minSdk in build.gradle to 26
-        run: sed -i "s/minSdkVersion = 24/minSdkVersion = 26/g" tests/react-native/apps/example/android/build.gradle
-
       - name: Run Gradle Build for tests/react-native/apps/example/android/
         working-directory: tests/react-native/apps/example/android
         run: |

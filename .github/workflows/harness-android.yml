@@ -79,9 +79,6 @@ jobs:
       - name: Generate test bindings
         run: bun specs
 
-      - name: Set minSdk in build.gradle
-        run: sed -i "s/minSdkVersion = 24/minSdkVersion = 26/g" tests/react-native/apps/example/android/build.gradle
-
       - name: Setup JDK 17
         uses: actions/setup-java@v6
         with:
@@ -98,10 +95,10 @@ jobs:
             tests/react-native/apps/example/android/.gradle
             tests/react-native/apps/example/android/app/.cxx
           key:
-            ${{ runner.os }}-gradle-26-${{ env.DEVICE_ARCH }}-Default-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties',
+            ${{ runner.os }}-gradle-${{ env.DEVICE_ARCH }}-Default-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties',
             '**/CMakeLists.txt', '**/*.cmake') }}
           restore-keys: |
-            ${{ runner.os }}-gradle-26-${{ env.DEVICE_ARCH }}-Default-
+            ${{ runner.os }}-gradle-${{ env.DEVICE_ARCH }}-Default-
       - name: Build React Native Android app
         working-directory: tests/react-native/apps/example/android
         run: ./gradlew :app:assembleDebug --no-daemon --build-cache -PreactNativeArchitectures=${{ env.DEVICE_ARCH }}
