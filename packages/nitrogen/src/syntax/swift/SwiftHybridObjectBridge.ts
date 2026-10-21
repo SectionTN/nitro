@@ -198,7 +198,8 @@ self.__implementation = implementation
     swiftMethodImplementations.push(
       `
 public static func is${spec.name}Recyclable() -> Bool {
-  return ${implementation.className}.self is any RecyclableView.Type
+  let viewType: any HybridView.Type = ${implementation.className}.self
+  return viewType is any RecyclableView.Type
 }
 `.trim()
     )
@@ -218,7 +219,7 @@ public final func afterUpdate() {
 }
 
 public final func maybePrepareForRecycle() {
-  guard let recyclable = __implementation as? any RecyclableView else { return }
+  guard let recyclable = get${hybridObjectNames.HybridTSpec}() as? any RecyclableView else { return }
   recyclable.prepareForRecycle()
 }
 

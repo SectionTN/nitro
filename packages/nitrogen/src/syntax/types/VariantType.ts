@@ -61,18 +61,16 @@ export class VariantType implements Type {
     return this.variants.flatMap((v) => v.getExtraFiles())
   }
   getRequiredImports(language: Language): SourceImport[] {
-    const imports: SourceImport[] = []
+    const imports = this.variants.flatMap((v) => v.getRequiredImports(language))
     switch (language) {
       case 'c++':
-        imports.push(...this.variants.flatMap((v) => v.getRequiredImports(language)))
         imports.push({
-          language,
+          language: language,
           declaration: { header: 'variant', space: 'system' },
         })
         break
-      case 'kotlin':
-        imports.push(...this.variants.flatMap((v) => v.getRequiredImports(language)))
-        break
+      case 'swift':
+        return []
     }
     return imports
   }

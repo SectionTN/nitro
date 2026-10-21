@@ -178,7 +178,8 @@ public final class HybridTestViewSpec_cxx {
   }
 
   public static func isTestViewRecyclable() -> Bool {
-    return HybridTestView.self is any RecyclableView.Type
+    let viewType: any HybridView.Type = HybridTestView.self
+    return viewType is any RecyclableView.Type
   }
 
   public final func getView() -> UnsafeMutableRawPointer {
@@ -194,7 +195,7 @@ public final class HybridTestViewSpec_cxx {
   }
 
   public final func maybePrepareForRecycle() {
-    guard let recyclable = __implementation as? any RecyclableView else { return }
+    guard let recyclable = getHybridTestViewSpec() as? any RecyclableView else { return }
     recyclable.prepareForRecycle()
   }
 
