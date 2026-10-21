@@ -1,5 +1,6 @@
 #include "TestRuntime.hpp"
 #include <NitroModules/ByteBufferArrayBuffer.hpp>
+#include <NitroModules/JArrayBuffer.hpp>
 #include <NitroModules/JNIConverter+Map.hpp>
 #include <NitroModules/JNIConverter+Promise.hpp>
 #include <NitroModules/JNIConverter+String.hpp>
@@ -194,8 +195,19 @@ public:
     }
   }
 
+  static jni::local_ref<margelo::nitro::JArrayBuffer::javaobject> nativeBuffer(jni::alias_ref<JNativeTestRuntime>, jint size,
+                                                                               bool byteBufferBacking) {
+    using namespace margelo::nitro;
+    if (byteBufferBacking) {
+      ArrayBuffer buffer(std::make_shared<ByteBufferArrayBuffer>(jni::JByteBuffer::allocateDirect(size)));
+      return JArrayBuffer::wrap(buffer);
+    }
+    return JArrayBuffer::wrap(ArrayBuffer::allocate(size));
+  }
+
   static void registerNatives() {
     javaClassStatic()->registerNatives({makeNativeMethod("runTest", JNativeTestRuntime::runTest),
+                                        makeNativeMethod("nativeBuffer", JNativeTestRuntime::nativeBuffer),
                                         makeNativeMethod("checkHybridObjectCache", JNativeTestRuntime::checkHybridObjectCache),
                                         makeNativeMethod("checkGlobalRefCleanup", JNativeTestRuntime::checkGlobalRefCleanup),
                                         makeNativeMethod("roundtripStringMap", JNativeTestRuntime::roundtripStringMap),

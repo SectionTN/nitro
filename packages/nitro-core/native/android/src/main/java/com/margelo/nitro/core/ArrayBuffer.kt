@@ -37,6 +37,7 @@ class ArrayBuffer {
    * Holds the native C++ instance of the `ArrayBuffer`.
    */
   private val mHybridData: HybridData
+  private val hasBackingByteBuffer: Boolean
 
   /**
    * Whether this `ArrayBuffer` is an **owning-**, or a **non-owning-** `ArrayBuffer`.
@@ -56,7 +57,7 @@ class ArrayBuffer {
    * but the returned `ByteBuffer` is only valid as long as its parent `ArrayBuffer` is alive.
    */
   val isByteBuffer: Boolean
-    get() = getIsByteBuffer()
+    get() = hasBackingByteBuffer
 
   /**
    * Whether this `ArrayBuffer` is holding a `HardwareBuffer`, or not.
@@ -91,7 +92,8 @@ class ArrayBuffer {
    * its `position`, `limit`, or `mark` will not affect the `ArrayBuffer`'s internal `ByteBuffer`.
    */
   fun getBuffer(copyIfNeeded: Boolean): ByteBuffer {
-    return getByteBuffer(copyIfNeeded).arrayBufferView()
+    val buffer = getByteBuffer(copyIfNeeded)
+    return if (hasBackingByteBuffer) buffer.arrayBufferView() else buffer
   }
 
   /**
@@ -153,6 +155,7 @@ class ArrayBuffer {
       )
     }
     mHybridData = initHybrid(byteBuffer)
+    hasBackingByteBuffer = true
   }
 
   /**
@@ -165,6 +168,7 @@ class ArrayBuffer {
       throw Error("Cannot create ArrayBuffer from an already-closed HardwareBuffer!")
     }
     mHybridData = initHybridBoxedHardwareBuffer(hardwareBuffer)
+    hasBackingByteBuffer = false
   }
 
   /**
@@ -175,6 +179,7 @@ class ArrayBuffer {
   @DoNotStrip
   private constructor(hybridData: HybridData) {
     mHybridData = hybridData
+    hasBackingByteBuffer = getIsByteBuffer()
   }
 
   @FastNative
@@ -217,8 +222,7 @@ class ArrayBuffer {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && other.isHardwareBuffer) {
         // Fast Path: Try copying the C++ HardwareBuffer
         try {
-          val hardwareBuffer = other.getHardwareBuffer()
-          return copy(hardwareBuffer)
+          return other.getHardwareBuffer().use { copy(it) }
         } catch (error: Throwable) {
           Log.w("ArrayBuffer", "Failed to copy HardwareBuffer, falling back to ByteBuffer copy...", error)
           // fallthrough
@@ -263,8 +267,7 @@ class ArrayBuffer {
      */
     @RequiresApi(Build.VERSION_CODES.O)
     fun copy(hardwareBuffer: HardwareBuffer): ArrayBuffer {
-      val copy = HardwareBufferUtils.copyHardwareBuffer(hardwareBuffer)
-      return ArrayBuffer(copy)
+      return HardwareBufferUtils.copyHardwareBuffer(hardwareBuffer).use { ArrayBuffer(it) }
     }
 
     /**

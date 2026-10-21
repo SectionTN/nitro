@@ -100,13 +100,14 @@ public:
   [[nodiscard]] jni::local_ref<jni::JByteBuffer> getByteBuffer(bool copyIfNeeded) {
     auto byteBufferArrayBuffer = std::dynamic_pointer_cast<ByteBufferArrayBuffer>(_arrayBuffer.getNativeBuffer());
     if (byteBufferArrayBuffer != nullptr) {
-      // It is a `ByteBufferArrayBuffer`, which has a `ByteBuffer` underneath!
       return jni::make_local(byteBufferArrayBuffer->getBuffer());
     } else {
       // It is a different kind of `ArrayBuffer`, we need to copy or wrap the data.
       size_t size = _arrayBuffer.size();
       if (size == 0) {
-        return jni::JByteBuffer::allocateDirect(0);
+        auto buffer = jni::JByteBuffer::allocateDirect(0);
+        buffer->order(jni::JByteOrder::nativeOrder());
+        return buffer;
       }
       if (copyIfNeeded) {
         auto buffer = jni::JByteBuffer::allocateDirect(size);
