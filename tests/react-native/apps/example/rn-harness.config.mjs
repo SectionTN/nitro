@@ -33,7 +33,8 @@ const config = {
   eagerPrewarm: false,
   // View cases perform several render/recycling steps and native screenshots.
   testTimeout: process.env.CI === 'true' ? 30000 : 10000,
-  platformReadyTimeout: process.env.CI === 'true' ? 420000 : 300000,
+  // A fresh CI simulator migrates data on its first boot; one boot took 385 s.
+  platformReadyTimeout: process.env.CI === 'true' ? 600000 : 300000,
   bridgeTimeout: process.env.CI === 'true' ? 180000 : 60000,
   bundleStartTimeout: process.env.CI === 'true' ? 120000 : 60000,
 }
