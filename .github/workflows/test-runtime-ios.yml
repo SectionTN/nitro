@@ -28,8 +28,10 @@ permissions:
   contents: read
 
 concurrency:
-  group: test-runtime-ios-${{ inputs.ref && github.run_id || github.ref }}
-  cancel-in-progress: true
+  group:
+    test-runtime-ios-${{ (github.event_name == 'push' || github.event_name == 'pull_request') && github.ref_name != 'main' && github.ref ||
+    github.run_id }}
+  cancel-in-progress: ${{ github.ref_name != 'main' }}
 
 jobs:
   swift-testing:

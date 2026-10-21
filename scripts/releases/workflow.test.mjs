@@ -21,6 +21,91 @@ function evaluate(expression, { cancelled = false, ...context } = {}) {
   )
 }
 
+function nativeConcurrency(name) {
+  const config = Bun.YAML.parse(readFileSync(new URL(`../../.github/workflows/${name}.yml`, import.meta.url), 'utf8'))
+  const cancel = config.concurrency['cancel-in-progress']
+  return {
+    cancel: (github) => (typeof cancel === 'boolean' ? cancel : evaluate(cancel, { github })),
+    group: (github, ref = '') =>
+      config.concurrency.group.replace(/\$\{\{([\s\S]*?)\}\}/g, (_, expression) => evaluate(expression, { github, inputs: { ref } })),
+  }
+}
+
+test('native checks cancel superseded v1 pushes and pull request updates', () => {
+  for (const name of nativeWorkflows) {
+    const concurrency = nativeConcurrency(name)
+    for (const [event, ref, refName] of [
+      ['push', 'refs/heads/v1', 'v1'],
+      ['pull_request', 'refs/pull/1915/merge', '1915/merge'],
+    ]) {
+      assert.equal(concurrency.cancel({ event_name: event, ref: ref, ref_name: refName }), true, name)
+      assert.equal(
+        concurrency.group({ event_name: event, ref: ref, ref_name: refName, run_id: 100 }, 'a'.repeat(40)),
+        concurrency.group({ event_name: event, ref: ref, ref_name: refName, run_id: 101 }, 'b'.repeat(40)),
+        `${name}: ${event} updates on ${ref} must share a group even with an exact commit input`
+      )
+    }
+  }
+})
+
+test('main commits keep independent native runs, including pending jobs', () => {
+  for (const name of nativeWorkflows) {
+    const concurrency = nativeConcurrency(name)
+    for (const event of ['push', 'workflow_dispatch']) {
+      const first = { event_name: event, ref: 'refs/heads/main', ref_name: 'main', run_id: 100 }
+      const second = { event_name: event, ref: 'refs/heads/main', ref_name: 'main', run_id: 101 }
+      assert.equal(concurrency.cancel(first), false, name)
+      assert.equal(concurrency.cancel(second), false, name)
+      assert.notEqual(concurrency.group(first, 'a'.repeat(40)), concurrency.group(second, 'b'.repeat(40)), name)
+    }
+  }
+})
+
+test('native workflows, branches and pull requests have independent groups', () => {
+  const groups = []
+  for (const name of nativeWorkflows) {
+    const concurrency = nativeConcurrency(name)
+    for (const [event, ref, refName] of [
+      ['push', 'refs/heads/main', 'main'],
+      ['push', 'refs/heads/v1', 'v1'],
+      ['pull_request', 'refs/pull/1915/merge', '1915/merge'],
+      ['pull_request', 'refs/pull/1916/merge', '1916/merge'],
+    ]) {
+      groups.push(concurrency.group({ event_name: event, ref: ref, ref_name: refName, run_id: 100 }))
+    }
+  }
+  assert.equal(new Set(groups).size, groups.length)
+})
+
+test('manual and tagged native validations do not cancel each other or branch pushes', () => {
+  for (const name of nativeWorkflows) {
+    const concurrency = nativeConcurrency(name)
+    const groups = [concurrency.group({ event_name: 'push', ref: 'refs/heads/v1', ref_name: 'v1', run_id: 100 }, 'a'.repeat(40))]
+    let run = 101
+    for (const [event, ref, refName, input] of [
+      ['workflow_dispatch', 'refs/heads/v1', 'v1', ''],
+      ['workflow_dispatch', 'refs/heads/v1', 'v1', 'a'.repeat(40)],
+      ['release', 'refs/tags/v1.0.0-alpha.1', 'v1.0.0-alpha.1', 'a'.repeat(40)],
+    ]) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        groups.push(concurrency.group({ event_name: event, ref: ref, ref_name: refName, run_id: run++ }, input))
+      }
+    }
+    assert.equal(new Set(groups).size, groups.length, name)
+  }
+})
+
+test('publication keeps its noncancelling queue', () => {
+  assert.deepEqual(workflow.jobs.release.concurrency, { 'group': 'nitro-release', 'cancel-in-progress': false, 'queue': 'max' })
+  for (const name of nativeWorkflows) {
+    const concurrency = nativeConcurrency(name)
+    assert.notEqual(
+      concurrency.group({ event_name: 'push', ref: 'refs/heads/v1', ref_name: 'v1', run_id: 100 }),
+      workflow.jobs.release.concurrency.group
+    )
+  }
+})
+
 function prerequisites(branch) {
   const needs = Object.fromEntries(workflow.jobs.release.needs.map((name) => [name, { result: 'success' }]))
   needs.resolve.outputs = { branch, commit: 'a'.repeat(40) }
