@@ -85,11 +85,9 @@ export class KotlinInstanceMethod extends InstanceMethod {
       generated: true,
     })
     const isNonvirtual = nonvirtual || this.needsKotlinForwarder
-    // Private forwarders must resolve on their declaring spec to avoid implementation method name collisions.
-    const jniClass = this.needsKotlinForwarder ? 'JavaPart::javaClassStatic()' : 'CxxPart::getClass()'
     const jniMethod = isNonvirtual ? 'getNonvirtualMethod' : 'getMethod'
-    const jniMethodLookup = `${jniClass}->${jniMethod}`
-    const jniDeclaringClass = isNonvirtual ? jniClass : undefined
+    const jniMethodLookup = `CxxPart::getClass()->${jniMethod}`
+    const jniDeclaringClass = isNonvirtual ? 'CxxPart::getClass()' : undefined
     const cppBody = createCppJniCallBody({
       callable: this.callable,
       jvmName: this.name,

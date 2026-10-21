@@ -112,8 +112,8 @@ namespace margelo::nitro::test {
     __method(_javaPart, CxxPart::getClass(), JColorScheme::fromCpp(colorScheme));
   }
   Callback<void()> JHybridTestViewSpec::getSomeCallback() {
-    static const auto __method = JavaPart::javaClassStatic()->getNonvirtualMethod<jni::local_ref<JCallback_void::javaobject>()>("getSomeCallback_cxx");
-    auto __result = __method(_javaPart, JavaPart::javaClassStatic());
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<JCallback_void::javaobject>()>("getSomeCallback_cxx");
+    auto __result = __method(_javaPart, CxxPart::getClass());
     return [&]() -> Callback<void()> {
       if (__result->isInstanceOf(JCallback_void_cxx::javaClassStatic())) [[likely]] {
         auto downcast = jni::static_ref_cast<JCallback_void_cxx::javaobject>(__result);
@@ -125,8 +125,8 @@ namespace margelo::nitro::test {
     }();
   }
   void JHybridTestViewSpec::setSomeCallback(const Callback<void()>& someCallback) {
-    static const auto __method = JavaPart::javaClassStatic()->getNonvirtualMethod<void(jni::alias_ref<JCallback_void::javaobject> /* someCallback */)>("setSomeCallback_cxx");
-    __method(_javaPart, JavaPart::javaClassStatic(), JCallback_void_cxx::fromCpp(someCallback));
+    static const auto __method = CxxPart::getClass()->getNonvirtualMethod<void(jni::alias_ref<JCallback_void::javaobject> /* someCallback */)>("setSomeCallback_cxx");
+    __method(_javaPart, CxxPart::getClass(), JCallback_void_cxx::fromCpp(someCallback));
   }
   std::optional<double> JHybridTestViewSpec::getNativeDefaultValue() {
     static const auto __method = CxxPart::getClass()->getNonvirtualMethod<jni::local_ref<jni::JDouble>()>("getNativeDefaultValue");
