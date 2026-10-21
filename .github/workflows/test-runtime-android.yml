@@ -120,38 +120,7 @@ jobs:
             matrix.sanitizer.flag }} --build-cache
       - name: Summarize JUnit results
         if: always()
-        run: |
-          python3 - <<'PY'
-          import os
-          from pathlib import Path
-          import xml.etree.ElementTree as ET
-
-          reports = Path('tests/standalone/test-runner/android/build/outputs/androidTest-results/connected').rglob('TEST-*.xml')
-          cases = [case for report in sorted(reports) for case in ET.parse(report).getroot().iter('testcase')]
-          lines = []
-          passed = failed = skipped = 0
-          for case in cases:
-              name = f"{case.get('classname', '').rsplit('.', 1)[-1]}.{case.get('name', '')}"
-              failure = case.find('failure')
-              if failure is None:
-                  failure = case.find('error')
-              if failure is not None:
-                  failed += 1
-                  lines.append(f'✗ {name}')
-                  details = (failure.text or failure.get('message', '')).strip()
-                  lines.extend(f'  {line}' for line in details.splitlines())
-              elif case.find('skipped') is not None:
-                  skipped += 1
-                  lines.append(f'- {name} (skipped)')
-              else:
-                  passed += 1
-                  lines.append(f'✓ {name}')
-          lines.append(f'{passed} passed, {failed} failed, {skipped} skipped' if cases else 'No JUnit results were produced.')
-          result = '\n'.join(lines)
-          print(result)
-          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
-              summary.write(f'### Android JUnit results\n\n```text\n{result}\n```\n')
-          PY
+        run: bun tests/standalone/test-runner/android/report-results.mjs
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v7

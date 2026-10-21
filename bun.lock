@@ -207,6 +207,7 @@
       "devDependencies": {
         "@types/chai": "5.2.3",
         "chai": "5.3.3",
+        "fast-xml-parser": "5.11.2",
         "nitro-core": "workspace:*",
         "nitro-test": "workspace:*",
         "nitro-test-external": "workspace:*",
